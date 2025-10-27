@@ -1,0 +1,187 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--Primair);
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: clamp(0.5rem, 2vw, 2rem);
+}
+
+h1 {
+    color: var(--Text_on_primair);
+    text-align: center;
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    margin-bottom: clamp(1rem, 3vw, 2rem);
+    font-weight: bold;
+    letter-spacing: 0.02em;
+}
+
+form {
+    width: min(95vw, 50rem);
+    padding: clamp(1rem, 2.5vw, 2.5rem);
+    margin: 0 auto;
+}
+
+.form-group {
+    width: 88%;
+    margin: 0 auto;
+    margin-bottom: clamp(1rem, 2.5vw, 1.8rem);
+}
+
+.input-row {
+    display: flex;
+    align-items: center;
+    gap: clamp(0.5rem, 1vw, 0.8rem);
+}
+
+.input-row input {
+    flex: 1 1 auto;
+    width: auto;
+}
+
+.field-button {
+    padding: 0.5rem 0.8rem;
+    background-color: rgba(0,0,0,0.08);
+    color: var(--Text_on_primair);
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    min-width: 5rem;
+}
+
+.field-button:hover {
+    background-color: rgba(0,0,0,0.12);
+}
+
+.name-row {
+    width: 88%;
+    margin: 0 auto;
+    margin-bottom: clamp(1rem, 2.5vw, 1.8rem);
+    display: flex;
+    gap: clamp(0.8rem, 1.5vw, 1.5rem);
+}
+
+.half-width {
+    flex: 1;
+    width: auto;
+    margin: 0;
+    margin-bottom: 0;
+}
+
+label {
+    display: block;
+    color: var(--Text_on_primair);
+    font-size: clamp(1rem, 1.8vw, 1.3rem);
+    margin-bottom: clamp(0.3rem, 0.8vw, 0.6rem);
+    font-weight: bold;
+    width: 100%;
+    text-align: left;
+}
+
+input[type="text"],
+input[type="tel"],
+input[type="email"],
+input[type="password"] {
+    width: 80%;
+    display: block;
+    margin: 0;
+    padding: clamp(0.6rem, 1.5vw, 1rem) clamp(0.8rem, 2vw, 1.3rem);
+    border: none;
+    border-radius: clamp(8px, 1.2vw, 12px);
+    background-color: #d4d4d4;
+    font-size: clamp(0.9rem, 1.3vw, 1.1rem);
+    outline: none;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+input[type="text"]:focus,
+input[type="tel"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus {
+    background-color: #e0e0e0;
+    box-shadow: 0 0 0 3px rgba(255, 96, 0, 0.2);
+}
+
+.uitlog-button, .verwijder-button {
+    width: 100%;
+    max-width: clamp(11rem, 28vw, 15rem);
+    padding: clamp(0.7rem, 1.5vw, 1rem);
+    background-color: var(--button);
+    color: var(--Text_on_button);
+    border: none;
+    border-radius: clamp(8px, 1.2vw, 12px);
+    font-size: clamp(1.1rem, 1.8vw, 1.5rem);
+    font-weight: bold;
+    cursor: pointer;
+    display: block;
+    margin: 0 auto;
+    margin-top: clamp(1.2rem, 2.5vw, 2rem);
+    text-decoration: none;
+    text-align: center;
+}
+
+.uitlog-button:hover, .verwijder-button:hover {
+    background-color: #ff7722;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(255, 96, 0, 0.3);
+}
+
+.uitlog-button:active, .verwijder-button:active {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 96, 0, 0.3);
+}
+
+.skip-link {
+    position: absolute;
+    top: -40px;
+    left: 6px;
+    background: var(--button);
+    color: var(--Text_on_button);
+    padding: 8px;
+    text-decoration: none;
+    border-radius: 4px;
+    z-index: 1000;
+}
+
+.skip-link:focus {
+    top: 6px;
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.error-message {
+    color: #dc3545;
+    font-size: clamp(0.8rem, 1.2vw, 0.9rem);
+    margin-top: 0.25rem;
+    display: block;
+}
+
+.optional {
+    font-weight: normal;
+    opacity: 0.8;
+}
+
+fieldset {
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
