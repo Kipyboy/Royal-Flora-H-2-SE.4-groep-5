@@ -8,71 +8,135 @@
     </head>
     <body>
             <nav>
-                <span class="nav-text"> Actieve veilingen</span>
+                <div class="hamburger" id="sidebar-button">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <span class="nav-text">Home</span>
                 <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Royal_FloraHolland_Logo.svg/1200px-Royal_FloraHolland_Logo.svg.png" alt="Royal_FloraHolland_Logo">
                 <a class="pfp-container" href="">
                     <img src="https://www.pikpng.com/pngl/m/80-805068_my-profile-icon-blank-profile-picture-circle-clipart.png" alt="">
                 </a>
             </nav>
-            <div class="content">
-                <div class="sidebar">
+            <div class="main-layout">
+                <div class="sidebar" id="sidebar">
                     <div class="toptext">
-                        <p>Aankomende producten per locatie</p>
+                        <p>Filters</p>
                     </div>
-                    <div class="dropdown">
-                        <button class="dropdownbtn">Locatie A</button>
-                        <div class="dropdown-content">
-                            <p>test</p>
+                    <fieldset>
+                        <legend>Gekocht</legend>
+                        <div>
+                            <input type="checkbox" name="Ja">
+                            <label for="Ja">Ja</label>
                         </div>
-                    </div>
-                    <div class="dropdown">
-                        <button class="dropdownbtn">Locatie B</button>
-                        <div class="dropdown-content">
-                            <p>test</p>
+                    </fieldset>
+                    <fieldset>
+                        <legend>Locatie</legend>
+                        <div>
+                            <input type="checkbox" name="A" id="">
+                            <label for="A">A</label>
+                            <input type="checkbox" name="B" id="">
+                            <label for="B">B</label>
+                            <input type="checkbox" name="C" id="">
+                            <label for="C">C</label>
+                            <input type="checkbox" name="D" id="">
+                            <label for="D">D</label>
                         </div>
-                    </div>
-                    <div class="dropdown">
-                        <button class="dropdownbtn">Locatie C</button>
-                        <div class="dropdown-content">
-                            <p>test</p>
+                    </fieldset>
+                    <fieldset>
+                        <legend>Datum</legend>
+                        <div>
+                            <input type="date">
                         </div>
-                    </div>
-                    <div class="dropdown">
-                        <button class="dropdownbtn">Locatie D</button>
-                        <div class="dropdown-content">
-                            <p>test</p>
+                    </fieldset>
+                    <fieldset>
+                        <legend>Merk</legend>
+                        <div>
+                            <input type="text">
                         </div>
-                    </div>
-                </div>
-                <div class="veilingen">
+                    </fieldset>
                     
-                    <a class='card' href="">
-                        <p>Locatie A</p>
-                        <p id="aanvoerderText">Aanvoerder:</p>
-                        <p id="verlopenTijdText">Verlopen tijd:</p>
-                        <p id="huidigProductText">Huidig product:</p>
-                    </a>
-                    <a class='card' href="">
-                        <p>Locatie B</p>
-                        <p id="aanvoerderText">Aanvoerder:</p>
-                        <p id="verlopenTijdText">Verlopen tijd:</p>
-                        <p id="huidigProductText">Huidig product:</p>
-                    </a>
-                    <a class='card' href="">
-                        <p>Locatie C</p>
-                        <p id="aanvoerderText">Aanvoerder:</p>
-                        <p id="verlopenTijdText">Verlopen tijd:</p>
-                        <p id="huidigProductText">Huidig product:</p>
-                    </a>
-                    <a class='card' href="">
-                        <p>Locatie D</p>
-                        <p id="aanvoerderText">Aanvoerder:</p>
-                        <p id="verlopenTijdText">Verlopen tijd:</p>
-                        <p id="huidigProductText">Huidig product:</p>
-                    </a>
+                </div>
+                <div class="content">
+                    
+                    
+                    <div class="veilingen">
+                        
+                        <a class='card' href="">
+                            <p>Locatie A</p>
+                            <p id="aanvoerderText">Aanvoerder:</p>
+                            <p id="verlopenTijdText">Verlopen tijd:</p>
+                            <p id="huidigProductText">Huidig product:</p>
+                        </a>
+                        <a class='card' href="">
+                            <p>Locatie B</p>
+                            <p id="aanvoerderText">Aanvoerder:</p>
+                            <p id="verlopenTijdText">Verlopen tijd:</p>
+                            <p id="huidigProductText">Huidig product:</p>
+                        </a>
+                        <a class='card' href="">
+                            <p>Locatie C</p>
+                            <p id="aanvoerderText">Aanvoerder:</p>
+                            <p id="verlopenTijdText">Verlopen tijd:</p>
+                            <p id="huidigProductText">Huidig product:</p>
+                        </a>
+                        <a class='card' href="">
+                            <p>Locatie D</p>
+                            <p id="aanvoerderText">Aanvoerder:</p>
+                            <p id="verlopenTijdText">Verlopen tijd:</p>
+                            <p id="huidigProductText">Huidig product:</p>
+                        </a>
+                    </div>
+                    <div class="producten">
+                        <div class="gekochte-producten">
+                        </div>
+                        <div class="aankomende-producten">
+                            <p>Aankomende producten per locatie:</p>
+                            <div class="aankomende-producten-lijst">
+                                <div class="aankomende-producten-voor-locatie">
+                                    <p>Locatie A</p>
+                                    <p>1</p>
+                                    <p>2</p>
+                                    <p>3</p>
+                                    <p>4</p>
+                                    <p>5</p>
+                                </div>
+                                <div class="aankomende-producten-voor-locatie">
+                                    <p>Locatie B</p>
+                                    <p>1</p>
+                                    <p>2</p>
+                                    <p>3</p>
+                                    <p>4</p>
+                                    <p>5</p>
+                                </div>
+                                <div class="aankomende-producten-voor-locatie">
+                                    <p>Locatie C</p>
+                                    <p>1</p>
+                                    <p>2</p>
+                                    <p>3</p>
+                                    <p>4</p>
+                                    <p>5</p>
+                                </div>
+                                <div class="aankomende-producten-voor-locatie">
+                                    <p>Locatie D</p>
+                                    <p>1</p>
+                                    <p>2</p>
+                                    <p>3</p>
+                                    <p>4</p>
+                                    <p>5</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-
             
     </body>
 </html>
+<script>
+document.getElementById('sidebar-button').addEventListener('click', function() {
+    var sidebar = document.getElementById('sidebar');
+    sidebar.style.display = sidebar.style.display === 'flex' ? 'none' : 'flex';
+});
+</script>
