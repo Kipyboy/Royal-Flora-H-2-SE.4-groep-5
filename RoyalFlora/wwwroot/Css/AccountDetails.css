@@ -8,7 +8,7 @@ nav {
     top: 0;
     left: 0;
     right: 0;
-    height: 100px; /* adjust as needed */
+    height: 100px;
     background-color: #6BB77B;
     display: flex;
     align-items: center;
@@ -18,19 +18,33 @@ nav {
     box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 nav img {
+    position: relative;
+    border: none;
+    outline: none;
+    height: 100px;
+    width: auto;
+    margin: 0 auto;
+    align-items: center;
+    color: #fff;
+}
+.nav-text {
+    position: absolute;
+    left: 30px;
+    width: min(95vw, 50rem);
+    font-size: 2rem;
+    color: #fff;
+    font-weight: bold;
+}
+
+.pfp-container {
+    position: absolute;
+    right: 0px;
     border: none;
     outline: none;
     height: 100px;
     width: auto;
     margin: 0 auto;
     display: block;
-}
-.nav-text {
-    position: absolute;
-    left: 30px;
-    font-size: 2rem;
-    color: #fff;
-    font-weight: bold;
 }
 body {
     background-color: var(--Primair);
@@ -168,11 +182,11 @@ input[type="password"]:focus {
 }
 
 .skip-link {
-    position: absolute;
-    top: -40px;
+    position: relative;
+    top: center;
     left: 6px;
-    background: var(--button);
-    color: var(--Text_on_button);
+    font-size: clamp(1rem, 2vw, 1.5rem);
+    color: var(--Text_on_primair);
     padding: 8px;
     text-decoration: none;
     border-radius: 4px;
