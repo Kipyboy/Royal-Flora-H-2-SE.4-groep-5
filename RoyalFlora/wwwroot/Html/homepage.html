@@ -24,39 +24,36 @@
                     <div class="toptext">
                         <p>Filters</p>
                     </div>
-                    <fieldset>
-                        <legend>Gekocht</legend>
-                        <div>
-                            <input type="checkbox" name="Ja">
-                            <label for="Ja">Ja</label>
-                        </div>
-                    </fieldset>
-                    <fieldset>
-                        <legend>Locatie</legend>
-                        <div>
-                            <input type="checkbox" name="A" id="">
-                            <label for="A">A</label>
-                            <input type="checkbox" name="B" id="">
-                            <label for="B">B</label>
-                            <input type="checkbox" name="C" id="">
-                            <label for="C">C</label>
-                            <input type="checkbox" name="D" id="">
-                            <label for="D">D</label>
-                        </div>
-                    </fieldset>
-                    <fieldset>
-                        <legend>Datum</legend>
-                        <div>
-                            <input type="date">
-                        </div>
-                    </fieldset>
-                    <fieldset>
-                        <legend>Merk</legend>
-                        <div>
-                            <input type="text">
-                        </div>
-                    </fieldset>
-                    
+                    <button class="verander-pagina-content" id="verander-pagina-content">
+                        Toon gekochte producten
+                    </button>
+                    <div class="filters">
+                        <fieldset>
+                            <legend>Locatie</legend>
+                            <div>
+                                <input type="checkbox" name="A" id="">
+                                <label for="A">A</label>
+                                <input type="checkbox" name="B" id="">
+                                <label for="B">B</label>
+                                <input type="checkbox" name="C" id="">
+                                <label for="C">C</label>
+                                <input type="checkbox" name="D" id="">
+                                <label for="D">D</label>
+                            </div>
+                        </fieldset>
+                        <fieldset>
+                            <legend>Datum</legend>
+                            <div>
+                                <input type="date">
+                            </div>
+                        </fieldset>
+                        <fieldset>
+                            <legend>Merk</legend>
+                            <div>
+                                <input type="text">
+                            </div>
+                        </fieldset>
+                    </div>
                 </div>
                 <div class="content">
                     
@@ -89,10 +86,8 @@
                         </a>
                     </div>
                     <div class="producten">
-                        <div class="gekochte-producten">
-                        </div>
                         <div class="aankomende-producten">
-                            <p>Aankomende producten per locatie:</p>
+                            <p id="product-div-text">Aankomende producten per locatie:</p>
                             <div class="aankomende-producten-lijst">
                                 <div class="aankomende-producten-voor-locatie">
                                     <p>Locatie A</p>

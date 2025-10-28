@@ -72,11 +72,14 @@ body {
     margin: 1rem;
 
 }
-.sidebar-button {
+.filters {
+    display: none;
+}
+.verander-pagina-content {
     background-color: var(--button);
     color: var(--Text_on_button);
-    width: 3rem;
-    height: 2rem;
+    width: 6rem;
+    height: 3.5rem;
     margin: 1rem;
     border-radius: 0.75rem;
 }
@@ -85,25 +88,21 @@ body {
     position: relative;
     height: 40vh;
     display: flex;
-    flex-direction: row;
+    flex-flow: row wrap;
     width: 100%;
     box-sizing: border-box;
 }
 .card {
     display: flex;
     background-color: var(--button);
-    width: 80%;
+    width: 20%;
     height: fit-content;
     border-radius: 0.75rem; /* 12px = 0.75rem */
     text-decoration: none;
     flex-direction: column;
     margin: 2rem;
 }
-.card img {
-    width: 9.375rem; /* 150px = 9.375rem */
-    height: auto;
-    
-}
+
 .card p {
     padding-left: 0.625rem; /* 10px = 0.625rem */
     color: var(--Text_on_button);
@@ -149,12 +148,6 @@ a img {
     margin: 2rem;
     text-align: center;
     font-size: 1rem;
-}
-.gekochte-producten {
-    flex: 1 1 0;
-    min-width: 0;
-    height: 60vh;
-    box-sizing: border-box;
 }
 .producten {
     position: relative;
