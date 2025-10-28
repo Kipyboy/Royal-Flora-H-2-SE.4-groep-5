@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="nl">
+    <head>
+        <meta charset="UTF-8">
+        <title>Veiling</title>
+        <script src="../js/Veiling.js"></script>
+        <link rel="stylesheet" href="../Css/Root.css">
+        <link rel="stylesheet" href="../Css/Veiling.css">
+    </head>
+    <body>
+        <nav>
+            <a href="#main" class="skip-link">Home</a>
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Royal_FloraHolland_Logo.svg/1200px-Royal_FloraHolland_Logo.svg.png" alt="Royal_FloraHolland_Logo">
+            <a class="pfp-container" href="">
+            <img src="https://www.pikpng.com/pngl/m/80-805068_my-profile-icon-blank-profile-picture-circle-clipart.png" alt="Profiel-foto">
+            </a>
+        </nav>
+        <div id="veiling-timer"></div>
+        <div class="main-content">
+            <div id="viewer" class="hidden"></div>
+        </div>
+        <div class="gallery">
+            <div id="photo-strip"></div>
+        </div>
+        <div class="sidebar">
+            <div class="sidebar-top">
+                <p>Naam:</p>
+                <p>Beschrijving:</p>
+            </div>
+            <div class="sidebar-bottom">
+                <p>Prijs: </p>
+                <button onclick="VeilingTimer.stop()">Koop</button>
+                <div id="huidige-tijd">--:--:--</div>
+            </div>
+        </div>
+    </body>
+</html>
