@@ -70,8 +70,8 @@ export default function Login() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    e_mail: formData.email,
-                    wachtwoord: formData.password
+                    Email: formData.email,
+                    Password: formData.password
                 }),
             });
 
