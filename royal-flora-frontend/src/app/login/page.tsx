@@ -80,7 +80,7 @@ export default function Login() {
                 // Store token or user info if needed
                 localStorage.setItem('user', JSON.stringify(data));
                 alert('Inloggen succesvol!');
-                router.push('/');
+                router.push('/homepage');
             } else {
                 const error = await response.json();
                 alert(`Inloggen mislukt: ${error.message || 'Onjuiste email of wachtwoord'}`);
