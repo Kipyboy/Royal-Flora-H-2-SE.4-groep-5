@@ -1,4 +1,4 @@
-/* Nav logo centeren en stylen */
+
 .nav-logo-container {
     flex: 1;
     display: flex;
@@ -12,7 +12,7 @@
 .pfp-container {
     display: flex;
     align-items: center;
-    padding-right: 1.875rem; /* 30px = 1.875rem */
+    padding-right: 1.875rem; 
 }
 .pfp-img {
     height: 50px;
@@ -75,7 +75,7 @@ body {
     flex: 1;
 }
 .sidebar {
-    width: 12.5rem; /* 200px = 12.5rem */
+    width: 12.5rem;
     background-color: var(--Secondair);
     display: none;
     flex-direction: column;
@@ -112,7 +112,7 @@ body {
     background-color: var(--button);
     width: 20%;
     height: fit-content;
-    border-radius: 0.75rem; /* 12px = 0.75rem */
+    border-radius: 0.75rem;
     text-decoration: none;
     flex-direction: column;
     margin: 2rem;
@@ -121,12 +121,12 @@ body {
 }
 
 .card p {
-    padding-left: 0.625rem; /* 10px = 0.625rem */
+    padding-left: 0.625rem;
     color: var(--Text_on_button);
 }
 
 a img {
-    border-radius: 1.25rem; /* 20px = 1.25rem */
+    border-radius: 1.25rem;
 }
 .toptext {
     font-size: 1.25rem;
@@ -175,9 +175,9 @@ a img {
     .sidebar {
         position: absolute;
         left: 0;
-        top: 9.375rem; /* 150px, same as nav height */
+        top: 9.375rem; 
         width: 100vw;
-        height: calc(100vh - 9.375rem); /* fill below nav */
+        height: calc(100vh - 9.375rem); 
         z-index: 1000;
     }
     
