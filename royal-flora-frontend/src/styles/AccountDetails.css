@@ -4,12 +4,12 @@
     box-sizing: border-box;
 }
 nav {
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 0;
     right: 0;
-    height: 100px;
-    background-color: #6BB77B;
+    height: 6.25rem;     
+    background-color: var(--Secondair);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -25,14 +25,13 @@ nav img {
     width: auto;
     margin: 0 auto;
     align-items: center;
-    color: #fff;
 }
 .nav-text {
     position: absolute;
     left: 30px;
     width: min(95vw, 50rem);
     font-size: 2rem;
-    color: #fff;
+    color: '--Text_on_secondair';
     font-weight: bold;
 }
 
@@ -186,16 +185,13 @@ input[type="password"]:focus {
     top: center;
     left: 6px;
     font-size: clamp(1rem, 2vw, 1.5rem);
-    color: var(--Text_on_primair);
+    color: var(--Text_on_secondair);
     padding: 8px;
     text-decoration: none;
     border-radius: 4px;
     z-index: 1000;
 }
 
-.skip-link:focus {
-    top: 6px;
-}
 
 .visually-hidden {
     position: absolute;

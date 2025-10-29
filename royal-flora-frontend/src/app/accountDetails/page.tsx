@@ -1,6 +1,7 @@
 'use client'
 import React, { useState } from 'react';    
 import '../../styles/AccountDetails.css';
+import { useRouter } from 'next/navigation';
 
 interface UserDetails {
     voornaam: string;
@@ -89,15 +90,19 @@ const AccountDetails: React.FC = () => {
         }
     };
 
+    const router = useRouter();
+
     return (
         <>
             <nav>
-                <a href="#main" className="skip-link">Actieve veilingen</a>
-                <img 
-                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Royal_FloraHolland_Logo.svg/1200px-Royal_FloraHolland_Logo.svg.png" 
-                    alt="Royal FloraHolland Logo"
-                />
-                <a className="pfp-container" href="#">
+                <p className="nav-text">Account details</p>
+                <a className="skip-link" onClick={() => router.push('/homepage')} href="/homepage">         
+                    <img 
+                        src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Royal_FloraHolland_Logo.svg/1200px-Royal_FloraHolland_Logo.svg.png" 
+                        alt="Royal FloraHolland Logo"
+                    />
+                </a>
+                <a className="pfp-container" onClick={() => (router.push('/accountDetails'))} href="/accountDetails">
                     <img 
                         src="https://www.pikpng.com/pngl/m/80-805068_my-profile-icon-blank-profile-picture-circle-clipart.png" 
                         alt="Profiel foto" 
