@@ -1,27 +1,44 @@
 
+.nav-logo-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.nav-logo {
+    height: 100px;
+    width: auto;
+}
+.pfp-container {
+    display: flex;
+    align-items: center;
+    padding-right: 1.875rem; 
+}
+.pfp-img {
+    height: 50px;
+    width: 50px;
+    border-radius: 50%;
+}
+
 nav {
     background-color: var(--Secondair);
-    height: 9.375rem; /* 150px = 9.375rem */
+    height: 9.375rem;
     width: auto;
     display: flex;
     justify-content: center;
     align-items: center;
     position: relative;
 }
-nav img {
-    border: none;
-    outline: none;
-    height: 6.25rem; /* 100px = 6.25rem */
-    width: auto;
-    margin: 0 auto;
-    display: block;
-}
 .nav-text {
-    position: absolute;
-    left: 4rem; /* 30px = 1.875rem */
     font-size: 2rem;
     color: var(--Text_on_secondair);
     font-weight: bold;
+}
+.left {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    right: 1rem;
 }
 .hamburger {
   width: 2rem;
@@ -51,7 +68,6 @@ body {
 .main-layout {
     display: flex;
     flex-direction: row;
-    height: 100vh;
 }
 .content {
     display: flex;
@@ -59,11 +75,11 @@ body {
     flex: 1;
 }
 .sidebar {
-    width: 12.5rem; /* 200px = 12.5rem */
-    height: 100vh;
+    width: 12.5rem;
     background-color: var(--Secondair);
     display: none;
     flex-direction: column;
+    bottom: 0;
 }
 .sidebar input[type='text'] {
     max-width: 8rem;
@@ -86,7 +102,6 @@ body {
 
 .veilingen {
     position: relative;
-    height: 40vh;
     display: flex;
     flex-flow: row wrap;
     width: 100%;
@@ -97,22 +112,21 @@ body {
     background-color: var(--button);
     width: 20%;
     height: fit-content;
-    border-radius: 0.75rem; /* 12px = 0.75rem */
+    border-radius: 0.75rem;
     text-decoration: none;
     flex-direction: column;
     margin: 2rem;
+    min-width: 11rem;
+    max-width: 15rem;
 }
 
 .card p {
-    padding-left: 0.625rem; /* 10px = 0.625rem */
+    padding-left: 0.625rem;
     color: var(--Text_on_button);
 }
 
-.pfp-container {
-    padding-right: 1.875rem; /* 30px = 1.875rem */
-}
 a img {
-    border-radius: 1.25rem; /* 20px = 1.25rem */
+    border-radius: 1.25rem;
 }
 .toptext {
     font-size: 1.25rem;
@@ -124,7 +138,6 @@ a img {
 .aankomende-producten {
     flex: 1 1 0;
     min-width: 0;
-    height: 60vh;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -135,7 +148,7 @@ a img {
 
 .aankomende-producten-lijst {
     display: flex;
-    flex-direction: row;
+    flex-flow: row wrap;
     justify-content: center;
     align-items: flex-start;
     width: 100%;
@@ -144,17 +157,37 @@ a img {
     background-color: var(--button);
     color: var(--Text_on_button);
     border-radius: 0.75rem;
-    width: 8rem;
+    max-width: 15rem;
+    min-width: 11rem;
     margin: 2rem;
     text-align: center;
     font-size: 1rem;
 }
 .producten {
     position: relative;
-    height: 100vh;
     display: flex;
     flex-direction: row;
     width: 100%;
     box-sizing: border-box;
     overflow: hidden;
+}
+@media (max-width: 900px) {
+    .sidebar {
+        position: absolute;
+        left: 0;
+        top: 9.375rem; 
+        width: 100vw;
+        height: calc(100vh - 9.375rem); 
+        z-index: 1000;
+    }
+    
+}
+@media (max-width: 500px) {
+    .nav-logo-container img {
+        width: 150px;
+        height: auto;
+    }
+    .nav-text {
+        font-size: 1.5rem;
+    }
 }
