@@ -80,6 +80,7 @@ body {
     display: none;
     flex-direction: column;
     bottom: 0;
+    
 }
 .sidebar input[type='text'] {
     max-width: 8rem;
@@ -101,6 +102,7 @@ body {
 }
 
 .veilingen {
+    justify-content: center;
     position: relative;
     display: flex;
     flex-flow: row wrap;
