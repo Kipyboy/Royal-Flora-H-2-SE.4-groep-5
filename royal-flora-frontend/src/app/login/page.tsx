@@ -22,7 +22,7 @@ export default function Login() {
             ...prev,
             [name]: value
         }));
-        // Clear error when user starts typing
+        // Haalt de error weg wanneer je typed
         setErrors(prev => ({
             ...prev,
             [name]: ''
@@ -36,7 +36,7 @@ export default function Login() {
         };
         let isValid = true;
 
-        // Validate email
+        // Email checken of het een email is en dat het niet leeg is
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!formData.email.trim()) {
             newErrors.email = 'Email is verplicht';
@@ -46,7 +46,7 @@ export default function Login() {
             isValid = false;
         }
 
-        // Validate password
+        // Wachtwoord Checken of het niet leeg is
         if (!formData.password) {
             newErrors.password = 'Wachtwoord is verplicht';
             isValid = false;
@@ -77,7 +77,7 @@ export default function Login() {
 
             if (response.ok) {
                 const data = await response.json();
-                // Store token or user info if needed
+                // Moeten goed naa kijken wat voor informatie we bewaaren inplaats van de hele user
                 localStorage.setItem('user', JSON.stringify(data));
                 alert('Inloggen succesvol!');
                 router.push('/homepage');

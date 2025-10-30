@@ -56,7 +56,7 @@ export default function ProductRegistratieAanvoerderPage() {
 			...prev,
 			[name]: value
 		}));
-		// Clear error when user starts typing
+		// Error's weg halen waneer je aan het typen bent
 		setErrors(prev => ({
 			...prev,
 			[name]: ''
@@ -66,12 +66,12 @@ export default function ProductRegistratieAanvoerderPage() {
 	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const files = Array.from(e.target.files || []);
 		
-		// Validate each file
+		// Lijst van de geldige bestands types
 		const validFiles: File[] = [];
 		const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
 		
 		for (const file of files) {
-			// Validate file type
+			// Geldig bestand?
 			if (!validTypes.includes(file.type)) {
 				setErrors(prev => ({
 					...prev,
@@ -79,7 +79,7 @@ export default function ProductRegistratieAanvoerderPage() {
 				}));
 				continue;
 			}
-			// Validate file size (max 5MB)
+			// Kijken of het niet te groot is
 			if (file.size > 5 * 1024 * 1024) {
 				setErrors(prev => ({
 					...prev,
@@ -101,7 +101,7 @@ export default function ProductRegistratieAanvoerderPage() {
 			}));
 		}
 		
-		// Reset the file input so the same file can be selected again
+		// File waarde leeg halen zodat er een nieuwe weer gekozen kan worden
 		e.target.value = '';
 	};
 
@@ -124,19 +124,17 @@ export default function ProductRegistratieAanvoerderPage() {
 		};
 		let isValid = true;
 
-		// Validate product name
+		// Kijken of een input leeg is of niet
 		if (!formData.name.trim()) {
 			newErrors.name = 'Product naam is verplicht';
 			isValid = false;
 		}
 
-		// Validate clock location
 		if (!formData.clockLocation) {
 			newErrors.clockLocation = 'Klok locatie is verplicht';
 			isValid = false;
 		}
 
-		// Validate auction date
 		if (!formData.auctionDate) {
 			newErrors.auctionDate = 'Veilingdatum is verplicht';
 			isValid = false;
@@ -150,7 +148,6 @@ export default function ProductRegistratieAanvoerderPage() {
 			}
 		}
 
-		// Validate amount
 		if (!formData.amount) {
 			newErrors.amount = 'Aantal is verplicht';
 			isValid = false;
@@ -159,7 +156,6 @@ export default function ProductRegistratieAanvoerderPage() {
 			isValid = false;
 		}
 
-		// Validate minimum price
 		if (!formData.minimumPrice) {
 			newErrors.minimumPrice = 'Minimum prijs is verplicht';
 			isValid = false;
@@ -168,7 +164,6 @@ export default function ProductRegistratieAanvoerderPage() {
 			isValid = false;
 		}
 
-		// Validate description
 		if (!formData.description.trim()) {
 			newErrors.description = 'Omschrijving is verplicht';
 			isValid = false;
@@ -191,7 +186,7 @@ export default function ProductRegistratieAanvoerderPage() {
 		setIsSubmitting(true);
 
 		try {
-			// Create FormData for file upload
+			// data opslaan om naar de database te stuuren
 			const submitData = new FormData();
 			submitData.append('productNaam', formData.name);
 			submitData.append('productBeschrijving', formData.description);
@@ -200,22 +195,21 @@ export default function ProductRegistratieAanvoerderPage() {
 			submitData.append('auctionDate', formData.auctionDate);
 			submitData.append('amount', formData.amount);
 			
-			// Append multiple images
 			formData.images.forEach((image, index) => {
 				submitData.append(`images[${index}]`, image);
 			});
 
-			// Submit to API
+			// naar de database stuuren
 			const response = await fetch('http://localhost:5156/api/product/register', {
 				method: 'POST',
 				body: submitData,
-				// Don't set Content-Type header - browser will set it with boundary for FormData
+				// Ik werd gewaarschuwed dat ik geen header type moet mee geven
 			});
 
 			if (response.ok) {
 				const data = await response.json();
 				alert('Product succesvol geregistreerd!');
-				// Reset form
+				// Alles leeg halen
 				setFormData({
 					name: '',
 					clockLocation: '',
@@ -225,12 +219,9 @@ export default function ProductRegistratieAanvoerderPage() {
 					description: '',
 					images: []
 				});
-				// Reset file input
 				const fileInput = document.getElementById('image') as HTMLInputElement;
 				if (fileInput) fileInput.value = '';
-				
-				// Optionally redirect to a products list page
-				// router.push('/products');
+
 			} else {
 				const error = await response.json();
 				alert(`Registratie mislukt: ${error.message || 'Onbekende fout'}`);

@@ -29,7 +29,7 @@ export default function Registreren() {
             ...prev,
             [name]: value
         }));
-        // Clear error when user starts typing
+        // error leeg halen wanneer je typt
         setErrors(prev => ({
             ...prev,
             [name]: ''
@@ -47,19 +47,17 @@ export default function Registreren() {
         };
         let isValid = true;
 
-        // Validate voornaam
+        // Kijken of iets leeg is of niet van tevoren klopt
         if (!formData.voornaam.trim()) {
             newErrors.voornaam = 'Voornaam is verplicht';
             isValid = false;
         }
 
-        // Validate achternaam
         if (!formData.achternaam.trim()) {
             newErrors.achternaam = 'Achternaam is verplicht';
             isValid = false;
         }
 
-        // Validate email
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!formData.email.trim()) {
             newErrors.email = 'Email is verplicht';
@@ -69,7 +67,6 @@ export default function Registreren() {
             isValid = false;
         }
 
-        // Validate password
         if (!formData.password) {
             newErrors.password = 'Wachtwoord is verplicht';
             isValid = false;
@@ -78,7 +75,6 @@ export default function Registreren() {
             isValid = false;
         }
 
-        // Validate confirm password
         if (!formData.confirmPassword) {
             newErrors.confirmPassword = 'Herhaal wachtwoord is verplicht';
             isValid = false;
