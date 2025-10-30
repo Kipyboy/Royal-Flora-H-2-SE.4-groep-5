@@ -8,15 +8,18 @@ nav {
     top: 0;
     left: 0;
     right: 0;
-    height: 6.25rem;     
+    height: clamp(100px, 8vh, 7.25rem);
     background-color: var(--Secondair);
     display: flex;
     align-items: center;
-    justify-content: center;
-    padding: 0 1rem;
+    justify-content: space-between;
+    gap: clamp(0.5rem, 2vw, 1rem);
+    padding: clamp(0.5rem, 2vw, 1rem);
     z-index: 1000;
     box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: height 180ms ease, padding 180ms ease, gap 180ms ease;
 }
+
 nav img {
     position: relative;
     border: none;
@@ -27,24 +30,74 @@ nav img {
     align-items: center;
 }
 .nav-text {
+    flex: 1;
     position: absolute;
-    left: 30px;
-    width: min(95vw, 50rem);
-    font-size: 2rem;
-    color: '--Text_on_secondair';
+    left: clamp(0.75rem, 2vw, 1.5rem);
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: clamp(1rem, 2.5vw, 2rem);
+    color: var(--Text_on_secondair);
     font-weight: bold;
+    max-width: calc(50% - clamp(0.75rem, 2vw, 1.5rem));
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
+
+
+.skip-link {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+
+    padding: clamp(6px, 1.5vw, 12px);
+    min-width: clamp(40px, 18vw, 120px);
+    max-width: 90%;
+}
+
+.skip-link-img {
+    display: block;
+    height: clamp(32px, 8vw, 100px);
+    width: auto;
+    max-width: 100%;
+    margin: 0;
+}
+
+
 .pfp-container {
+    flex: 1;
+    position: absolute;
+    right: clamp(0.75rem, 2vw, 1.5rem);
     position: absolute;
     right: 0px;
     border: none;
     outline: none;
-    height: 100px;
+    height: clamp(32px, 100px);
     width: auto;
     margin: 0 auto;
-    display: block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
+.pfp-img {
+    display: block;
+    height: clamp(32px, 8vw, 100px);
+    width: auto;
+    max-width: 100%;
+    margin: 0;
+}
+
+
+
+
+
 body {
     background-color: var(--Primair);
     font-family: Arial, sans-serif;
@@ -180,17 +233,7 @@ input[type="password"]:focus {
     box-shadow: 0 4px 12px rgba(255, 96, 0, 0.3);
 }
 
-.skip-link {
-    position: relative;
-    top: center;
-    left: 6px;
-    font-size: clamp(1rem, 2vw, 1.5rem);
-    color: var(--Text_on_secondair);
-    padding: 8px;
-    text-decoration: none;
-    border-radius: 4px;
-    z-index: 1000;
-}
+
 
 
 .visually-hidden {

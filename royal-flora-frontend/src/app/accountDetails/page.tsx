@@ -12,7 +12,6 @@ interface UserDetails {
 }
 
 const AccountDetails: React.FC = () => {
-    // State voor gebruikersgegevens
     const [userDetails, setUserDetails] = useState<UserDetails>({
         voornaam: '',
         achternaam: '',
@@ -21,7 +20,6 @@ const AccountDetails: React.FC = () => {
         wachtwoord: ''
     });
 
-    // State voor disabled velden
     const [disabledFields, setDisabledFields] = useState<Record<string, boolean>>({
         voornaam: true,
         achternaam: true,
@@ -30,7 +28,6 @@ const AccountDetails: React.FC = () => {
         wachtwoord: true
     });
 
-    // State voor error messages
     const [errors, setErrors] = useState<Record<string, string>>({});
 
     const handleInputChange = (field: keyof UserDetails) => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -42,34 +39,30 @@ const AccountDetails: React.FC = () => {
 
     const toggleField = (field: keyof UserDetails) => {
         if (disabledFields[field]) {
-            // Veld wordt enabled
             setDisabledFields(prev => ({
                 ...prev,
                 [field]: false
             }));
         } else {
-            // Veld wordt opgeslagen en disabled
             handleSave(field);
         }
     };
 
     const handleSave = async (field: keyof UserDetails) => {
         try {
-            // Hier komt je API call om de data op te slaan
-            // await updateUserField(field, userDetails[field]);
+            // data opslag hier
             
             setDisabledFields(prev => ({
                 ...prev,
                 [field]: true
             }));
             
-            // Clear error als het opslaan succesvol was
+
             setErrors(prev => ({
                 ...prev,
                 [field]: ''
             }));
         } catch (error) {
-            // Toon error message als er iets mis gaat
             setErrors(prev => ({
                 ...prev,
                 [field]: 'Er ging iets mis bij het opslaan'
@@ -100,12 +93,14 @@ const AccountDetails: React.FC = () => {
                     <img 
                         src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Royal_FloraHolland_Logo.svg/1200px-Royal_FloraHolland_Logo.svg.png" 
                         alt="Royal FloraHolland Logo"
+                        className='skip-link-img'
                     />
                 </a>
                 <a className="pfp-container" onClick={() => (router.push('/accountDetails'))} href="/accountDetails">
                     <img 
                         src="https://www.pikpng.com/pngl/m/80-805068_my-profile-icon-blank-profile-picture-circle-clipart.png" 
                         alt="Profiel foto" 
+                        className='pfp-img'
                     />
                 </a>
             </nav>
