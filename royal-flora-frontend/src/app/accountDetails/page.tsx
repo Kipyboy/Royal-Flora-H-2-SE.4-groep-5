@@ -87,21 +87,23 @@ const AccountDetails: React.FC = () => {
 
     return (
         <>
-            <nav>
-                <p className="nav-text">Account details</p>
-                <a className="skip-link" onClick={() => router.push('/homepage')} href="/homepage">         
-                    <img 
-                        src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Royal_FloraHolland_Logo.svg/1200px-Royal_FloraHolland_Logo.svg.png" 
-                        alt="Royal FloraHolland Logo"
-                        className='skip-link-img'
-                    />
-                </a>
-                <a className="pfp-container" onClick={() => (router.push('/accountDetails'))} href="/accountDetails">
-                    <img 
-                        src="https://www.pikpng.com/pngl/m/80-805068_my-profile-icon-blank-profile-picture-circle-clipart.png" 
-                        alt="Profiel foto" 
-                        className='pfp-img'
-                    />
+              <nav className="nav">
+                <div className="left">
+                    <span className="nav-text">Account details</span>
+                </div>
+                <div className="nav-logo-container">
+                <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Royal_FloraHolland_Logo.svg/1200px-Royal_FloraHolland_Logo.svg.png"
+                    alt="Royal FloraHolland Logo"
+                    className="nav-logo"
+                />
+                </div>
+                <a className="pfp-container" href="#">
+                <img
+                    src="https://www.pikpng.com/pngl/m/80-805068_my-profile-icon-blank-profile-picture-circle-clipart.png"
+                    alt="Profiel"
+                    className="pfp-img"
+                />
                 </a>
             </nav>
 
