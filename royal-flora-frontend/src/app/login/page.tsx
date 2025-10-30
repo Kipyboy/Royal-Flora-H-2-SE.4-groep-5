@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import '../../styles/Login.css';
 
+// Use NEXT_PUBLIC_API_BASE_URL if set; fallback to the port your backend is listening on.
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:5000';
+
 export default function Login() {
     const router = useRouter();
     const [formData, setFormData] = useState({
@@ -64,7 +67,7 @@ export default function Login() {
         }
 
         try {
-            const response = await fetch('http://localhost:5156/api/auth/login', {
+            const response = await fetch(`${API_BASE}/api/auth/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -82,11 +85,19 @@ export default function Login() {
                 alert('Inloggen succesvol!');
                 router.push('/homepage');
             } else {
-                const error = await response.json();
-                alert(`Inloggen mislukt: ${error.message || 'Onjuiste email of wachtwoord'}`);
+                // Try to parse JSON error body, fallback to plain text
+                let errorText = 'Onjuiste email of wachtwoord';
+                try {
+                    const err = await response.json();
+                    if (err?.message) errorText = err.message;
+                } catch {
+                    const txt = await response.text();
+                    if (txt) errorText = txt;
+                }
+                alert(`Inloggen mislukt: ${errorText}`);
             }
-        } catch (error) {
-            console.error('Error:', error);
+        } catch (err) {
+            console.error('Fetch error:', err);
             alert('Er is een fout opgetreden bij het inloggen');
         }
     };
