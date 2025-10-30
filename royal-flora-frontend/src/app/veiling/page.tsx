@@ -123,7 +123,7 @@ export default function VeilingPage() {
   return (
     <>
       <nav>
-        <a href="#main" className="skip-link">Home</a>
+        <a href="/homepage" className="skip-link">Home</a>
         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Royal_FloraHolland_Logo.svg/1200px-Royal_FloraHolland_Logo.svg.png" alt="Royal_FloraHolland_Logo" />
         <a className="pfp-container" href="">
           <img src="https://www.pikpng.com/pngl/m/80-805068_my-profile-icon-blank-profile-picture-circle-clipart.png" alt="Profiel-foto" />

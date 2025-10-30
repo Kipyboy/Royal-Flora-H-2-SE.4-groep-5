@@ -80,7 +80,8 @@ export default function Login() {
                 // Moeten goed naa kijken wat voor informatie we bewaaren inplaats van de hele user
                 localStorage.setItem('user', JSON.stringify(data));
                 alert('Inloggen succesvol!');
-                router.push('/homepage');
+                // router.push('/homepage');
+                window.location.href = '/homepage';
             } else {
                 const error = await response.json();
                 alert(`Inloggen mislukt: ${error.message || 'Onjuiste email of wachtwoord'}`);

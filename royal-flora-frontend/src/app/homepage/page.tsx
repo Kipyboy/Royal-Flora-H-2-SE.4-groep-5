@@ -42,7 +42,7 @@ const HomePage: React.FC = () => {
         className="nav-logo"
       />
     </div>
-    <a className="pfp-container" href="#">
+    <a className="pfp-container" href="/productRegistratieAanvoerder">
       <img
         src="https://www.pikpng.com/pngl/m/80-805068_my-profile-icon-blank-profile-picture-circle-clipart.png"
         alt="Profiel"
@@ -94,7 +94,7 @@ const HomePage: React.FC = () => {
   <div className="content">
           <div className="veilingen">
             {['A', 'B', 'C', 'D'].map((loc) => (
-              <a key={loc} href="#" className="card">
+              <a key={loc} href="/veiling" className="card">
                 <p>Locatie {loc}</p>
                 <p>Aanvoerder:</p>
                 <p>Verlopen tijd:</p>

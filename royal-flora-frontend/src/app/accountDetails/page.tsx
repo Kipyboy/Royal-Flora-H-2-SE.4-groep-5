@@ -72,7 +72,7 @@ const AccountDetails: React.FC = () => {
 
     const handleLogout = () => {
         // Implementeer logout logica
-        window.location.href = '/login';
+        window.location.href = '/';
     };
 
     const handleDeleteAccount = () => {
