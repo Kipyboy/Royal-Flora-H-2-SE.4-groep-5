@@ -92,11 +92,13 @@ const AccountDetails: React.FC = () => {
                     <span className="nav-text">Account details</span>
                 </div>
                 <div className="nav-logo-container">
-                <img
-                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Royal_FloraHolland_Logo.svg/1200px-Royal_FloraHolland_Logo.svg.png"
-                    alt="Royal FloraHolland Logo"
-                    className="nav-logo"
-                />
+                <a href="/homepage" className="nav-logo-link" aria-label="Ga naar homepagina" onClick={() => router.push('/homepage')}>
+                    <img
+                        src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Royal_FloraHolland_Logo.svg/1200px-Royal_FloraHolland_Logo.svg.png"
+                        alt="Royal FloraHolland Logo"
+                        className="nav-logo"
+                    />
+                </a>
                 </div>
                 <a className="pfp-container" href="#">
                 <img
