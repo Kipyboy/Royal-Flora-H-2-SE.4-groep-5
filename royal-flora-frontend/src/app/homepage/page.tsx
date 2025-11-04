@@ -2,21 +2,19 @@
 
 import React, { useState } from 'react';
 import Head from 'next/head';
+import Sidebar from '../components/Sidebar';
 import  '../../styles/homepage.css';
 
 
 
 const HomePage: React.FC = () => {
   const [sidebarVisible, setSidebarVisible] = useState(true);
-  const [showGekochteProducten, setShowGekochteProducten] = useState(false);
+
 
   const toggleSidebar = () => {
     setSidebarVisible(!sidebarVisible);
   };
 
-  const handleVeranderPaginaClick = () => {
-    setShowGekochteProducten((prev) => !prev);
-  };
 
   return (
     <>
@@ -50,46 +48,11 @@ const HomePage: React.FC = () => {
       />
     </a>
   </nav>
-
+  
   <div className="main-layout">
-        <div
-          className="sidebar"
-          style={{ display: sidebarVisible ? 'none' : 'flex' }}
-        >
-          <div className="toptext">
-            <p>Filters</p>
-          </div>
-          <button
-            className="verander-pagina-content"
-            onClick={handleVeranderPaginaClick}
-          >
-            {showGekochteProducten ? 'Toon aankomende producten' : 'Toon gekochte producten'}
-          </button>
-          <div
-            className="filters"
-            style={{ display: showGekochteProducten ? 'block' : 'none' }}
-          >
-            <fieldset>
-              <legend>Locatie</legend>
-              <div>
-                {['A', 'B', 'C', 'D'].map((loc) => (
-                  <div key={loc}>
-                    <input type="checkbox" name={loc} id={loc} />
-                    <label htmlFor={loc}>{loc}</label>
-                  </div>
-                ))}
-              </div>
-            </fieldset>
-            <fieldset>
-              <legend>Datum</legend>
-              <input type="date" />
-            </fieldset>
-            <fieldset>
-              <legend>Merk</legend>
-              <input type="text" />
-            </fieldset>
-          </div>
-        </div>
+  <Sidebar
+    sidebarVisible={sidebarVisible}
+    />
 
   <div className="content">
           <div className="veilingen">
@@ -104,20 +67,7 @@ const HomePage: React.FC = () => {
           </div>
 
           <div className="producten">
-            <div className="aankomende-producten">
-              <p>{showGekochteProducten ? 'Gekochte producten' : 'Aankomende producten per locatie:'}</p>
-              <div className="aankomende-producten-lijst">
-                {['A', 'B', 'C', 'D'].map((loc) => (
-                  <div className="aankomende-producten-voor-locatie" key={loc}
-                  style={{display: showGekochteProducten ? 'none' : 'block'}}>
-                    <p>Locatie {loc}</p>
-                    {[1, 2, 3, 4, 5].map((num) => (
-                      <p key={num}>{num}</p>
-                    ))}
-                  </div>
-                ))}
-              </div>
-            </div>
+            
           </div>
         </div>
       </div>

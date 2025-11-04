@@ -73,24 +73,7 @@ body {
     display: flex;
     flex-direction: column;
     flex: 1;
-}
-.sidebar {
-    width: 12.5rem;
-    background-color: var(--Secondair);
-    display: none;
-    flex-direction: column;
-    bottom: 0;
-    
-}
-.sidebar input[type='text'] {
-    max-width: 8rem;
-}
-.sidebar fieldset {
-    margin: 1rem;
-
-}
-.filters {
-    display: none;
+    margin-left: 12.5rem;
 }
 .verander-pagina-content {
     background-color: var(--button);
