@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Head from 'next/head';
 import Sidebar from '../components/Sidebar';
+import ProductCard from '../components/product-card'
 import  '../../styles/homepage.css';
 
 
@@ -67,7 +68,7 @@ const HomePage: React.FC = () => {
           </div>
 
           <div className="producten">
-            
+            <ProductCard/>
           </div>
         </div>
       </div>
