@@ -28,6 +28,7 @@ nav {
     justify-content: center;
     align-items: center;
     position: relative;
+    z-index: 2;
 }
 .nav-text {
     font-size: 2rem;
@@ -130,15 +131,9 @@ a img {
     overflow: hidden;
 }
 @media (max-width: 900px) {
-    .sidebar {
-        position: absolute;
-        left: 0;
-        top: 9.375rem; 
-        width: 100vw;
-        height: calc(100vh - 9.375rem); 
-        z-index: 1000;
+    .nav {
+        z-index: 2;
     }
-    
 }
 @media (max-width: 500px) {
     .nav-logo-container img {
