@@ -1,6 +1,8 @@
 "use client"
 
-import React, { useState } from 'react';
+"use client"
+
+import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
 import Sidebar from '../components/Sidebar';
 import ProductCard from '../components/product-card'
@@ -10,27 +12,23 @@ import { mock } from 'node:test';
 
 
 const HomePage: React.FC = () => {
+  const [products, setProducts] = useState<any[]>([]);
 
-  const mockProduct = [
-    {
-      id: 1,
-      naam: "Rode roos",
-      merk: "FloraX",
-      prijs: "€2.50",
-      datum: "2024-06-15",
-      locatie: "A",
-      status: "Eigen"
-    },
-     {
-      id: 2,
-      naam: "Witte tulp",
-      merk: "BloomCo",
-      prijs: "€1.80",
-      datum: "2024-06-16",
-      locatie: "B",
-      status: "Verkocht"
-     }
-  ];
+  
+
+  const getProducts = async () => {
+      try {
+        const response = await fetch("/products.json");
+        const data = await response.json();
+        setProducts(data);
+      }
+      catch (error) {
+        console.log("Fout bij producten ophalen")
+      }
+  };
+  useEffect(() => {
+    getProducts();
+  }, []);
 
   const [aankomendChecked, setAankomendChecked] = useState(true);
   const [eigenChecked, setEigenChecked] = useState(true);
@@ -61,7 +59,7 @@ const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 }
 
 const productenInladen = () => {
-  return mockProduct
+  return products
   .filter(product => {
     if (
       (!aankomendChecked && product.status === "Aankomend") ||
