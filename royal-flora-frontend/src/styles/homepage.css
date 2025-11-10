@@ -28,6 +28,7 @@ nav {
     justify-content: center;
     align-items: center;
     position: relative;
+    z-index: 2;
 }
 .nav-text {
     font-size: 2rem;
@@ -68,6 +69,7 @@ body {
 .main-layout {
     display: flex;
     flex-direction: row;
+    
 }
 .content {
     display: flex;
@@ -120,52 +122,18 @@ a img {
     text-align: center;
 }
 
-.aankomende-producten {
-    flex: 1 1 0;
-    min-width: 0;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    text-align: center;
-    color: var(--Text_on_primair);
-    font-size: 2rem;
-}
-
-.aankomende-producten-lijst {
-    display: flex;
-    flex-flow: row wrap;
-    justify-content: center;
-    align-items: flex-start;
-    width: 100%;
-}
-.aankomende-producten-voor-locatie {
-    background-color: var(--button);
-    color: var(--Text_on_button);
-    border-radius: 0.75rem;
-    max-width: 15rem;
-    min-width: 11rem;
-    margin: 2rem;
-    text-align: center;
-    font-size: 1rem;
-}
 .producten {
     position: relative;
     display: flex;
-    flex-direction: row;
+    flex-flow: row wrap;
     width: 100%;
     box-sizing: border-box;
     overflow: hidden;
 }
 @media (max-width: 900px) {
-    .sidebar {
-        position: absolute;
-        left: 0;
-        top: 9.375rem; 
-        width: 100vw;
-        height: calc(100vh - 9.375rem); 
-        z-index: 1000;
+    .nav {
+        z-index: 2;
     }
-    
 }
 @media (max-width: 500px) {
     .nav-logo-container img {

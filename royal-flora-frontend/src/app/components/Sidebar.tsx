@@ -3,10 +3,36 @@ import '../../styles/Sidebar.css';
 
 interface SidebarProps {
     sidebarVisible: boolean;
+    aankomendChecked: boolean;
+    eigenChecked: boolean;
+    gekochtChecked: boolean;
+    aChecked: boolean;
+    bChecked: boolean;
+    cChecked: boolean;
+    dChecked: boolean;
+    dateFilter: string;
+    merkFilter: string;
+    naamFilter: string;
+    onCheckboxChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
+
+
 const Sidebar: React.FC<SidebarProps> = ({
-    sidebarVisible
+    sidebarVisible,
+    aankomendChecked,
+    eigenChecked,
+    gekochtChecked,
+    aChecked,
+    bChecked,
+    cChecked,
+    dChecked,
+    dateFilter,
+    merkFilter,
+    naamFilter,
+    onCheckboxChange,
+    onInputChange
 }) => (
 
 <div
@@ -22,36 +48,83 @@ const Sidebar: React.FC<SidebarProps> = ({
             <fieldset>
                 <legend>Tonen:</legend>
                 <div>
-                    {['Aankomende producten', 'Eigen producten', 'Gekochte producten'].map((loc) => (
-                        <div key={loc}>
-                            <input type="checkbox" name={loc} id={loc}/>
-                            <label htmlFor={loc}>{loc}</label>
-                        </div>
-                    ))}
+          <div>
+            <input type="checkbox" name="Aankomende producten" id="Aankomende producten" 
+            checked={aankomendChecked}
+            onChange={onCheckboxChange}
+            />
+            <label htmlFor="Aankomende producten">Aankomende producten</label>
+          </div>
+          <div>
+            <input type="checkbox" name="Eigen producten" id="Eigen producten" 
+            checked={eigenChecked}
+            onChange={onCheckboxChange}
+            />
+            <label htmlFor="Eigen producten">Eigen producten</label>
+          </div>
+          <div>
+            <input type="checkbox" name="Gekochte producten" id="Gekochte producten" 
+            checked={gekochtChecked}
+            onChange={onCheckboxChange}
+            />
+            <label htmlFor="Gekochte producten">Gekochte producten</label>
+          </div>
+                    
                 </div>
             </fieldset>
             <fieldset>
               <legend>Locatie</legend>
               <div>
-                {['A', 'B', 'C', 'D'].map((loc) => (
-                  <div key={loc}>
-                    <input type="checkbox" name={loc} id={loc} />
-                    <label htmlFor={loc}>{loc}</label>
-                  </div>
-                ))}
+                <div>
+                  <input type="checkbox" name="A" id="A" 
+                  checked={aChecked}
+                  onChange={onCheckboxChange}
+                  />
+                  <label htmlFor="A">A</label>
+                </div>
+                <div>
+                  <input type="checkbox" name="B" id="B" 
+                  checked={bChecked}
+                  onChange={onCheckboxChange}
+                  />
+                  <label htmlFor="B">B</label>
+                </div>
+                <div>
+                  <input type="checkbox" name="C" id="C" 
+                  checked={cChecked}
+                  onChange={onCheckboxChange}
+                  />
+                  <label htmlFor="C">C</label>
+                </div>
+                <div>
+                  <input type="checkbox" name="D" id="D" 
+                  checked={dChecked}
+                  onChange={onCheckboxChange}
+                  />
+                  <label htmlFor="D">D</label>
+                </div>
               </div>
             </fieldset>
             <fieldset>
               <legend>Datum</legend>
-              <input type="date" id='datum-input'/>
+              <input type="date" id='datum-input'
+              value={dateFilter}
+              onChange={onInputChange}
+              />
             </fieldset>
             <fieldset>
               <legend>Merk</legend>
-              <input type="text" id='merk-input'/>
+              <input type="text" id='merk-input'
+              value={merkFilter}
+              onChange={onInputChange}
+              />
             </fieldset>
             <fieldset>
                 <legend>Naam</legend>
-                <input type="text" id="naam-input"/>
+                <input type="text" id="naam-input"
+                value={naamFilter}
+                onChange={onInputChange}
+                />
             </fieldset>
           </div>
         </div>
