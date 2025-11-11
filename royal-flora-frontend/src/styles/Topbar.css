@@ -1,0 +1,48 @@
+.nav-logo-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.nav-logo {
+    height: 100px;
+    width: auto;
+}
+.pfp-container {
+    display: flex;
+    align-items: center;
+    padding-right: 1.875rem; 
+}
+.pfp-img {
+    height: 50px;
+    width: 50px;
+    border-radius: 50%;
+}
+
+nav {
+    background-color: var(--Secondair);
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 9.375rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(0.5rem, 2vw, 1rem);
+    padding: clamp(0.5rem, 2vw, 1rem);
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    width: auto;
+}
+.nav-text {
+    font-size: 2rem;
+    color: var(--Text_on_secondair);
+    font-weight: bold;
+}
+.left {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    right: 1rem;
+}
