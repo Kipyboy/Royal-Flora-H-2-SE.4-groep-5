@@ -1,10 +1,14 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+/* Scoped styles for veiling page */
+.veiling-page {
+    background-color: var(--Primair);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: clamp(1rem, 3vw, 3rem);
 }
 
-nav {
+.veiling-page nav {
     position: fixed;
     top: 0;
     left: 0;
@@ -19,7 +23,7 @@ nav {
     box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.08);
 }
 
-nav img {
+.veiling-page nav img {
     position: relative;
     border: none;
     outline: none;
@@ -30,7 +34,7 @@ nav img {
     color: #fff;
 }
 
-.nav-text {
+.veiling-page .nav-text {
     position: absolute;
     left: 1.875rem;
     width: min(95vw, 50rem);
@@ -39,7 +43,7 @@ nav img {
     font-weight: bold;
 }
 
-.pfp-container {
+.veiling-page .pfp-container {
     position: absolute;
     right: 0;
     border: none;
@@ -50,20 +54,14 @@ nav img {
     display: block;
 }
 
-body {
-    background-color: var(--Primair);
-    font-family: Arial, sans-serif;
-    padding: clamp(0.5rem, 2vw, 2rem);
-}
-
-.banner {
+.veiling-page .banner {
     background-color: var(--Secondair);
     color: var(--Text_on_secondair);
     padding: 1.25rem;
     text-align: center;
 }
 
-.main-content {
+.veiling-page .main-content {
     position: fixed;
     top: 6.25rem;
     left: 0;
@@ -78,7 +76,7 @@ body {
     z-index: 1;
 }
 
-#veiling-timer {
+.veiling-page #veiling-timer {
     font-family: monospace;
     font-size: 2rem;
     background-color: rgba(0, 0, 0, 0.6);
@@ -92,7 +90,7 @@ body {
     z-index: 5;
 }
 
-.gallery {
+.veiling-page .gallery {
     position: fixed;
     bottom: 0;
     left: 0;
@@ -106,7 +104,7 @@ body {
 }
 
 
-.photo-area {
+.veiling-page .photo-area {
     width: 100%;
     height: 100%;
     display: flex;
@@ -116,7 +114,7 @@ body {
     box-sizing: border-box;
 }
 
-#photo-strip {
+.veiling-page #photo-strip {
     display: flex;
     gap: 0.625rem;
     justify-content: center;
@@ -127,7 +125,7 @@ body {
     overflow-y: hidden;
 }
 
-#photo-strip img {
+.veiling-page #photo-strip img {
     width: 9.375rem;
     height: 6.25rem;
     object-fit: cover;
@@ -135,7 +133,7 @@ body {
     transition: transform 0.2s;
 }
 
-#viewer {
+.veiling-page #viewer {
     position: fixed;
     top: 6.25rem;
     left: 0;
@@ -147,18 +145,18 @@ body {
     z-index: 3;
 }
 
-#viewer img {
+.veiling-page #viewer img {
     width: 100%;
     height: 100%;
     object-fit: contain;
 }
 
 
-.hidden {
+.veiling-page .hidden {
     display: none;
 }
 
-.sidebar {
+.veiling-page .sidebar {
     position: fixed;
     top: 6.25rem;
     right: 0;
@@ -173,14 +171,14 @@ body {
     justify-content: space-between;
 }
 
-.sidebar-bottom {
+.veiling-page .sidebar-bottom {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 1rem;
 }
 
-.sidebar button {
+.veiling-page .sidebar button {
     padding: 0.625rem 1.25rem;
     background-color: var(--button);
     color: var(--Text_on_button);
@@ -193,7 +191,7 @@ body {
     background-color: var(--Secondair);
 }
 
-#current-time {
+.veiling-page #current-time {
     font-family: monospace;
     font-size: 1.1rem;
     color: var(--Text_on_secondair);

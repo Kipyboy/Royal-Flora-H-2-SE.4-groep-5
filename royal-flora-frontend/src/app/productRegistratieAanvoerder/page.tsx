@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import '../../styles/ProductRegistratieAanvoerder.css';
-import '../../styles/Root.css';
+
 
 interface ProductFormData {
 	name: string;
@@ -235,7 +235,7 @@ export default function ProductRegistratieAanvoerderPage() {
 	};
 
 	return (
-		<>
+		<div className="productRegistratieAanvoerder-page">
 			<nav>
 				<span className="nav-text">Product registreren aanvoerder</span>
 				<img
@@ -421,6 +421,6 @@ export default function ProductRegistratieAanvoerderPage() {
 					</div>
 				</form>
 			</div>
-		</>
+		</div>
 	);
 }

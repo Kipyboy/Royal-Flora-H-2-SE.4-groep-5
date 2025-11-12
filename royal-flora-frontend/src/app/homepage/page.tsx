@@ -1,10 +1,7 @@
 "use client"
 
 import React, { useState } from 'react';
-import Head from 'next/head';
-import  '../../styles/homepage.css';
-
-
+import '../../styles/homepage.css';
 
 const HomePage: React.FC = () => {
   const [sidebarVisible, setSidebarVisible] = useState(true);
@@ -19,14 +16,8 @@ const HomePage: React.FC = () => {
   };
 
   return (
-    <>
-      <Head>
-        <title>Home - Royal FloraHolland</title>
-        <meta charSet="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      </Head>
-
-  <nav className="nav">
+    <div className="homepage-page">
+      <nav className="nav">
     <div className="left">
       <div className="hamburger" onClick={toggleSidebar}>
         <span></span>
@@ -121,7 +112,7 @@ const HomePage: React.FC = () => {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

@@ -1,7 +1,7 @@
 'use client'
-import React, { useState } from 'react';    
-import '../../styles/AccountDetails.css';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import '../../styles/AccountDetails.css';
 
 interface UserDetails {
     voornaam: string;
@@ -86,7 +86,7 @@ const AccountDetails: React.FC = () => {
     const router = useRouter();
 
     return (
-        <>
+        <div className="accountDetails-page">
               <nav className="nav">
                 <div className="left">
                     <span className="nav-text">Account details</span>
@@ -160,7 +160,7 @@ const AccountDetails: React.FC = () => {
                     </button>
                 </form>
             </main>
-        </>
+        </div>
     );
 };
 
