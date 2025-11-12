@@ -7,6 +7,7 @@
 .nav-logo {
     height: 100px;
     width: auto;
+    border-radius: 0;
 }
 .pfp-container {
     display: flex;
@@ -17,6 +18,35 @@
     height: 50px;
     width: 50px;
     border-radius: 50%;
+}
+
+.topbar {
+    height: 9.375rem;
+}
+
+.hamburger {
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    cursor: pointer;
+    padding: 2.5rem;
+    min-width: 2rem;
+    min-height: 0.100rem;
+    position: left;
+}
+
+.hamburger span {
+    display: block;
+    height: 0.25rem;
+    width: 100%;
+    background: #333;
+    margin: 5px 0;
+    border-radius: 0.125rem;
+    transition: 0.3s;
+    min-width: 2rem;
+    min-height: 0.100rem;
 }
 
 nav {
@@ -34,6 +64,8 @@ nav {
     z-index: 1000;
     box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     width: auto;
+    font-family: 'Arial', sans-serif;
+    box-sizing: border-box;
 }
 .nav-text {
     font-size: 2rem;

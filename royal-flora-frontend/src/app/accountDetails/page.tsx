@@ -89,9 +89,7 @@ const AccountDetails: React.FC = () => {
     return (
         <div className="accountDetails-page">
             <Topbar
-                useSideBar={false}
                 currentPage="Account Details"
-                currentUser="User"
             />
         <>
 
@@ -107,7 +105,7 @@ const AccountDetails: React.FC = () => {
                         wachtwoord: 'Wachtwoord'
                     }).map(([field, label]) => (
                         <div className="form-group" key={field}>
-                            <label htmlFor={field}>{label}</label>
+                            <label htmlFor={field} className="label-text">{label}</label>
                             <div className="input-row">
                                 <input
                                     disabled={disabledFields[field]}
