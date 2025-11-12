@@ -1,19 +1,112 @@
 "use client"
 
-import React, { useState } from 'react';
-import '../../styles/homepage.css';
+"use client"
+
+import React, { useEffect, useState } from 'react';
+import Head from 'next/head';
+import Sidebar from '../components/Sidebar';
+import ProductCard from '../components/product-card'
+import  '../../styles/homepage.css';
+import { mock } from 'node:test';
+
+
 
 const HomePage: React.FC = () => {
+  const [products, setProducts] = useState<any[]>([]);
+
+  
+
+  const getProducts = async () => {
+      try {
+        const response = await fetch("/products.json");
+        const data = await response.json();
+        setProducts(data);
+      }
+      catch (error) {
+        console.log("Fout bij producten ophalen")
+      }
+  };
+  useEffect(() => {
+    getProducts();
+  }, []);
+
+  const [aankomendChecked, setAankomendChecked] = useState(true);
+  const [eigenChecked, setEigenChecked] = useState(true);
+  const [gekochtChecked, setGekochtChecked] = useState(true);
+  const [aChecked, setAChecked] = useState(false);
+  const [bChecked, setBChecked] = useState(false);
+  const [cChecked, setCChecked] = useState(false);
+  const [dChecked, setDChecked] = useState(false);
+  const [dateFilter, setDateFilter] = useState("");
+  const [merkFilter, setMerkFilter] = useState("");
+  const [naamFilter, setNaamFilter] = useState("");
+
+const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, checked } = e.target;
+    if (id == "Aankomende producten") setAankomendChecked(checked)
+    if (id == "Eigen producten") setEigenChecked(checked)
+    if (id == "Gekochte producten") setGekochtChecked(checked)
+    if (id == "A") setAChecked(checked)
+    if (id == "B") setBChecked(checked)
+    if (id == "C") setCChecked(checked)
+    if (id == "D") setDChecked(checked)
+}
+const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    if (id == "datum-input") setDateFilter(value);
+    if (id == "merk-input") setMerkFilter(value);
+    if (id == "naam-input") setNaamFilter(value);
+}
+
+const productenInladen = () => {
+  return products
+  .filter(product => {
+    if (
+      (!aankomendChecked && product.status === "Aankomend") ||
+      (!eigenChecked && product.status === "Eigen") ||
+      (!gekochtChecked && product.status === "Verkocht")
+    ) return false
+
+    if (
+      (
+        (aChecked || bChecked || cChecked || dChecked) &&
+        (
+          (!aChecked && product.locatie === "A") ||
+          (!bChecked && product.locatie === "B") ||
+          (!cChecked && product.locatie === "C") ||
+          (!dChecked && product.locatie === "D")
+        )
+      )
+    ) return false
+
+    if (dateFilter && product.datum !== dateFilter) return false;
+
+    if(merkFilter && !product.merk.toLowerCase().includes(merkFilter.toLowerCase())) return false;
+
+    if(naamFilter && !product.naam.toLowerCase().includes(naamFilter.toLowerCase())) return false;
+
+    return true;
+  })
+  .map(product => (
+    <ProductCard
+      key={product.id}
+      naam={product.naam}
+      merk={product.merk}
+      prijs={product.prijs}
+      datum={product.datum}
+      locatie={product.locatie}
+      status={product.status}
+      />
+  ));
+};
+
   const [sidebarVisible, setSidebarVisible] = useState(true);
-  const [showGekochteProducten, setShowGekochteProducten] = useState(false);
+
 
   const toggleSidebar = () => {
     setSidebarVisible(!sidebarVisible);
   };
 
-  const handleVeranderPaginaClick = () => {
-    setShowGekochteProducten((prev) => !prev);
-  };
 
   return (
     <div className="homepage-page">
@@ -41,46 +134,23 @@ const HomePage: React.FC = () => {
       />
     </a>
   </nav>
-
+  
   <div className="main-layout">
-        <div
-          className="sidebar"
-          style={{ display: sidebarVisible ? 'none' : 'flex' }}
-        >
-          <div className="toptext">
-            <p>Filters</p>
-          </div>
-          <button
-            className="verander-pagina-content"
-            onClick={handleVeranderPaginaClick}
-          >
-            {showGekochteProducten ? 'Toon aankomende producten' : 'Toon gekochte producten'}
-          </button>
-          <div
-            className="filters"
-            style={{ display: showGekochteProducten ? 'block' : 'none' }}
-          >
-            <fieldset>
-              <legend>Locatie</legend>
-              <div>
-                {['A', 'B', 'C', 'D'].map((loc) => (
-                  <div key={loc}>
-                    <input type="checkbox" name={loc} id={loc} />
-                    <label htmlFor={loc}>{loc}</label>
-                  </div>
-                ))}
-              </div>
-            </fieldset>
-            <fieldset>
-              <legend>Datum</legend>
-              <input type="date" />
-            </fieldset>
-            <fieldset>
-              <legend>Merk</legend>
-              <input type="text" />
-            </fieldset>
-          </div>
-        </div>
+  <Sidebar
+    sidebarVisible={sidebarVisible}
+    aankomendChecked={aankomendChecked}
+    eigenChecked={eigenChecked}
+    gekochtChecked={gekochtChecked}
+    aChecked={aChecked}
+    bChecked={bChecked}
+    cChecked={cChecked}
+    dChecked={dChecked}
+    dateFilter={dateFilter}
+    merkFilter={merkFilter}
+    naamFilter={naamFilter}
+    onCheckboxChange={handleCheckboxChange}
+    onInputChange={handleInputChange}
+    />
 
   <div className="content">
           <div className="veilingen">
@@ -95,20 +165,7 @@ const HomePage: React.FC = () => {
           </div>
 
           <div className="producten">
-            <div className="aankomende-producten">
-              <p>{showGekochteProducten ? 'Gekochte producten' : 'Aankomende producten per locatie:'}</p>
-              <div className="aankomende-producten-lijst">
-                {['A', 'B', 'C', 'D'].map((loc) => (
-                  <div className="aankomende-producten-voor-locatie" key={loc}
-                  style={{display: showGekochteProducten ? 'none' : 'block'}}>
-                    <p>Locatie {loc}</p>
-                    {[1, 2, 3, 4, 5].map((num) => (
-                      <p key={num}>{num}</p>
-                    ))}
-                  </div>
-                ))}
-              </div>
-            </div>
+            {productenInladen()}
           </div>
         </div>
       </div>

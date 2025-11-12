@@ -1,0 +1,38 @@
+[
+	{
+		"id": 1,
+		"naam": "Roos",
+		"merk": "FloraFresh",
+		"prijs": 2.5,
+		"datum": "2025-11-10",
+		"locatie": "A",
+		"status": "Aankomend"
+	},
+	{
+		"id": 2,
+		"naam": "Tulp",
+		"merk": "DutchBloom",
+		"prijs": 1.8,
+		"datum": "2025-11-09",
+		"locatie": "B",
+		"status": "Eigen"
+	},
+	{
+		"id": 3,
+		"naam": "Lelie",
+		"merk": "RoyalPetals",
+		"prijs": 3.2,
+		"datum": "2025-11-08",
+		"locatie": "C",
+		"status": "Verkocht"
+	},
+	{
+		"id": 4,
+		"naam": "Orchidee",
+		"merk": "ExoticFlowers",
+		"prijs": 4.0,
+		"datum": "2025-11-07",
+		"locatie": "D",
+		"status": "Aankomend"
+	}
+]

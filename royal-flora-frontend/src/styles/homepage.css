@@ -33,6 +33,7 @@
     justify-content: center;
     align-items: center;
     position: relative;
+    z-index: 2;
 }
 .homepage-page .nav-text {
     font-size: 2rem;
@@ -69,6 +70,7 @@
 .homepage-page .main-layout {
     display: flex;
     flex-direction: row;
+    
 }
 .homepage-page .content {
     display: flex;
@@ -169,7 +171,7 @@
 .homepage-page .producten {
     position: relative;
     display: flex;
-    flex-direction: row;
+    flex-flow: row wrap;
     width: 100%;
     box-sizing: border-box;
     overflow: hidden;
@@ -183,7 +185,6 @@
         height: calc(100vh - 9.375rem); 
         z-index: 1000;
     }
-    
 }
 @media (max-width: 500px) {
     .homepage-page .nav-logo-container img {
