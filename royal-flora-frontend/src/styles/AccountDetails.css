@@ -129,7 +129,7 @@ form {
     margin-bottom: 0;
 }
 
-label {
+label.label-text {
     display: block;
     color: var(--Text_on_primair);
     font-size: clamp(1rem, 1.8vw, 1.3rem);
@@ -137,6 +137,13 @@ label {
     font-weight: bold;
     width: 100%;
     text-align: left;
+}
+label {
+    display: block;
+    margin-bottom: clamp(0.3rem, 0.8vw, 0.6rem);
+    width: 100%;
+    text-align: left;
+    padding: 0;
 }
 
 input[type="text"],
@@ -211,10 +218,4 @@ input[type="password"]:focus {
     display: block;
 }
 
-
-fieldset {
-    border: none;
-    padding: 0;
-    margin: 0;
-}
 

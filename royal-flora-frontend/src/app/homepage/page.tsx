@@ -8,6 +8,7 @@ import Sidebar from '../components/Sidebar';
 import ProductCard from '../components/product-card'
 import  '../../styles/homepage.css';
 import { mock } from 'node:test';
+import Topbar from '../components/Topbar';
 
 
 
@@ -116,47 +117,15 @@ const productenInladen = () => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </Head>
 
-  <nav className="nav">
-    <div className="left">
-      <div className="hamburger" onClick={toggleSidebar}>
-        <span></span>
-        <span></span>
-        <span></span>
-      </div>
-      <span className="nav-text">Home</span>
-      </div>
-    <div className="nav-logo-container">
-      <img
-        src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Royal_FloraHolland_Logo.svg/1200px-Royal_FloraHolland_Logo.svg.png"
-        alt="Royal FloraHolland Logo"
-        className="nav-logo"
-      />
-    </div>
-    <a className="pfp-container" href="/productRegistratieAanvoerder">
-      <img
-        src="https://www.pikpng.com/pngl/m/80-805068_my-profile-icon-blank-profile-picture-circle-clipart.png"
-        alt="Profiel"
-        className="pfp-img"
-      />
-    </a>
-  </nav>
+            <Topbar
+                useSideBar={true}
+                currentPage="Account Details"
+                currentUser="User"
+            />
   
   <div className="main-layout">
-  <Sidebar
-    sidebarVisible={sidebarVisible}
-    aankomendChecked={aankomendChecked}
-    eigenChecked={eigenChecked}
-    gekochtChecked={gekochtChecked}
-    aChecked={aChecked}
-    bChecked={bChecked}
-    cChecked={cChecked}
-    dChecked={dChecked}
-    dateFilter={dateFilter}
-    merkFilter={merkFilter}
-    naamFilter={naamFilter}
-    onCheckboxChange={handleCheckboxChange}
-    onInputChange={handleInputChange}
-    />
+
+    
 
   <div className="content">
           <div className="veilingen">
