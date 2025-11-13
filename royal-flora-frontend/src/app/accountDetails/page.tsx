@@ -71,9 +71,17 @@ const AccountDetails: React.FC = () => {
         }
     };
 
-    const handleLogout = () => {
-        // Implementeer logout logica
-        window.location.href = '/';
+    const handleLogout = async () => {
+        const response = await fetch('http://localhost:5156/api/auth/logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+
+                }),
+            });
+        router.push('/login');
     };
 
     const handleDeleteAccount = () => {
