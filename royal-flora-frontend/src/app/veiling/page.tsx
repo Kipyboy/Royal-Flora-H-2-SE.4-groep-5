@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState } from "react";
 //import "../../styles/Root.css";
 import "../../styles/Veiling.css";
+import Topbar from "../components/Topbar";
 
 const DEFAULT_MS = 10 * 60 * 1000;
 const STORAGE_KEY = "veiling_end_ts";
@@ -170,21 +171,11 @@ export default function VeilingPage() {
   return (
     <>
     <div className="veiling-page">
-      <nav>
-        <a href="/homepage">
-          <img
-            src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Royal_FloraHolland_Logo.svg/1200px-Royal_FloraHolland_Logo.svg.png"
-            alt="Logo"
-          />
-        </a>
-        <a className="pfp-container" href="">
-          <img
-            src="https://www.pikpng.com/pngl/m/80-805068_my-profile-icon-blank-profile-picture-circle-clipart.png"
-            alt="Profile"
-          />
-        </a>
-      </nav>
-
+            <Topbar
+                currentPage="Account Details"
+                useSideBar={false}
+            />
+    
       <div className="clock-container">
         <svg ref={svgRef} width="700" height="700"></svg>
       </div>
