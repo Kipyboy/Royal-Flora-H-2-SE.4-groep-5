@@ -15,7 +15,9 @@ export default function Registreren() {
         password: '',
         confirmPassword: '',
         kvk: '',
-        accountType: 'klant'
+        accountType: 'klant',
+        postcode: '',
+        adress: ''
     });
     const [errors, setErrors] = useState({
         voornaam: '',
@@ -24,7 +26,9 @@ export default function Registreren() {
         email: '',
         password: '',
         confirmPassword: '',
-        kvk: ''
+        kvk: '',
+        postcode: '',
+        adress: ''
     });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -48,7 +52,9 @@ export default function Registreren() {
             email: '',
             password: '',
             confirmPassword: '',
-            kvk: ''
+            kvk: '',
+            postcode: '',
+            adress: ''
         };
         let isValid = true;
 
@@ -90,6 +96,15 @@ export default function Registreren() {
             newErrors.kvk = 'KvK-nummer moet 8 cijfers bevatten';
             isValid = false;
         }
+        if (!formData.postcode.trim()) {
+            newErrors.postcode = 'Postcode is verplicht';
+            isValid = false;
+        }
+        if (!formData.adress.trim()) {
+            newErrors.adress = 'Adres is verplicht';
+            isValid = false;
+        }
+        
 
         setErrors(newErrors);
         return isValid;
@@ -115,7 +130,10 @@ export default function Registreren() {
                     e_mail: formData.email,
                     wachtwoord: formData.password,
                     kvkNummer: formData.kvk,
+                    postcode: formData.postcode,
+                    adres: formData.adress,
                     accountType: formData.accountType
+
                 }),
             });
 
@@ -285,6 +303,46 @@ export default function Registreren() {
                         {errors.confirmPassword && (
                             <div id="confirm-password-error" className="error-message" aria-live="polite">
                                 {errors.confirmPassword}
+                            </div>
+                        )}
+
+                    </div>
+                </fieldset>
+                <fieldset>
+                    <div className='form-group'>
+                        <label htmlFor='postcode'>Postcode</label>
+                        <input 
+                            type="text" 
+                            id="postcode"
+                            name="postcode" 
+                            required 
+                            aria-describedby="postcode-error"
+                            autoComplete="postal-code"
+                            value={formData.postcode}
+                            onChange={handleChange}
+                        />
+                        
+                    {errors.postcode && (
+                        <div id="postcode-error" className="error-message" aria-live="polite">
+                            {errors.postcode}
+                        </div>
+                    )}
+                    </div>
+                    <div className='form-group'>
+                        <label htmlFor='adress'>Adres</label>
+                        <input
+                            type="text"
+                            id="adress"
+                            name="adress"
+                            required 
+                            aria-describedby="adress-error"
+                            autoComplete="address-line1"
+                            value={formData.adress}
+                            onChange={handleChange}
+                        />
+                        {errors.adress && (
+                            <div id="adress-error" className="error-message" aria-live="polite">
+                                {errors.adress}
                             </div>
                         )}
                     </div>

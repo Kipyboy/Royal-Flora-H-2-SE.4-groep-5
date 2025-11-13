@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+
 namespace RoyalFlora
 {
     public class Program
@@ -7,6 +9,9 @@ namespace RoyalFlora
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
+            builder.Services.AddDbContext<MyDbContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+            
             builder.Services.AddControllers();
             builder.Services.AddOpenApi();
 

@@ -1,31 +1,30 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using BCrypt.Net;
 
 namespace RoyalFlora.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+
     public class AuthController : ControllerBase
     {
-        [HttpPost("login")]
-        public ActionResult<LoginResponse> Login([FromBody] LoginRequest request)
-        {
-            // Hardcoded test credentials
-            if (request.Email == "test@test.com" && request.Password == "test123")
-            {
-                return Ok(new LoginResponse
-                {
-                    Success = true,
-                    Message = "Login succesvol",
-                    User = new UserInfo
-                    {
-                        Id = 1,
-                        Username = "TestUser",
-                        Email = "test@test.com",
-                        Role = "User"
-                    }
-                });
-            }
+        private readonly MyDbContext _context;
 
+        public AuthController(MyDbContext context)
+        {
+            _context = context;
+        }
+
+    [HttpPost("login")]
+    public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request)
+    {
+        var gebruiker = await _context.Gebruikers
+            .Include(g => g.RolNavigation)
+            .FirstOrDefaultAsync(g => g.Email == request.Email);
+
+        if (gebruiker == null || !BCrypt.Net.BCrypt.Verify(request.Password, gebruiker.Wachtwoord))
+        {
             return Unauthorized(new LoginResponse
             {
                 Success = false,
@@ -33,8 +32,35 @@ namespace RoyalFlora.Controllers
             });
         }
 
+            // Login succesvol
+            var user = new UserInfo
+            {
+                Id = gebruiker.IdGebruiker,
+                Username = $"{gebruiker.VoorNaam} {gebruiker.AchterNaam}",
+                Email = gebruiker.Email,
+                Role = gebruiker.RolNavigation?.RolNaam ?? "User"
+            };
+
+            // Sla user info op in session
+            HttpContext.Session.SetInt32("UserId", user.Id);
+            HttpContext.Session.SetString("Username", user.Username);
+            HttpContext.Session.SetString("Email", user.Email);
+            HttpContext.Session.SetString("Role", user.Role);
+
+            return Ok(new LoginResponse
+            {
+                Success = true,
+                Message = "Login succesvol",
+                User = user
+            });
+        }
+        private string hashPassword(string password)
+        {
+            return BCrypt.Net.BCrypt.HashPassword(password);
+        }
+
         [HttpPost("register")]
-        public ActionResult<RegisterResponse> Register([FromBody] RegisterRequest request)
+        public async Task<ActionResult<RegisterResponse>> Register([FromBody] RegisterRequest request)
         {
             // Basis validatie
             if (string.IsNullOrEmpty(request.VoorNaam) || string.IsNullOrEmpty(request.AchterNaam))
@@ -55,27 +81,6 @@ namespace RoyalFlora.Controllers
                 });
             }
 
-            // Email format validatie
-            var emailRegex = new System.Text.RegularExpressions.Regex(@"^[^\s@]+@[^\s@]+\.[^\s@]+$");
-            if (!emailRegex.IsMatch(request.E_mail))
-            {
-                return BadRequest(new RegisterResponse
-                {
-                    Success = false,
-                    Message = "Ongeldig email adres"
-                });
-            }
-
-            // Wachtwoord lengte check
-            if (request.Wachtwoord.Length < 6)
-            {
-                return BadRequest(new RegisterResponse
-                {
-                    Success = false,
-                    Message = "Wachtwoord moet minimaal 6 karakters zijn"
-                });
-            }
-
             // KvK nummer validatie
             if (string.IsNullOrEmpty(request.KvkNummer) || request.KvkNummer.Length != 8)
             {
@@ -86,42 +91,81 @@ namespace RoyalFlora.Controllers
                 });
             }
 
-            // TODO: Database interactie - Check of email al bestaat
-            // var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.E_mail);
-            // if (existingUser != null)
-            // {
-            //     return BadRequest(new RegisterResponse
-            //     {
-            //         Success = false,
-            //         Message = "Email adres is al in gebruik"
-            //     });
-            // }
+            // Check of email al bestaat
+            var existingUser = await _context.Gebruikers.FirstOrDefaultAsync(u => u.Email == request.E_mail);
+            if (existingUser != null)
+            {
+                return BadRequest(new RegisterResponse
+                {
+                    Success = false,
+                    Message = "Email adres is al in gebruik"
+                });
+            }
 
-            // TODO: Database interactie - Hash wachtwoord
-            // var hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.Wachtwoord);
+            // Check of KVK al bestaat
+            int kvkNummer = int.Parse(request.KvkNummer);
+            var bedrijf = await _context.Bedrijven.FirstOrDefaultAsync(b => b.KVK == kvkNummer);
+            
+            // Voor bedrijf accounttype: KVK mag niet bestaan
+            // Voor inkooper: KVK moet bestaan (tenzij we altijd een bedrijf aanmaken)
+            if (request.AccountType == "bedrijf" && bedrijf != null)
+            {
+                return BadRequest(new RegisterResponse
+                {
+                    Success = false,
+                    Message = "KvK-nummer is al in gebruik"
+                });
+            }
+            
+            // Bepaal rol ID (1 = Aanvoerder, 2 = Inkooper, aanpasbaar)
+            int rolId = request.AccountType == "bedrijf" ? 1 : 2;
 
-            // TODO: Database interactie - Maak nieuwe user aan en sla op
-            // var newUser = new User
-            // {
-            //     VoorNaam = request.VoorNaam,
-            //     AchterNaam = request.AchterNaam,
-            //     Telefoonnummer = request.Telefoonnummer,
-            //     Email = request.E_mail,
-            //     Password = hashedPassword,
-            //     KvkNummer = request.KvkNummer,
-            //     Role = request.AccountType == "bedrijf" ? "Aanvoerder" : "Inkooper",
-            //     CreatedAt = DateTime.UtcNow
-            // };
-            // _context.Users.Add(newUser);
-            // await _context.SaveChangesAsync();
+            // hash wachtwoord
+            request.Wachtwoord = hashPassword(request.Wachtwoord);
 
-            // Simuleer succesvolle registratie (tijdelijk hardcoded ID)
+            // Maak eerst bedrijf aan als het nog niet bestaat
+            if (bedrijf == null)
+            {
+                var newBedrijf = new Bedrijf
+                {
+                    KVK = kvkNummer,
+                    BedrijfNaam = $"Bedrijf {request.VoorNaam} {request.AchterNaam}",
+                    Oprichter = null // Wordt later ingevuld
+                };
+                _context.Bedrijven.Add(newBedrijf);
+                await _context.SaveChangesAsync();
+            }
+
+            // Maak nieuwe gebruiker aan
+            var newGebruiker = new Gebruiker
+            {
+                VoorNaam = request.VoorNaam,
+                AchterNaam = request.AchterNaam,
+                Email = request.E_mail,
+                Wachtwoord = request.Wachtwoord, 
+                Telefoonnummer = request.Telefoonnummer,
+                Rol = rolId,
+                KVK = kvkNummer
+            };
+
+            _context.Gebruikers.Add(newGebruiker);
+            await _context.SaveChangesAsync();
+
+            // Update bedrijf oprichter als het een bedrijfsaccount is
+            if (request.AccountType == "bedrijf")
+            {
+                var bedrijfToUpdate = await _context.Bedrijven.FirstAsync(b => b.KVK == kvkNummer);
+                bedrijfToUpdate.Oprichter = newGebruiker.IdGebruiker;
+                await _context.SaveChangesAsync();
+            }
+
+            // Simuleer succesvolle registratie
             var username = $"{request.VoorNaam} {request.AchterNaam}";
             var role = request.AccountType == "bedrijf" ? "Aanvoerder" : "Inkooper";
             
             var user = new UserInfo
             {
-                Id = 2, // TODO: Gebruik newUser.Id uit database
+                Id = newGebruiker.IdGebruiker,
                 Username = username,
                 Email = request.E_mail,
                 Role = role
