@@ -83,6 +83,8 @@
     display: none;
     flex-direction: column;
     bottom: 0;
+    height: auto;
+    min-height: 200rem;
     
 }
 .homepage-page .sidebar input[type='text'] {
@@ -130,8 +132,8 @@
     color: var(--Text_on_button);
 }
 
-.homepage-page a img {
-    border-radius: 1.25rem;
+.homepage-page a img {  
+
 }
 .homepage-page .toptext {
     font-size: 1.25rem;

@@ -110,7 +110,7 @@ const productenInladen = () => {
 
 
   return (
-    <>
+    <div className='homepage-page'>
       <Head>
         <title>Home - Royal FloraHolland</title>
         <meta charSet="UTF-8" />
@@ -118,16 +118,15 @@ const productenInladen = () => {
       </Head>
 
             <Topbar
-                useSideBar={true}
-                currentPage="Account Details"
-                currentUser="User"
+                useSideBar={false}
+                currentPage="Home"
             />
   
-  <div className="main-layout">
+      <div className="main-layout">
 
     
 
-  <div className="content">
+      <div className="content">
           <div className="veilingen">
             {['A', 'B', 'C', 'D'].map((loc) => (
               <a key={loc} href="/veiling" className="card">

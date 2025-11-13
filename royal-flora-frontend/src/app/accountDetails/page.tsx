@@ -87,10 +87,11 @@ const AccountDetails: React.FC = () => {
     const router = useRouter();
 
     return (
-        <>
+        <div className='accountDetails-page'>
             
             <Topbar
                 currentPage="Account Details"
+                useSideBar={true}
             />
             
 

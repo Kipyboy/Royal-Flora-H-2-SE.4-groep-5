@@ -8,58 +8,6 @@
     padding: clamp(1rem, 3vw, 3rem);
 }
 
-.accountDetails-page .nav-logo-container {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-.accountDetails-page .nav-logo {
-    height: 100px;
-    width: auto;
-}
-.accountDetails-page .pfp-container {
-    display: flex;
-    align-items: center;
-    padding-right: 1.875rem; 
-}
-.accountDetails-page .pfp-img {
-    height: 50px;
-    width: 50px;
-    border-radius: 50%;
-}
-
-.accountDetails-page nav {
-    background-color: var(--Secondair);
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 9.375rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: clamp(0.5rem, 2vw, 1rem);
-    padding: clamp(0.5rem, 2vw, 1rem);
-    z-index: 1000;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    width: auto;
-}
-.accountDetails-page .nav-text {
-    font-size: 2rem;
-    color: var(--Text_on_secondair);
-    font-weight: bold;
-}
-.accountDetails-page .left {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    right: 1rem;
-}
-
-
-
-
 
 .accountDetails-page h1 {
     color: var(--Text_on_primair);
@@ -126,6 +74,13 @@
 
 .accountDetails-page label {
     display: block;
+    font-size: clamp(1rem, 1.8vw, 1.3rem);
+    margin-bottom: clamp(0.3rem, 0.8vw, 0.6rem);
+    text-align: left;
+}
+
+.accountDetails-page .label-text {
+    display: block;
     color: var(--Text_on_primair);
     font-size: clamp(1rem, 1.8vw, 1.3rem);
     margin-bottom: clamp(0.3rem, 0.8vw, 0.6rem);
@@ -133,13 +88,7 @@
     width: 100%;
     text-align: left;
 }
-label {
-    display: block;
-    margin-bottom: clamp(0.3rem, 0.8vw, 0.6rem);
-    width: 100%;
-    text-align: left;
-    padding: 0;
-}
+
 
 input[type="text"],
 input[type="tel"],
