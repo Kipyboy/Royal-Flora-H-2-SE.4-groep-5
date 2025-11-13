@@ -118,8 +118,22 @@ const productenInladen = () => {
       </Head>
 
             <Topbar
-                useSideBar={false}
-                currentPage="Home"
+              useSideBar={true}
+              currentPage="Home"
+              sidebarVisible={sidebarVisible}
+              toggleSidebar={toggleSidebar}
+              aankomendChecked={aankomendChecked}
+              eigenChecked={eigenChecked}
+              gekochtChecked={gekochtChecked}
+              aChecked={aChecked}
+              bChecked={bChecked}
+              cChecked={cChecked}
+              dChecked={dChecked}
+              dateFilter={dateFilter}
+              merkFilter={merkFilter}
+              naamFilter={naamFilter}
+              onCheckboxChange={handleCheckboxChange}
+              onInputChange={handleInputChange}
             />
   
       <div className="main-layout">

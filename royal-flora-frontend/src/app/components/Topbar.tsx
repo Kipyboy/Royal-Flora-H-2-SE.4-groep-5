@@ -7,51 +7,47 @@ interface TopbarProps {
     useSideBar?: boolean;
     currentPage: string;
     currentUser?: string;
+
+
+    sidebarVisible?: boolean;
+    toggleSidebar?: () => void;
+    aankomendChecked?: boolean;
+    eigenChecked?: boolean;
+    gekochtChecked?: boolean;
+    aChecked?: boolean;
+    bChecked?: boolean;
+    cChecked?: boolean;
+    dChecked?: boolean;
+    dateFilter?: string;
+    merkFilter?: string;
+    naamFilter?: string;
+    onCheckboxChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onInputChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 const Topbar: React.FC<TopbarProps> = ({
     useSideBar = false,
     currentPage,
-    currentUser
+    currentUser,
+    sidebarVisible,
+    toggleSidebar,
+    aankomendChecked,
+    eigenChecked,
+    gekochtChecked,
+    aChecked,
+    bChecked,
+    cChecked,
+    dChecked,
+    dateFilter,
+    merkFilter,
+    naamFilter,
+    onCheckboxChange,
+    onInputChange
 }) => {
     const router = useRouter();
-    const [sidebarVisible, setSidebarVisible] = useState(true);
-    
-    
-    const toggleSidebar = () => {
-        setSidebarVisible(!sidebarVisible);
-    };
-
-    const [aankomendChecked, setAankomendChecked] = useState(true);
-      const [eigenChecked, setEigenChecked] = useState(true);
-      const [gekochtChecked, setGekochtChecked] = useState(true);
-      const [aChecked, setAChecked] = useState(false);
-      const [bChecked, setBChecked] = useState(false);
-      const [cChecked, setCChecked] = useState(false);
-      const [dChecked, setDChecked] = useState(false);
-      const [dateFilter, setDateFilter] = useState("");
-      const [merkFilter, setMerkFilter] = useState("");
-      const [naamFilter, setNaamFilter] = useState("");
-    
-    const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { id, checked } = e.target;
-        if (id == "Aankomende producten") setAankomendChecked(checked)
-        if (id == "Eigen producten") setEigenChecked(checked)
-        if (id == "Gekochte producten") setGekochtChecked(checked)
-        if (id == "A") setAChecked(checked)
-        if (id == "B") setBChecked(checked)
-        if (id == "C") setCChecked(checked)
-        if (id == "D") setDChecked(checked)
-    }
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { id, value } = e.target;
-        if (id == "datum-input") setDateFilter(value);
-        if (id == "merk-input") setMerkFilter(value);
-        if (id == "naam-input") setNaamFilter(value);
-    }
 
     return (
-        <>
+            <>
             <div className="topbar">
                 <nav className="nav">
                     <div className="left">
@@ -82,21 +78,23 @@ const Topbar: React.FC<TopbarProps> = ({
                     </a>
                 </nav>
             </div>
-            {useSideBar && <Sidebar
+            {useSideBar && sidebarVisible !== undefined && onCheckboxChange && onInputChange && (
+            <Sidebar
                 sidebarVisible={sidebarVisible}
-                aankomendChecked={aankomendChecked}
-                eigenChecked={eigenChecked}
-                gekochtChecked={gekochtChecked}
-                aChecked={aChecked}
-                bChecked={bChecked}
-                cChecked={cChecked}
-                dChecked={dChecked}
-                dateFilter={dateFilter}
-                merkFilter={merkFilter}
-                naamFilter={naamFilter}
-                onCheckboxChange={handleCheckboxChange}
-                onInputChange={handleInputChange}
-            />}
+                aankomendChecked={!!aankomendChecked}
+                eigenChecked={!!eigenChecked}
+                gekochtChecked={!!gekochtChecked}
+                aChecked={!!aChecked}
+                bChecked={!!bChecked}
+                cChecked={!!cChecked}
+                dChecked={!!dChecked}
+                dateFilter={dateFilter || ""}
+                merkFilter={merkFilter || ""}
+                naamFilter={naamFilter || ""}
+                onCheckboxChange={onCheckboxChange}
+                onInputChange={onInputChange}
+            />
+            )}
 
         </>
     );

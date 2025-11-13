@@ -91,7 +91,7 @@ const AccountDetails: React.FC = () => {
             
             <Topbar
                 currentPage="Account Details"
-                useSideBar={true}
+                useSideBar={false}
             />
             
 
