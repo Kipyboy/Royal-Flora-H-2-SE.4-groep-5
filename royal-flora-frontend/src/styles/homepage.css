@@ -76,33 +76,9 @@
     display: flex;
     flex-direction: column;
     flex: 1;
+    margin-left: 12.5rem;
 }
-.homepage-page .sidebar {
-    width: 12.5rem;
-    background-color: var(--Secondair);
-    display: none;
-    flex-direction: column;
-    bottom: 0;
-    
-}
-.homepage-page .sidebar input[type='text'] {
-    max-width: 8rem;
-}
-.homepage-page .sidebar fieldset {
-    margin: 1rem;
 
-}
-.homepage-page .filters {
-    display: none;
-}
-.homepage-page .verander-pagina-content {
-    background-color: var(--button);
-    color: var(--Text_on_button);
-    width: 6rem;
-    height: 3.5rem;
-    margin: 1rem;
-    border-radius: 0.75rem;
-}
 
 .homepage-page .veilingen {
     justify-content: center;
@@ -128,6 +104,8 @@
 .homepage-page .card p {
     padding-left: 0.625rem;
     color: var(--Text_on_button);
+    margin-top: 1rem;
+    margin-bottom: 1rem;
 }
 
 .homepage-page a img {

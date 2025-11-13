@@ -15,7 +15,9 @@
 }
 .sidebar fieldset {
     margin: 1rem;
-
+}
+.sidebar fieldset input {
+    margin: 0.25rem;
 }
 @media (max-width: 900px) {
     .sidebar {
