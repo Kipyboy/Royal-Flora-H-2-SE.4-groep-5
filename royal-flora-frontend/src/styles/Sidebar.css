@@ -5,9 +5,10 @@
     width: 12.5rem;
     background-color: var(--Secondair);
     flex-direction: column;
-    height: 100vh;
     overflow-y: auto;
     display: flex;
+    height: 100%;
+    top: 1rem;
 }
 .toptext {
     margin-top: 10rem;
