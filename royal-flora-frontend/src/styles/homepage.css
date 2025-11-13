@@ -154,16 +154,7 @@
     box-sizing: border-box;
     overflow: hidden;
 }
-@media (max-width: 900px) {
-    .homepage-page .sidebar {
-        position: absolute;
-        left: 0;
-        top: 9.375rem; 
-        width: 100vw;
-        height: calc(100vh - 9.375rem); 
-        z-index: 1000;
-    }
-}
+
 @media (max-width: 500px) {
     .homepage-page .nav-logo-container img {
         width: 150px;
