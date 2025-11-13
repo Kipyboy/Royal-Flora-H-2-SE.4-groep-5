@@ -1,20 +1,14 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
+/* Scoped styles for login page */
+.login-page {
     background-color: var(--Primair);
-    font-family: Arial, sans-serif;
+    min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
     padding: clamp(1rem, 3vw, 3rem);
 }
 
-h1 {
+.login-page h1 {
     color: var(--Text_on_primair);
     text-align: center;
     font-size: clamp(2rem, 5vw, 4rem);
@@ -23,19 +17,19 @@ h1 {
     letter-spacing: 0.02em;
 }
 
-form {
+.login-page form {
     width: min(90vw, 60rem);
     padding: clamp(1rem, 3vw, 3rem);
     margin: 0 auto;
 }
 
-.form-group {
+.login-page .form-group {
     width: 88%;
     margin: 0 auto;
     margin-bottom: clamp(1.5rem, 3vw, 3rem);
 }
 
-label {
+.login-page label {
     display: block;
     color: var(--Text_on_primair);
     font-size: clamp(1.1rem, 2vw, 1.6rem);
@@ -45,8 +39,8 @@ label {
     text-align: left;
 }
 
-input[type="email"],
-input[type="password"] {
+.login-page input[type="email"],
+.login-page input[type="password"] {
     width: 100%;
     display: block;
     margin: 0;
@@ -60,13 +54,13 @@ input[type="password"] {
 }
 
 
-input[type="email"]:focus,
-input[type="password"]:focus {
+.login-page input[type="email"]:focus,
+.login-page input[type="password"]:focus {
     background-color: #e0e0e0;
     box-shadow: 0 0 0 3px rgba(255, 96, 0, 0.2);
 }
 
-.forgot-password {
+.login-page .forgot-password {
     display: block;
     text-align: center;
     color: var(--Text_on_primair);
@@ -76,12 +70,12 @@ input[type="password"]:focus {
     transition: color 0.3s ease;
 }
 
-.forgot-password:hover {
+.login-page .forgot-password:hover {
     color: #ff8833;
     text-decoration-thickness: 2px;
 }
 
-.login-button {
+.login-page .login-button {
     width: 100%;
     max-width: clamp(12rem, 30vw, 17.5rem);
     padding: clamp(0.875rem, 2vw, 1.25rem);
@@ -97,19 +91,19 @@ input[type="password"]:focus {
     transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
 }
 
-.login-button:hover {
+.login-page .login-button:hover {
     background-color: #ff7722;
     transform: translateY(-3px);
     box-shadow: 0 8px 20px rgba(255, 96, 0, 0.3);
 }
 
-.login-button:active {
+.login-page .login-button:active {
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(255, 96, 0, 0.3);
 }
 
 
-.skip-link {
+.login-page .skip-link {
     position: absolute;
     top: -40px;
     left: 6px;
@@ -121,11 +115,11 @@ input[type="password"]:focus {
     z-index: 1000;
 }
 
-.skip-link:focus {
+.login-page .skip-link:focus {
     top: 6px;
 }
 
-.visually-hidden {
+.login-page .visually-hidden {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -137,24 +131,24 @@ input[type="password"]:focus {
     border: 0;
 }
 
-.error-message {
+.login-page .error-message {
     color: #dc3545;
     font-size: clamp(0.8rem, 1.2vw, 0.9rem);
     margin-top: 0.25rem;
     display: block;
 }
 
-.optional {
+.login-page .optional {
     font-weight: normal;
     opacity: 0.8;
 }
 
-fieldset {
+.login-page fieldset {
     border: none;
     padding: 0;
     margin: 0;
 }
 
-legend.visually-hidden {
+.login-page legend.visually-hidden {
     
 }

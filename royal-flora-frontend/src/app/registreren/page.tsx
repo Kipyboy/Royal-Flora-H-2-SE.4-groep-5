@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import '../../styles/Registreren.css';
 
+
 export default function Registreren() {
     const router = useRouter();
     const [formData, setFormData] = useState({
@@ -12,7 +13,9 @@ export default function Registreren() {
         telefoon: '',
         email: '',
         password: '',
-        confirmPassword: ''
+        confirmPassword: '',
+        kvk: '',
+        accountType: 'klant'
     });
     const [errors, setErrors] = useState({
         voornaam: '',
@@ -20,10 +23,11 @@ export default function Registreren() {
         telefoon: '',
         email: '',
         password: '',
-        confirmPassword: ''
+        confirmPassword: '',
+        kvk: ''
     });
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
@@ -43,7 +47,8 @@ export default function Registreren() {
             telefoon: '',
             email: '',
             password: '',
-            confirmPassword: ''
+            confirmPassword: '',
+            kvk: ''
         };
         let isValid = true;
 
@@ -58,12 +63,8 @@ export default function Registreren() {
             isValid = false;
         }
 
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!formData.email.trim()) {
             newErrors.email = 'Email is verplicht';
-            isValid = false;
-        } else if (!emailRegex.test(formData.email)) {
-            newErrors.email = 'Ongeldig email adres';
             isValid = false;
         }
 
@@ -80,6 +81,13 @@ export default function Registreren() {
             isValid = false;
         } else if (formData.password !== formData.confirmPassword) {
             newErrors.confirmPassword = 'Wachtwoorden komen niet overeen';
+            isValid = false;
+        }
+        if (!formData.kvk.trim()) {
+            newErrors.kvk = 'KvK-nummer is verplicht';
+            isValid = false;
+        } else if (!/^\d{8}$/.test(formData.kvk)) {
+            newErrors.kvk = 'KvK-nummer moet 8 cijfers bevatten';
             isValid = false;
         }
 
@@ -105,13 +113,27 @@ export default function Registreren() {
                     achterNaam: formData.achternaam,
                     telefoonnummer: formData.telefoon,
                     e_mail: formData.email,
-                    wachtwoord: formData.password
+                    wachtwoord: formData.password,
+                    kvkNummer: formData.kvk,
+                    accountType: formData.accountType
                 }),
             });
 
             if (response.ok) {
                 alert('Registratie succesvol!');
-                router.push('/login');
+                    // Pak de huidige tijd in seconden
+                const currentTimeInSeconds = Math.floor(Date.now() / 1000);
+    
+                // Kijk of het door 2 deelbaar is
+                if (currentTimeInSeconds % 2 === 0) {
+                    // console.log('Y - Even seconde:', currentTimeInSeconds);
+                    router.push('/login');
+                    return;
+                } else {
+                    // console.log('X - Oneven seconde:', currentTimeInSeconds);
+                    router.push('/homepage')
+                }
+                
             } else {
                 const error = await response.json();
                 alert(`Registratie mislukt: ${error.message || 'Onbekende fout'}`);
@@ -123,8 +145,9 @@ export default function Registreren() {
     };
 
     return (
-        <main id="main">
-            <a href="#main" className="skip-link">Spring naar hoofdinhoud</a>
+        <div className="registreren-page">
+            <main id="main">
+                <a href="#main" className="skip-link">Spring naar hoofdinhoud</a>
             
             <form onSubmit={handleSubmit} aria-labelledby="register-title">
                 <h1 id="register-title">Registreren</h1>
@@ -206,6 +229,25 @@ export default function Registreren() {
                         </div>
                     )}
                 </div>
+
+                <div className='form-group'>
+                    <label htmlFor='kvk'>KvK-nummer</label>
+                    <input 
+                        type="text" 
+                        id="kvk" 
+                        name="kvk" 
+                        required 
+                        aria-describedby="kvk-error"
+                        autoComplete="off"
+                        value={formData.kvk}
+                        onChange={handleChange}
+                    />
+                    {errors.kvk && (
+                        <div id="kvk-error" className="error-message" aria-live="polite">
+                            {errors.kvk}
+                        </div>
+                    )}
+                </div>
                 
                 <fieldset>
                     <legend className="visually-hidden">Wachtwoord instellen</legend>
@@ -247,9 +289,22 @@ export default function Registreren() {
                         )}
                     </div>
                 </fieldset>
+                <div className='form-group'>
+                    <label htmlFor='account-type'>Account type</label>
+                    <select 
+                        id='account-type' 
+                        name='accountType'
+                        value={formData.accountType}
+                        onChange={handleChange}
+                    >
+                        <option value='klant'>Inkooper</option>
+                        <option value='bedrijf'>Aanvoerder</option>
+                    </select>
+                </div>
                 
                 <button type="submit" className="register-button">Registreren</button>
             </form>
         </main>
+        </div>
     );
 }

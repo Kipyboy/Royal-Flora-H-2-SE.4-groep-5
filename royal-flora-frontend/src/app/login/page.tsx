@@ -80,8 +80,7 @@ export default function Login() {
                 // Moeten goed naa kijken wat voor informatie we bewaaren inplaats van de hele user
                 localStorage.setItem('user', JSON.stringify(data));
                 alert('Inloggen succesvol!');
-                // router.push('/homepage');
-                window.location.href = '/homepage';
+                router.push('/homepage');
             } else {
                 const error = await response.json();
                 alert(`Inloggen mislukt: ${error.message || 'Onjuiste email of wachtwoord'}`);
@@ -93,10 +92,11 @@ export default function Login() {
     };
 
     return (
-        <main id="main">
-            <a href="#main" className="skip-link">Spring naar hoofdinhoud</a>
-            
-            <form onSubmit={handleSubmit} aria-labelledby="login-title">
+        <div className="login-page">
+            <main id="main">
+                <a href="#main" className="skip-link">Spring naar hoofdinhoud</a>
+                
+                <form onSubmit={handleSubmit} aria-labelledby="login-title">
                 <h1 id="login-title">Inloggen</h1>
                 
                 <div className="form-group">
@@ -144,5 +144,6 @@ export default function Login() {
                 <button type="submit" className="login-button">Inloggen</button>
             </form>
         </main>
+        </div>
     );
 }

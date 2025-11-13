@@ -10,6 +10,17 @@ namespace RoyalFlora
             builder.Services.AddControllers();
             builder.Services.AddOpenApi();
 
+            // Add Session support
+            builder.Services.AddDistributedMemoryCache();
+            builder.Services.AddSession(options =>
+            {
+                options.IdleTimeout = TimeSpan.FromHours(24); // Session verloopt na 24 uur
+                options.Cookie.HttpOnly = true; // Cookie niet toegankelijk via JavaScript
+                options.Cookie.IsEssential = true;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.None; // Voor development (gebruik Always voor production)
+                options.Cookie.SameSite = SameSiteMode.None; // Voor cross-origin requests
+            });
+
             // Add CORS
             builder.Services.AddCors(options =>
             {
@@ -34,6 +45,9 @@ namespace RoyalFlora
 
             // Use CORS
             app.UseCors("AllowFrontend");
+
+            // Use Session (MOET voor UseAuthorization)
+            app.UseSession();
 
             app.UseAuthorization();
 

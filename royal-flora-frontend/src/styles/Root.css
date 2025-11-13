@@ -5,5 +5,16 @@
     --Text_on_primair: #FF6000;
     --Text_on_secondair: #030303;
     --Text_on_button: #FFFFFF;
+    --Input_background: #e0e0e0;
+}
 
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
 }
