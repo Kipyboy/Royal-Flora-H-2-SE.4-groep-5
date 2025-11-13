@@ -1,11 +1,13 @@
 .sidebar {
-    position: fixed;
+    position: absolute;
+    left: 0;
     width: 12.5rem;
     background-color: var(--Secondair);
     flex-direction: column;
-    height: 100vh;
+    height: max-content;
     overflow-y: auto;
-    bottom: 0;
+    display: flex;
+    padding-bottom: -9.375rem;
 }
 .toptext {
     margin-top: 9.375rem;

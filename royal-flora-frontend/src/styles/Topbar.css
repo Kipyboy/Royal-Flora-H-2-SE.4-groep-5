@@ -1,0 +1,81 @@
+.topbar .nav-logo-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.topbar .nav-logo {
+    height: 100px;
+    width: auto;
+    border-radius: 0;
+}
+.topbar .pfp-container {
+    display: flex;
+    align-items: center;
+    padding-right: 1.875rem; 
+}
+.topbar .pfp-img {
+    height: 50px;
+    width: 50px;
+    border-radius: 50%;
+}
+
+
+.topbar .hamburger {
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    cursor: pointer;
+    padding: 2.5rem;
+    min-width: 2rem;
+    min-height: 0.100rem;
+    position: left;
+}
+
+.topbar .hamburger span {
+    display: block;
+    height: 0.25rem;
+    width: 100%;
+    background: #333;
+    margin: 5px 0;
+    border-radius: 0.125rem;
+    transition: 0.3s;
+    min-width: 2rem;
+    min-height: 0.100rem;
+}
+
+body{
+    padding-top: 9.375rem;
+}
+
+.topbar nav {
+    background-color: var(--Secondair);
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 9.375rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(0.5rem, 2vw, 1rem);
+    padding: clamp(0.5rem, 2vw, 1rem);
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    width: auto;
+    font-family: 'Arial', sans-serif;
+    box-sizing: border-box;
+}
+.topbar .nav-text {
+    font-size: 2rem;
+    color: var(--Text_on_secondair);
+    font-weight: bold;
+}
+.topbar .left {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    right: 1rem;
+}
