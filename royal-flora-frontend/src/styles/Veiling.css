@@ -73,8 +73,8 @@
 }
 
 .veiling-page .photo-row img {
-  width: 17rem;
-  height: 15rem;
+  width: 15%;
+  height: 12%;
   max-width: 100%;
   border-radius: 0.5rem;
 }
