@@ -214,8 +214,3 @@ input[type="password"]:focus {
 }
 
 
-.accountDetails-page fieldset {
-    border: none;
-    padding: 0;
-    margin: 0;
-}

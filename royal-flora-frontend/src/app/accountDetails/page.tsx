@@ -87,11 +87,12 @@ const AccountDetails: React.FC = () => {
     const router = useRouter();
 
     return (
-        <div className="accountDetails-page">
+        <>
+            
             <Topbar
                 currentPage="Account Details"
             />
-        <>
+            
 
             <main id="main">
                 <form onSubmit={e => e.preventDefault()} aria-labelledby="accountdetails-title">

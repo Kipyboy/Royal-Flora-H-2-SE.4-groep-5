@@ -117,8 +117,8 @@ const productenInladen = () => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </Head>
 
-                useSideBar={true}
             <Topbar
+                useSideBar={true}
                 currentPage="Account Details"
                 currentUser="User"
             />
