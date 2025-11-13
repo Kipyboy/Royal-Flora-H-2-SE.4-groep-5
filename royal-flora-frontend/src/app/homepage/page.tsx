@@ -19,7 +19,7 @@ const HomePage: React.FC = () => {
 
   const getProducts = async () => {
       try {
-        const response = await fetch("/products.json");
+        const response = await fetch("http://localhost:5156/api/products");
         const data = await response.json();
         setProducts(data);
       }
