@@ -172,7 +172,7 @@ export default function VeilingPage() {
     <>
     <div className="veiling-page">
             <Topbar
-                currentPage="Account Details"
+                currentPage="Veiling"
                 useSideBar={false}
             />
     

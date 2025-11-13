@@ -108,8 +108,8 @@
 }
 
 .veiling-page .photo-row img {
-  width: clamp(8rem, 40vw, 17rem);
-  height: auto;
+  width: 15%;
+  height: 12%;
   max-width: 100%;
   border-radius: 0.5rem;
 }
