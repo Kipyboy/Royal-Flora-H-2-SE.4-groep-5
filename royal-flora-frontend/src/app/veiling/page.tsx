@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
-import "../../styles/Root.css";
+//import "../../styles/Root.css";
 import "../../styles/Veiling.css";
 
 const DEFAULT_MS = 10 * 60 * 1000;
@@ -149,7 +149,7 @@ export default function VeilingPage() {
 
       percentText.textContent = Math.floor(ratio * 100) + "%";
       const currentPrice = minPrice + (startingPrice - minPrice) * ratio;
-      priceText.textContent = "$" + currentPrice.toFixed(2);
+      priceText.textContent = "€" + currentPrice.toFixed(2);
       timeText.textContent = formatMs(remainingMs);
 
       animationFrameId = requestAnimationFrame(update);
@@ -169,6 +169,7 @@ export default function VeilingPage() {
 
   return (
     <>
+    <div className="veiling-page">
       <nav>
         <a href="/homepage">
           <img
@@ -203,11 +204,11 @@ export default function VeilingPage() {
           </p>
         </div>
         <div className="sidebar-bottom">
-          <p>Prijs: </p>
           <button onClick={handleStop}>Koop</button>
           <button onClick={handleReset}>Reset</button>
         </div>
       </div>
+    </div>
     </>
   );
 }

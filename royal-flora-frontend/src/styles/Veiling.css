@@ -4,13 +4,13 @@
   box-sizing: border-box;
 }
 
-body {
+.veiling-page body {
   background-color: var(--Primair);
   font-family: Arial, sans-serif;
   padding: clamp(0.5rem, 2vw, 2rem);
 }
 
-nav {
+.veiling-page nav {
   position: fixed;
   top: 0;
   left: 0;
@@ -25,28 +25,28 @@ nav {
   box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.08);
 }
 
-nav img,
-.pfp-container {
+.veiling-page nav img,
+.veiling-page .pfp-container {
   height: clamp(3rem, 8vw, 6.25rem);
   width: auto;
   border: none;
 }
 
-.nav-text {
+.veiling-page .nav-text {
   position: absolute;
   left: 1rem;
   width: min(95vw, 50rem);
   font-size: clamp(1rem, 4vw, 2rem);
-  color: #fff;
+  color: #ff0000;
   font-weight: bold;
 }
 
-.pfp-container {
+.veiling-page .pfp-container {
   position: absolute;
   right: 0.5rem;
 }
 
-.gallery {
+.veiling-page .gallery {
   position: fixed;
   bottom: 0;
   left: 0;
@@ -60,7 +60,7 @@ nav img,
   flex-wrap: wrap;
 }
 
-.sidebar {
+.veiling-page .sidebar {
   position: fixed;
   top: 4.5rem;
   right: 0;
@@ -76,14 +76,14 @@ nav img,
   justify-content: space-between;
 }
 
-.sidebar-bottom {
+.veiling-page .sidebar-bottom {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 1rem;
 }
 
-.sidebar button {
+.veiling-page .sidebar button {
   padding: 0.625rem 1.25rem;
   background-color: var(--button);
   color: var(--Text_on_button);
@@ -93,18 +93,19 @@ nav img,
   min-height: 44px; 
 }
 
-.sidebar button:hover {
+.veiling-page .sidebar button:hover {
   background-color: var(--Secondair);
 }
 
-.clock-container {
+.veiling-page .clock-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin: 2rem 0;
+  margin: 4rem 0;
+  background-color: var(--Primair);
 }
 
-.photo-row {
+.veiling-page .photo-row {
   display: flex;
   justify-content: center;
   gap: 1rem;
@@ -112,14 +113,14 @@ nav img,
   margin-top: 10px;
 }
 
-.photo-row img {
+.veiling-page .photo-row img {
   width: clamp(8rem, 40vw, 17rem);
   height: auto;
   max-width: 100%;
   border-radius: 0.5rem;
 }
 
-.photo-nav {
+.veiling-page .photo-nav {
   position: absolute;
   bottom: 2.5rem;
   left: 50%;
@@ -128,15 +129,15 @@ nav img,
   gap: 1rem;
 }
 
-.photo-nav button {
+.veiling-page .photo-nav button {
   padding: 0.5rem 1rem;
   font-size: 1rem;
   cursor: pointer;
 }
 
-.photo-row img:focus-visible,
-.sidebar button:focus-visible,
-.photo-nav button:focus-visible {
+.veiling-page .photo-row img:focus-visible,
+.veiling-page .sidebar button:focus-visible,
+.veiling-page .photo-nav button:focus-visible {
   outline: 3px solid #ff9800;
   outline-offset: 4px;
   box-shadow: 0 0 8px #ff9800;
