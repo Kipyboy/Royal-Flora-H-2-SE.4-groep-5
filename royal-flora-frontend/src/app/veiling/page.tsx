@@ -177,7 +177,7 @@ export default function VeilingPage() {
             />
     
       <div className="clock-container">
-        <svg ref={svgRef} width="700" height="700"></svg>
+        <svg ref={svgRef} width="500" height="500"></svg>
       </div>
 
       <div className="gallery">
