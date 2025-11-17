@@ -1,0 +1,33 @@
+.veiling-page .sidebar {
+  position: fixed;
+  top: 9.375rem;
+  width: clamp(12rem, 25vw, 15.625rem);
+  height: calc(100% - 9.375rem);
+  background-color: var(--Secondair);
+  border-left: 0.0625rem solid #ccc;
+  padding: 1rem;
+  padding-top: 3rem;
+  box-shadow: -0.125rem 0 0.3125rem rgba(0, 0, 0, 0.1);
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.veiling-page .sidebar-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.veiling-page .sidebar button {
+  padding: 0.625rem 1.25rem;
+  background-color: var(--button);
+  color: var(--Text_on_button);
+  border: none;
+  cursor: pointer;
+  min-height: 3rem; 
+}
+
+.veiling-page .sidebar button:hover {
+  background-color: var(--Secondair);
+}
