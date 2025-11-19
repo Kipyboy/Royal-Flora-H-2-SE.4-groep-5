@@ -34,6 +34,7 @@ const HomePage: React.FC = () => {
   const [aankomendChecked, setAankomendChecked] = useState(true);
   const [eigenChecked, setEigenChecked] = useState(true);
   const [gekochtChecked, setGekochtChecked] = useState(true);
+  const [inTePlannenChecked, setInTePlannenChecked] = useState(true);
   const [aChecked, setAChecked] = useState(false);
   const [bChecked, setBChecked] = useState(false);
   const [cChecked, setCChecked] = useState(false);
@@ -65,7 +66,8 @@ const productenInladen = () => {
     if (
       (!aankomendChecked && product.status === "Aankomend") ||
       (!eigenChecked && product.status === "Eigen") ||
-      (!gekochtChecked && product.status === "Verkocht")
+      (!gekochtChecked && product.status === "Verkocht") ||
+      (!inTePlannenChecked && product.status === "In te plannen")
     ) return false
 
     if (
@@ -125,6 +127,7 @@ const productenInladen = () => {
               aankomendChecked={aankomendChecked}
               eigenChecked={eigenChecked}
               gekochtChecked={gekochtChecked}
+              inTePlannenChecked={inTePlannenChecked}
               aChecked={aChecked}
               bChecked={bChecked}
               cChecked={cChecked}
