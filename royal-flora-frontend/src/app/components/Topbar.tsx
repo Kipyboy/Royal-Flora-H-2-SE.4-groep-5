@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useState } from 'react';
 import '../../styles/Topbar.css';
 import Sidebar from './Sidebar';
@@ -100,57 +102,71 @@ const Topbar: React.FC<TopbarProps> = ({
                     </nav>
                 </div>
                 {useSideBar && sidebarVisible !== undefined && onCheckboxChange && onInputChange && (
-                    <>
-                        {currentUser === "aanvoerder" && (
-                            <AanvoerderSidebar
-                                sidebarVisible={sidebarVisible}
-                                aankomendChecked={!!aankomendChecked}
-                                eigenChecked={!!eigenChecked}
-                                aChecked={!!aChecked}
-                                bChecked={!!bChecked}
-                                cChecked={!!cChecked}
-                                dChecked={!!dChecked}
-                                dateFilter={dateFilter || ""}
-                                merkFilter={merkFilter || ""}
-                                naamFilter={naamFilter || ""}
-                                onCheckboxChange={onCheckboxChange}
-                                onInputChange={onInputChange}
-                            />
-                        )}
-                        {currentUser === "klant" && (
-                            <KlantSidebar
-                                sidebarVisible={sidebarVisible}
-                                aankomendChecked={!!aankomendChecked}
-                                gekochtChecked={!!gekochtChecked}
-                                aChecked={!!aChecked}
-                                bChecked={!!bChecked}
-                                cChecked={!!cChecked}
-                                dChecked={!!dChecked}
-                                dateFilter={dateFilter || ""}
-                                merkFilter={merkFilter || ""}
-                                naamFilter={naamFilter || ""}
-                                onCheckboxChange={onCheckboxChange}
-                                onInputChange={onInputChange}
-                            />
-                        )}
-                        {currentUser === "veilingmeester" && (
-                            <VeilingmeesterSidebar
-                                sidebarVisible={sidebarVisible}
-                                aankomendChecked={!!aankomendChecked}
-                                inTePlannenChecked={!!inTePlannenChecked}
-                                aChecked={!!aChecked}
-                                bChecked={!!bChecked}
-                                cChecked={!!cChecked}
-                                dChecked={!!dChecked}
-                                dateFilter={dateFilter || ""}
-                                merkFilter={merkFilter || ""}
-                                naamFilter={naamFilter || ""}
-                                onCheckboxChange={onCheckboxChange}
-                                onInputChange={onInputChange}
-                            />
-                        )}
-                    </>
+                    <Sidebar
+                        sidebarVisible={!!sidebarVisible}
+                        aankomendChecked={!!aankomendChecked}
+                        eigenChecked={!!eigenChecked}
+                        gekochtChecked={!!gekochtChecked}
+                        aChecked={!!aChecked}
+                        bChecked={!!bChecked}
+                        cChecked={!!cChecked}
+                        dChecked={!!dChecked}
+                        dateFilter={dateFilter || ""}
+                        merkFilter={merkFilter || ""}
+                        naamFilter={naamFilter || ""}
+                        onCheckboxChange={onCheckboxChange}
+                        onInputChange={onInputChange}
+                    />
                 )}
+                {currentUser === "aanvoerder" && (
+                    <AanvoerderSidebar
+                        sidebarVisible={!!sidebarVisible}
+                        aankomendChecked={!!aankomendChecked}
+                        eigenChecked={!!eigenChecked}
+                        aChecked={!!aChecked}
+                        bChecked={!!bChecked}
+                        cChecked={!!cChecked}
+                        dChecked={!!dChecked}
+                        dateFilter={dateFilter || ""}
+                        merkFilter={merkFilter || ""}
+                        naamFilter={naamFilter || ""}
+                        onCheckboxChange={onCheckboxChange ?? (() => {})}
+                        onInputChange={onInputChange ?? (() => {})}
+                    />
+                )}
+                {currentUser === "klant" && (
+                    <KlantSidebar
+                        sidebarVisible={!!sidebarVisible}
+                        aankomendChecked={!!aankomendChecked}
+                        gekochtChecked={!!gekochtChecked}
+                        aChecked={!!aChecked}
+                        bChecked={!!bChecked}
+                        cChecked={!!cChecked}
+                        dChecked={!!dChecked}
+                        dateFilter={dateFilter || ""}
+                        merkFilter={merkFilter || ""}
+                        naamFilter={naamFilter || ""}
+                        onCheckboxChange={onCheckboxChange ?? (() => {})}
+                        onInputChange={onInputChange ?? (() => {})}
+                    />
+                )}
+                {currentUser === "veilingmeester" && (
+                    <VeilingmeesterSidebar
+                        sidebarVisible={!!sidebarVisible}
+                        aankomendChecked={!!aankomendChecked}
+                        inTePlannenChecked={!!inTePlannenChecked}
+                        aChecked={!!aChecked}
+                        bChecked={!!bChecked}
+                        cChecked={!!cChecked}
+                        dChecked={!!dChecked}
+                        dateFilter={dateFilter || ""}
+                        merkFilter={merkFilter || ""}
+                        naamFilter={naamFilter || ""}
+                        onCheckboxChange={onCheckboxChange ?? (() => {})}
+                        onInputChange={onInputChange ?? (() => {})}
+                    />
+                )}
+                
             </>
         );
     };
