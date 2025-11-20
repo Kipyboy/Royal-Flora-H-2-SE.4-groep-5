@@ -10,14 +10,52 @@
     border-radius: 0;
 }
 .topbar .pfp-container {
+    position: relative;
     display: flex;
     align-items: center;
-    padding-right: 1.875rem; 
+    padding-right: 1.875rem;
+    cursor: pointer;
 }
 .topbar .pfp-img {
     height: 50px;
     width: 50px;
     border-radius: 50%;
+}
+
+.topbar .dropdown-menu {
+    position: absolute;
+    top: 60px;
+    right: 0;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 200px;
+    z-index: 1001;
+    overflow: hidden;
+}
+
+.topbar .dropdown-menu button {
+    width: 100%;
+    padding: 12px 16px;
+    background: none;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    font-size: 14px;
+    color: #333;
+    transition: background-color 0.2s;
+}
+.topbar .dropdown-menu .logoutButton {
+    color:#FF0000;
+}
+
+.topbar .dropdown-menu button:hover {
+    background-color: var(--Secondair);
+}
+
+.topbar .dropdown-menu button:not(:last-child) {
+    border-bottom: 1px solid #eee;
 }
 
 
