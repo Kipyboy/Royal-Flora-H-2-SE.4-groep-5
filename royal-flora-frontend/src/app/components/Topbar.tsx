@@ -16,7 +16,7 @@ import VeilingmeesterSidebar from './VeilingmeesterSidebar';
 interface TopbarProps {
     useSideBar?: boolean;
     currentPage: string;
-    currentUser?: string;
+    userRole?: string;
 
     sidebarVisible?: boolean;
     toggleSidebar?: () => void;
@@ -38,7 +38,6 @@ interface TopbarProps {
 const Topbar: React.FC<TopbarProps> = ({
     useSideBar = false,
     currentPage,
-    currentUser,
     sidebarVisible,
     toggleSidebar,
     aankomendChecked,
@@ -68,6 +67,65 @@ const Topbar: React.FC<TopbarProps> = ({
     }, []);
 
     const router = useRouter();
+    const [dropdownVisible, setDropdownVisible] = useState(false);
+
+    const toggleDropdown = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setDropdownVisible(!dropdownVisible);
+    };
+
+    const handleLogout = async () => {
+        await fetch('http://localhost:5156/api/auth/logout', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {  
+                'Content-Type': 'application/json',
+            }
+        });
+        setDropdownVisible(false);
+        router.push('/login');
+    };
+
+    // Close dropdown when clicking outside
+    React.useEffect(() => {
+        const handleClickOutside = () => {
+            if (dropdownVisible) {
+                setDropdownVisible(false);
+            }
+        };
+
+        document.addEventListener('click', handleClickOutside);
+        return () => {
+            document.removeEventListener('click', handleClickOutside);
+        };
+    }, [dropdownVisible]);
+
+    React.useEffect(() => {
+            const fetchSessionData = async () => {
+                try {
+                    const response = await fetch('http://localhost:5156/api/auth/session', {
+                        method: 'GET',
+                        credentials: 'include',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    console
+    
+                    if (response.ok) {
+                        const data = await response.json();    
+                        setUserRole(data.role);
+                    } else {
+                        // Not logged in, redirect to login
+                        console.error('Not logged in');
+                    }
+                } catch (error) {
+                    console.error('Error fetching session:', error);
+                }
+            };
+    
+            fetchSessionData();
+        }, []);
 
     return (
             <>
@@ -99,6 +157,31 @@ const Topbar: React.FC<TopbarProps> = ({
                                 className="pfp-img"
                             />
                         </a>
+            </div>
+                </nav>
+                    </div>
+                        )}
+                            </div>
+                                </button>
+                                )}
+                                <button className = 'logoutButton' onClick={handleLogout}>
+                                    Uitloggen
+                                </button>
+                    <div className="pfp-container" onClick={toggleDropdown}>
+                        <img
+                            alt="Profiel"
+                            src="https://www.pikpng.com/pngl/m/80-805068_my-profile-icon-blank-profile-picture-circle-clipart.png"
+                            className="pfp-img"
+                            aria-label="Account menu"
+                        />
+                        {dropdownVisible && (
+                            <div className="dropdown-menu" onClick={(e) => e.stopPropagation()}>
+                                <button onClick={() => { setDropdownVisible(false); router.push('/accountDetails'); }}>
+                                    Account Details
+                                </button>
+                                {userRole == 'Aanvoerder' &&(
+                                    Product registreren
+                                <button onClick={() => { setDropdownVisible(false); router.push('/productRegistratieAanvoerder'); }}>
                     </nav>
                 </div>
                 {useSideBar && sidebarVisible !== undefined && onCheckboxChange && onInputChange && (

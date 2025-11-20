@@ -66,6 +66,7 @@ export default function Login() {
         try {
             const response = await fetch('http://localhost:5156/api/auth/login', {
                 method: 'POST',
+                credentials: 'include', // Important: allows cookies to be saved
                 headers: {
                     'Content-Type': 'application/json',
                 },

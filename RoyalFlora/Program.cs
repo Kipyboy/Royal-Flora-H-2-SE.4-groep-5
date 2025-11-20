@@ -22,8 +22,9 @@ namespace RoyalFlora
                 options.IdleTimeout = TimeSpan.FromHours(24); // Session verloopt na 24 uur
                 options.Cookie.HttpOnly = true; // Cookie niet toegankelijk via JavaScript
                 options.Cookie.IsEssential = true;
-                options.Cookie.SecurePolicy = CookieSecurePolicy.None; // Voor development (gebruik Always voor production)
-                options.Cookie.SameSite = SameSiteMode.None; // Voor cross-origin requests
+                options.Cookie.SecurePolicy = CookieSecurePolicy.None; // Voor development
+                options.Cookie.SameSite = SameSiteMode.Lax; // Lax works with HTTP, None requires HTTPS
+                options.Cookie.Name = ".RoyalFlora.Session";
             });
 
             // Add CORS
@@ -46,7 +47,8 @@ namespace RoyalFlora
                 app.MapOpenApi();
             }
 
-            app.UseHttpsRedirection();
+            // Disabled for development to allow SameSite=Lax cookies over HTTP
+            // app.UseHttpsRedirection();
 
             // Use CORS
             app.UseCors("AllowFrontend");
