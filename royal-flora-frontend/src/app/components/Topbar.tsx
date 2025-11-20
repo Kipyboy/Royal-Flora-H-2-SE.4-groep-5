@@ -150,38 +150,30 @@ const Topbar: React.FC<TopbarProps> = ({
                                 />
                             </a>
                         </div>
-                        <a className="pfp-container" href="/accountDetails" aria-label="Ga naar account details" onClick={() => router.push('/accountDetails')}>
+                        
+                        <div className="pfp-container" onClick={toggleDropdown}>
                             <img
-                                src="https://www.pikpng.com/pngl/m/80-805068_my-profile-icon-blank-profile-picture-circle-clipart.png"
                                 alt="Profiel"
+                                src="https://www.pikpng.com/pngl/m/80-805068_my-profile-icon-blank-profile-picture-circle-clipart.png"
                                 className="pfp-img"
+                                aria-label="Account menu"
                             />
-                        </a>
-            </div>
-                </nav>
-                    </div>
-                        )}
-                            </div>
-                                </button>
-                                )}
-                                <button className = 'logoutButton' onClick={handleLogout}>
-                                    Uitloggen
-                                </button>
-                    <div className="pfp-container" onClick={toggleDropdown}>
-                        <img
-                            alt="Profiel"
-                            src="https://www.pikpng.com/pngl/m/80-805068_my-profile-icon-blank-profile-picture-circle-clipart.png"
-                            className="pfp-img"
-                            aria-label="Account menu"
-                        />
-                        {dropdownVisible && (
-                            <div className="dropdown-menu" onClick={(e) => e.stopPropagation()}>
-                                <button onClick={() => { setDropdownVisible(false); router.push('/accountDetails'); }}>
-                                    Account Details
-                                </button>
-                                {userRole == 'Aanvoerder' &&(
-                                    Product registreren
-                                <button onClick={() => { setDropdownVisible(false); router.push('/productRegistratieAanvoerder'); }}>
+                            {dropdownVisible && (
+                                <div className="dropdown-menu" onClick={(e) => e.stopPropagation()}>
+                                    <button onClick={() => { setDropdownVisible(false); router.push('/accountDetails'); }}>
+                                        Account Details
+                                    </button>
+                                    {userRole === 'Aanvoerder' && (
+                                        <button onClick={() => { setDropdownVisible(false); router.push('/productRegistratieAanvoerder'); }}>
+                                            Product registreren
+                                        </button>
+                                    )}
+                                    <button className='logoutButton' onClick={handleLogout}>
+                                        Uitloggen
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     </nav>
                 </div>
                 {useSideBar && sidebarVisible !== undefined && onCheckboxChange && onInputChange && (
@@ -201,7 +193,7 @@ const Topbar: React.FC<TopbarProps> = ({
                         onInputChange={onInputChange}
                     />
                 )}
-                {currentUser === "aanvoerder" && (
+                {userRole === "aanvoerder" && (
                     <AanvoerderSidebar
                         sidebarVisible={!!sidebarVisible}
                         aankomendChecked={!!aankomendChecked}
@@ -217,7 +209,7 @@ const Topbar: React.FC<TopbarProps> = ({
                         onInputChange={onInputChange ?? (() => {})}
                     />
                 )}
-                {currentUser === "klant" && (
+                {userRole === "klant" && (
                     <KlantSidebar
                         sidebarVisible={!!sidebarVisible}
                         aankomendChecked={!!aankomendChecked}
@@ -233,7 +225,7 @@ const Topbar: React.FC<TopbarProps> = ({
                         onInputChange={onInputChange ?? (() => {})}
                     />
                 )}
-                {currentUser === "veilingmeester" && (
+                {userRole === "veilingmeester" && (
                     <VeilingmeesterSidebar
                         sidebarVisible={!!sidebarVisible}
                         aankomendChecked={!!aankomendChecked}
