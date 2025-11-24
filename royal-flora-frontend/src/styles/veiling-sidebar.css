@@ -10,13 +10,18 @@
   box-shadow: -0.125rem 0 0.3125rem rgba(0, 0, 0, 0.1);
   flex-direction: column;
   justify-content: space-between;
+  left: 0;
 }
 
 .veiling-page .sidebar-bottom {
   display: flex;
-  flex-direction: column;
   align-items: center;
   gap: 1rem;
+}
+
+.veiling-page .sidebar-top {
+  align-items: center;
+  height: 35rem;
 }
 
 .veiling-page .sidebar button {

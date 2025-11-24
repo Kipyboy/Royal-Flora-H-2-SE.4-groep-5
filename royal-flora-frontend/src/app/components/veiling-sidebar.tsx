@@ -12,6 +12,7 @@ export default function Sidebar({ onReset, onStop }: SidebarProps) {
     <div className="sidebar">
       <div className="sidebar-top">
         <p>Naam: Zonnebloemen</p>
+        <br></br>
         <p>
           Beschrijving: Dit is een voorbeeld om een idee te geven hoe deze pagina er uit zou zien.
           De zonnebloem is een tot 3 meter hoge, eenjarige plant uit de composietenfamilie.
