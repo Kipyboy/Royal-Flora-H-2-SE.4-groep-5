@@ -26,6 +26,16 @@ namespace RoyalFlora.Controllers
     [HttpPost("login")]
     public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request)
     {
+        // Validate input
+        if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
+        {
+            return BadRequest(new LoginResponse
+            {
+                Success = false,
+                Message = "Email en wachtwoord zijn verplicht"
+            });
+        }
+
         var gebruiker = await _context.Gebruikers
             .Include(g => g.RolNavigation)
             .FirstOrDefaultAsync(g => g.Email == request.Email);
@@ -63,7 +73,14 @@ namespace RoyalFlora.Controllers
         private string GenerateJwtToken(UserInfo user)
         {
             var jwtSettings = _configuration.GetSection("Jwt");
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]!));
+            var jwtKey = jwtSettings["Key"];
+            
+            if (string.IsNullOrEmpty(jwtKey))
+            {
+                throw new InvalidOperationException("JWT Key is not configured");
+            }
+            
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var claims = new[]
@@ -233,14 +250,14 @@ namespace RoyalFlora.Controllers
             var email = User.FindFirst(ClaimTypes.Email)?.Value ?? User.FindFirst(JwtRegisteredClaimNames.Email)?.Value;
             var role = User.FindFirst(ClaimTypes.Role)?.Value;
             
-            if (string.IsNullOrEmpty(userId))
+            if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out var id))
             {
                 return Unauthorized(new { message = "Niet ingelogd" });
             }
 
             return Ok(new UserInfo
             {
-                Id = int.Parse(userId),
+                Id = id,
                 Username = username ?? "",
                 Email = email ?? "",
                 Role = role ?? ""
