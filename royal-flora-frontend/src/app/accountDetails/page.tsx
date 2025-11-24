@@ -49,7 +49,6 @@ const AccountDetails: React.FC = () => {
                         'Content-Type': 'application/json'
                     }
                 });
-                console
 
                 if (response.ok) {
                     const data = await response.json();
@@ -123,9 +122,16 @@ const AccountDetails: React.FC = () => {
         }
     };
 
-    const handleLogout = () => {
-        // Implementeer logout logica
-        window.location.href = '/';
+    const handleLogout = async () => {
+        
+        const response = await fetch('http://localhost:5156/api/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+        window.location.href = '/login';
     };
 
     const handleDeleteAccount = () => {
