@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import '../../styles/ProductRegistratieAanvoerder.css';
+import Topbar from '../components/Topbar';
 
 
 interface ProductFormData {
@@ -236,19 +237,8 @@ export default function ProductRegistratieAanvoerderPage() {
 
 	return (
 		<div className="productRegistratieAanvoerder-page">
-			<nav>
-				<span className="nav-text">Product registreren aanvoerder</span>
-				<img
-					src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Royal_FloraHolland_Logo.svg/1200px-Royal_FloraHolland_Logo.svg.png"
-					alt="Royal FloraHolland Logo"
-				/>
-				<Link className="pfp-container" href="/accountDetails">
-					<img
-						src="https://www.pikpng.com/pngl/m/80-805068_my-profile-icon-blank-profile-picture-circle-clipart.png"
-						alt="Profiel foto"
-					/>
-				</Link>
-			</nav>
+			<Topbar
+			currentPage="Product registreren"></Topbar>
 
 			<div className="content">
 				<form className="formContainer" onSubmit={handleSubmit}>

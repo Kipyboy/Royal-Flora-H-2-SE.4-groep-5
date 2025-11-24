@@ -55,17 +55,6 @@ const Topbar: React.FC<TopbarProps> = ({
     onInputChange
 }) => {
     const [userRole, setUserRole] = useState<string | undefined>(undefined);
-
-    useEffect(() => {
-        async function fetchSession() {
-            const session = await getSessionData();
-            if (session && session.userInfo && session.userInfo.Role) {
-                setUserRole(session.userInfo.Role);
-            }
-        }
-        fetchSession();
-    }, []);
-
     const router = useRouter();
     const [dropdownVisible, setDropdownVisible] = useState(false);
 
@@ -101,31 +90,18 @@ const Topbar: React.FC<TopbarProps> = ({
     }, [dropdownVisible]);
 
     React.useEffect(() => {
-            const fetchSessionData = async () => {
-                try {
-                    const response = await fetch('http://localhost:5156/api/auth/session', {
-                        method: 'GET',
-                        credentials: 'include',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        }
-                    });
-                    console
-    
-                    if (response.ok) {
-                        const data = await response.json();    
-                        setUserRole(data.role);
-                    } else {
-                        // Not logged in, redirect to login
-                        console.error('Not logged in');
-                    }
-                } catch (error) {
-                    console.error('Error fetching session:', error);
-                }
-            };
-    
-            fetchSessionData();
-        }, []);
+        const fetchSessionData = async () => {
+            try {
+                const data = await getSessionData();
+                    setUserRole(data.role);
+
+            } catch (error) {
+                console.error('Error fetching session');
+            }
+        };
+
+        fetchSessionData();
+    }, []);
 
     return (
             <>
@@ -193,7 +169,7 @@ const Topbar: React.FC<TopbarProps> = ({
                         onInputChange={onInputChange}
                     />
                 )}
-                {userRole === "aanvoerder" && (
+                {userRole === "Aanvoerder" && (
                     <AanvoerderSidebar
                         sidebarVisible={!!sidebarVisible}
                         aankomendChecked={!!aankomendChecked}
@@ -209,7 +185,7 @@ const Topbar: React.FC<TopbarProps> = ({
                         onInputChange={onInputChange ?? (() => {})}
                     />
                 )}
-                {userRole === "klant" && (
+                {userRole === "Inkoper" && (
                     <KlantSidebar
                         sidebarVisible={!!sidebarVisible}
                         aankomendChecked={!!aankomendChecked}
@@ -225,7 +201,7 @@ const Topbar: React.FC<TopbarProps> = ({
                         onInputChange={onInputChange ?? (() => {})}
                     />
                 )}
-                {userRole === "veilingmeester" && (
+                {userRole === "Veilingmeester" && (
                     <VeilingmeesterSidebar
                         sidebarVisible={!!sidebarVisible}
                         aankomendChecked={!!aankomendChecked}
