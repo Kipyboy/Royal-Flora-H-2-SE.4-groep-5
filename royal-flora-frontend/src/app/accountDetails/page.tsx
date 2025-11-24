@@ -8,7 +8,7 @@ interface UserDetails {
     voornaam: string;
     achternaam: string;
     email: string;
-    telefoon: string;
+    telefoonnummer: string;
     adress: string;
     postcode: string;
     wachtwoord: string;
@@ -19,7 +19,7 @@ const AccountDetails: React.FC = () => {
         voornaam: '',
         achternaam: '',
         email: '',
-        telefoon: '',
+        telefoonnummer: '',
         adress: '',
         postcode: '',
         wachtwoord: ''
@@ -29,7 +29,7 @@ const AccountDetails: React.FC = () => {
         voornaam: true,
         achternaam: true,
         email: true,
-        telefoon: true,
+        telefoonnummer: true,
         adress: true,
         postcode: true,
         wachtwoord: true
@@ -42,7 +42,7 @@ const AccountDetails: React.FC = () => {
     React.useEffect(() => {
         const fetchSessionData = async () => {
             try {
-                const response = await fetch('http://localhost:5156/api/auth/session', {
+                const response = await fetch('http://localhost:5156/api/auth/allUserInfo', {
                     method: 'GET',
                     credentials: 'include',
                     headers: {
@@ -53,22 +53,19 @@ const AccountDetails: React.FC = () => {
                 if (response.ok) {
                     const data = await response.json();
                     // Parse username into voornaam and achternaam
-                    const nameParts = data.username.split(' ');
-                    const voornaam = nameParts[0] || '';
-                    const achternaam = nameParts.slice(1).join(' ') || '';
-
+                    console.log("logged in", data);
                     setUserDetails({
-                        voornaam,
-                        achternaam,
+                        voornaam: data.voorNaam,
+                        achternaam: data.achterNaam,
                         email: data.email || '',
-                        telefoon: '',
-                        adress: '',
-                        postcode: '',
+                        telefoonnummer: data.telefoonnummer || '',
+                        adress: data.adress || '',
+                        postcode: data.postcode || '',
                         wachtwoord: '' 
                     });
                 } else {
                     // Not logged in, redirect to login
-                    console.error('Not logged in');
+                    console.error('Not logged in', response);
                 }
             } catch (error) {
                 console.error('Error fetching session:', error);
@@ -102,18 +99,38 @@ const AccountDetails: React.FC = () => {
 
     const handleSave = async (field: keyof UserDetails) => {
         try {
+            console.log(`Saving field ${field} with value ${userDetails[field]}`);
             // data opslag hier
+            const response = await fetch('http://localhost:5156/api/auth/updateUserInfo', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        Field: field,
+                        Newvalue: userDetails[field]
+                    })
+                });
             
-            setDisabledFields(prev => ({
-                ...prev,
-                [field]: true
-            }));
+            if (response.ok) {
             
+                setDisabledFields(prev => ({
+                    ...prev,
+                    [field]: true
+                }));
+                
 
-            setErrors(prev => ({
-                ...prev,
-                [field]: ''
-            }));
+                setErrors(prev => ({
+                    ...prev,
+                    [field]: ''
+                }));
+            } else {
+                setErrors(prev => ({
+                    ...prev,
+                    [field]: 'Er ging iets mis bij het opslaan'
+                }));
+            }
         } catch (error) {
             setErrors(prev => ({
                 ...prev,
@@ -175,7 +192,7 @@ const AccountDetails: React.FC = () => {
                         voornaam: 'Voornaam',
                         achternaam: 'Achternaam',
                         email: 'Email adres',
-                        telefoon: 'Telefoonnummer',
+                        telefoonnummer: 'Telefoonnummer',
                         adress: 'Adres',
                         postcode: 'Postcode',
                         wachtwoord: 'Wachtwoord'
@@ -187,7 +204,7 @@ const AccountDetails: React.FC = () => {
                                     disabled={disabledFields[field]}
                                     type={field === 'wachtwoord' ? 'password' : 
                                           field === 'email' ? 'email' :
-                                          field === 'telefoon' ? 'tel' : 'text'}
+                                          field === 'telefoonnummer' ? 'tel' : 'text'}
                                     id={field}
                                     name={field}
                                     value={userDetails[field as keyof UserDetails]}
