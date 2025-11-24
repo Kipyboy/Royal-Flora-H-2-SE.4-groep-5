@@ -53,7 +53,6 @@ const AccountDetails: React.FC = () => {
                 if (response.ok) {
                     const data = await response.json();
                     // Parse username into voornaam and achternaam
-                    console.log("logged in", data);
                     setUserDetails({
                         voornaam: data.voorNaam,
                         achternaam: data.achterNaam,
@@ -65,7 +64,7 @@ const AccountDetails: React.FC = () => {
                     });
                 } else {
                     // Not logged in, redirect to login
-                    console.error('Not logged in', response);
+                    console.error('Not logged in');
                 }
             } catch (error) {
                 console.error('Error fetching session:', error);
