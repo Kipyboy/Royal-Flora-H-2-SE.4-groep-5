@@ -1,7 +1,5 @@
 "use client"
 
-"use client"
-
 import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
 import Sidebar from '../components/Sidebar';
@@ -19,7 +17,7 @@ const HomePage: React.FC = () => {
 
   const getProducts = async () => {
       try {
-        const response = await fetch("http://localhost:5156/api/products");
+        const response = await fetch("http://localhost:5156/api/products1");
         const data = await response.json();
         setProducts(data);
       }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace RoyalFlora.Migrations
 {
     [DbContext(typeof(MyDbContext))]
-    partial class MyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251124101424_BeschrijvingVeranderd")]
+    partial class BeschrijvingVeranderd
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -159,9 +162,6 @@ namespace RoyalFlora.Migrations
                         .HasMaxLength(45)
                         .HasColumnType("nvarchar(45)");
 
-                    b.Property<string>("ProductBeschrijving")
-                        .HasColumnType("text");
-
                     b.Property<string>("ProductNaam")
                         .HasMaxLength(45)
                         .HasColumnType("nvarchar(45)");
@@ -169,11 +169,9 @@ namespace RoyalFlora.Migrations
                     b.Property<int?>("Status")
                         .HasColumnType("int");
 
-                    b.Property<DateTime?>("datum")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("locatie")
-                        .HasColumnType("nvarchar(1)");
+                    b.Property<string>("productBeschrijving")
+                        .HasMaxLength(45)
+                        .HasColumnType("nvarchar(45)");
 
                     b.Property<int?>("verkoopPrijs")
                         .HasColumnType("int");
