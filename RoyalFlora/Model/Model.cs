@@ -222,12 +222,16 @@ public class Product
     
     [StringLength(45)]
     public string? ProductNaam { get; set; }
-    
-    [StringLength(45)]
-    public string? productBeschrijving { get; set; }
+
+    [Column(TypeName = "text")]
+    public string? ProductBeschrijving { get; set; }
     
     [StringLength(45)]
     public string? MinimumPrijs { get; set; }
+
+    public DateTime? Datum { get; set; }
+
+    public char? Locatie { get; set; }
     
     public int? Leverancier { get; set; }
     public int? Koper { get; set; }

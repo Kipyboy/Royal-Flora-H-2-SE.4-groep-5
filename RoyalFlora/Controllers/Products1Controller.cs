@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MySqlX.XDevAPI;
 
 namespace RoyalFlora.Controllers
 {
@@ -21,9 +22,39 @@ namespace RoyalFlora.Controllers
 
         // GET: api/Products1
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
+        public async Task<ActionResult<IEnumerable<ProductDTO>>> GetProducts()
         {
-            return await _context.Products.ToListAsync();
+            List<Product> products = await _context.Products
+            .Include(p => p.LeverancierNavigation)
+            .ToListAsync();
+            List<ProductDTO> productDTOs = new List<ProductDTO>();
+           
+
+            foreach (Product product in products)
+            {
+                string leverancierNaam = product.LeverancierNavigation?.BedrijfNaam ?? string.Empty;
+                string datum = product.Datum?.ToString("yyyy-MM-dd") ?? string.Empty;
+                string locatie = product.Locatie?.ToString() ?? string.Empty;
+                string status = product.StatusNavigation?.Beschrijving ?? string.Empty; // map int FK to beschrijving text
+
+                var dto = new ProductDTO
+                {
+                    id = product.IdProduct,
+                    naam = product.ProductNaam ?? string.Empty,
+                    merk = leverancierNaam,
+                    prijs = product.MinimumPrijs ?? string.Empty,
+                    datum = datum,
+                    locatie = locatie,
+                    status = status
+                };
+                productDTOs.Add(dto);
+            }
+            // Debug output
+            foreach (var dto in productDTOs)
+            {
+                Console.WriteLine($"ProductDTO - Id: {dto.id}, Naam: {dto.naam}, Merk: {dto.merk}, Prijs: {dto.prijs}, Datum: {dto.datum}, Locatie: {dto.locatie}, Status: {dto.status}");
+            }
+            return productDTOs;
         }
 
         // GET: api/Products1/5
@@ -103,4 +134,5 @@ namespace RoyalFlora.Controllers
             return _context.Products.Any(e => e.IdProduct == id);
         }
     }
+    
 }
