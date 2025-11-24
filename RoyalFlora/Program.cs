@@ -1,4 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace RoyalFlora
 {
@@ -15,17 +18,31 @@ namespace RoyalFlora
             builder.Services.AddControllers();
             builder.Services.AddOpenApi();
 
-            // Add Session support
-            builder.Services.AddDistributedMemoryCache();
-            builder.Services.AddSession(options =>
+            // Configure JWT Authentication
+            var jwtSettings = builder.Configuration.GetSection("Jwt");
+            var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]!);
+
+            builder.Services.AddAuthentication(options =>
             {
-                options.IdleTimeout = TimeSpan.FromHours(24); // Session verloopt na 24 uur
-                options.Cookie.HttpOnly = true; // Cookie niet toegankelijk via JavaScript
-                options.Cookie.IsEssential = true;
-                options.Cookie.SecurePolicy = CookieSecurePolicy.None; // Voor development
-                options.Cookie.SameSite = SameSiteMode.Lax; // Lax works with HTTP, None requires HTTPS
-                options.Cookie.Name = ".RoyalFlora.Session";
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = jwtSettings["Issuer"],
+                    ValidAudience = jwtSettings["Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ClockSkew = TimeSpan.Zero
+                };
             });
+
+            builder.Services.AddAuthorization();
 
             // Add CORS
             builder.Services.AddCors(options =>
@@ -53,9 +70,8 @@ namespace RoyalFlora
             // Use CORS
             app.UseCors("AllowFrontend");
 
-            // Use Session (MOET voor UseAuthorization)
-            app.UseSession();
-
+            // Use Authentication and Authorization
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapControllers();
