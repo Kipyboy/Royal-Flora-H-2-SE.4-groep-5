@@ -9,6 +9,8 @@ interface UserDetails {
     achternaam: string;
     email: string;
     telefoon: string;
+    adress: string;
+    postcode: string;
     wachtwoord: string;
 }
 
@@ -18,6 +20,8 @@ const AccountDetails: React.FC = () => {
         achternaam: '',
         email: '',
         telefoon: '',
+        adress: '',
+        postcode: '',
         wachtwoord: ''
     });
 
@@ -26,10 +30,57 @@ const AccountDetails: React.FC = () => {
         achternaam: true,
         email: true,
         telefoon: true,
+        adress: true,
+        postcode: true,
         wachtwoord: true
     });
 
     const [errors, setErrors] = useState<Record<string, string>>({});
+    const [loading, setLoading] = useState<boolean>(true);
+
+    // Fetch session data on component mount
+    React.useEffect(() => {
+        const fetchSessionData = async () => {
+            try {
+                const response = await fetch('http://localhost:5156/api/auth/session', {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    // Parse username into voornaam and achternaam
+                    const nameParts = data.username.split(' ');
+                    const voornaam = nameParts[0] || '';
+                    const achternaam = nameParts.slice(1).join(' ') || '';
+
+                    setUserDetails({
+                        voornaam,
+                        achternaam,
+                        email: data.email || '',
+                        telefoon: '',
+                        adress: '',
+                        postcode: '',
+                        wachtwoord: '' 
+                    });
+                } else {
+                    // Not logged in, redirect to login
+                    console.error('Not logged in');
+                }
+            } catch (error) {
+                console.error('Error fetching session:', error);
+                setErrors({ general: 'Kon sessie gegevens niet ophalen' });
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchSessionData();
+    }, []);
+
 
     const handleInputChange = (field: keyof UserDetails) => (e: React.ChangeEvent<HTMLInputElement>) => {
         setUserDetails(prev => ({
@@ -71,9 +122,16 @@ const AccountDetails: React.FC = () => {
         }
     };
 
-    const handleLogout = () => {
-        // Implementeer logout logica
-        window.location.href = '/';
+    const handleLogout = async () => {
+        
+        const response = await fetch('http://localhost:5156/api/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+        window.location.href = '/login';
     };
 
     const handleDeleteAccount = () => {
@@ -85,6 +143,20 @@ const AccountDetails: React.FC = () => {
     };
 
     const router = useRouter();
+
+        if (loading) {
+        return (
+            <div className='accountDetails-page'>
+                <Topbar
+                    currentPage="Account Details"
+                    useSideBar={false}
+                />
+                <main id="main">
+                    <p>Laden...</p>
+                </main>
+            </div>
+        );
+    }
 
     return (
         <div className='accountDetails-page'>
@@ -104,6 +176,8 @@ const AccountDetails: React.FC = () => {
                         achternaam: 'Achternaam',
                         email: 'Email adres',
                         telefoon: 'Telefoonnummer',
+                        adress: 'Adres',
+                        postcode: 'Postcode',
                         wachtwoord: 'Wachtwoord'
                     }).map(([field, label]) => (
                         <div className="form-group" key={field}>

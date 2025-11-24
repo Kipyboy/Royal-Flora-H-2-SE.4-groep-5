@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useState } from 'react';
 import '../../styles/Topbar.css';
 import Sidebar from './Sidebar';
@@ -14,7 +16,7 @@ import VeilingmeesterSidebar from './VeilingmeesterSidebar';
 interface TopbarProps {
     useSideBar?: boolean;
     currentPage: string;
-    currentUser?: string;
+    userRole?: string;
 
     sidebarVisible?: boolean;
     toggleSidebar?: () => void;
@@ -36,7 +38,6 @@ interface TopbarProps {
 const Topbar: React.FC<TopbarProps> = ({
     useSideBar = false,
     currentPage,
-    currentUser,
     sidebarVisible,
     toggleSidebar,
     aankomendChecked,
@@ -54,18 +55,53 @@ const Topbar: React.FC<TopbarProps> = ({
     onInputChange
 }) => {
     const [userRole, setUserRole] = useState<string | undefined>(undefined);
-
-    useEffect(() => {
-        async function fetchSession() {
-            const session = await getSessionData();
-            if (session && session.userInfo && session.userInfo.Role) {
-                setUserRole(session.userInfo.Role);
-            }
-        }
-        fetchSession();
-    }, []);
-
     const router = useRouter();
+    const [dropdownVisible, setDropdownVisible] = useState(false);
+
+    const toggleDropdown = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setDropdownVisible(!dropdownVisible);
+    };
+
+    const handleLogout = async () => {
+        await fetch('http://localhost:5156/api/auth/logout', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {  
+                'Content-Type': 'application/json',
+            }
+        });
+        setDropdownVisible(false);
+        router.push('/login');
+    };
+
+    // Close dropdown when clicking outside
+    React.useEffect(() => {
+        const handleClickOutside = () => {
+            if (dropdownVisible) {
+                setDropdownVisible(false);
+            }
+        };
+
+        document.addEventListener('click', handleClickOutside);
+        return () => {
+            document.removeEventListener('click', handleClickOutside);
+        };
+    }, [dropdownVisible]);
+
+    React.useEffect(() => {
+        const fetchSessionData = async () => {
+            try {
+                const data = await getSessionData();
+                    setUserRole(data.role);
+
+            } catch (error) {
+                console.error('Error fetching session');
+            }
+        };
+
+        fetchSessionData();
+    }, []);
 
     return (
             <>
@@ -90,67 +126,98 @@ const Topbar: React.FC<TopbarProps> = ({
                                 />
                             </a>
                         </div>
-                        <a className="pfp-container" href="/accountDetails" aria-label="Ga naar account details" onClick={() => router.push('/accountDetails')}>
+                        
+                        <div className="pfp-container" onClick={toggleDropdown}>
                             <img
-                                src="https://www.pikpng.com/pngl/m/80-805068_my-profile-icon-blank-profile-picture-circle-clipart.png"
                                 alt="Profiel"
+                                src="https://www.pikpng.com/pngl/m/80-805068_my-profile-icon-blank-profile-picture-circle-clipart.png"
                                 className="pfp-img"
+                                aria-label="Account menu"
                             />
-                        </a>
+                            {dropdownVisible && (
+                                <div className="dropdown-menu" onClick={(e) => e.stopPropagation()}>
+                                    <button onClick={() => { setDropdownVisible(false); router.push('/accountDetails'); }}>
+                                        Account Details
+                                    </button>
+                                    {userRole === 'Aanvoerder' && (
+                                        <button onClick={() => { setDropdownVisible(false); router.push('/productRegistratieAanvoerder'); }}>
+                                            Product registreren
+                                        </button>
+                                    )}
+                                    <button className='logoutButton' onClick={handleLogout}>
+                                        Uitloggen
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     </nav>
                 </div>
                 {useSideBar && sidebarVisible !== undefined && onCheckboxChange && onInputChange && (
-                    <>
-                        {currentUser === "aanvoerder" && (
-                            <AanvoerderSidebar
-                                sidebarVisible={sidebarVisible}
-                                aankomendChecked={!!aankomendChecked}
-                                eigenChecked={!!eigenChecked}
-                                aChecked={!!aChecked}
-                                bChecked={!!bChecked}
-                                cChecked={!!cChecked}
-                                dChecked={!!dChecked}
-                                dateFilter={dateFilter || ""}
-                                merkFilter={merkFilter || ""}
-                                naamFilter={naamFilter || ""}
-                                onCheckboxChange={onCheckboxChange}
-                                onInputChange={onInputChange}
-                            />
-                        )}
-                        {currentUser === "klant" && (
-                            <KlantSidebar
-                                sidebarVisible={sidebarVisible}
-                                aankomendChecked={!!aankomendChecked}
-                                gekochtChecked={!!gekochtChecked}
-                                aChecked={!!aChecked}
-                                bChecked={!!bChecked}
-                                cChecked={!!cChecked}
-                                dChecked={!!dChecked}
-                                dateFilter={dateFilter || ""}
-                                merkFilter={merkFilter || ""}
-                                naamFilter={naamFilter || ""}
-                                onCheckboxChange={onCheckboxChange}
-                                onInputChange={onInputChange}
-                            />
-                        )}
-                        {currentUser === "veilingmeester" && (
-                            <VeilingmeesterSidebar
-                                sidebarVisible={sidebarVisible}
-                                aankomendChecked={!!aankomendChecked}
-                                inTePlannenChecked={!!inTePlannenChecked}
-                                aChecked={!!aChecked}
-                                bChecked={!!bChecked}
-                                cChecked={!!cChecked}
-                                dChecked={!!dChecked}
-                                dateFilter={dateFilter || ""}
-                                merkFilter={merkFilter || ""}
-                                naamFilter={naamFilter || ""}
-                                onCheckboxChange={onCheckboxChange}
-                                onInputChange={onInputChange}
-                            />
-                        )}
-                    </>
+                    <Sidebar
+                        sidebarVisible={!!sidebarVisible}
+                        aankomendChecked={!!aankomendChecked}
+                        eigenChecked={!!eigenChecked}
+                        gekochtChecked={!!gekochtChecked}
+                        aChecked={!!aChecked}
+                        bChecked={!!bChecked}
+                        cChecked={!!cChecked}
+                        dChecked={!!dChecked}
+                        dateFilter={dateFilter || ""}
+                        merkFilter={merkFilter || ""}
+                        naamFilter={naamFilter || ""}
+                        onCheckboxChange={onCheckboxChange}
+                        onInputChange={onInputChange}
+                    />
                 )}
+                {userRole === "Aanvoerder" && (
+                    <AanvoerderSidebar
+                        sidebarVisible={!!sidebarVisible}
+                        aankomendChecked={!!aankomendChecked}
+                        eigenChecked={!!eigenChecked}
+                        aChecked={!!aChecked}
+                        bChecked={!!bChecked}
+                        cChecked={!!cChecked}
+                        dChecked={!!dChecked}
+                        dateFilter={dateFilter || ""}
+                        merkFilter={merkFilter || ""}
+                        naamFilter={naamFilter || ""}
+                        onCheckboxChange={onCheckboxChange ?? (() => {})}
+                        onInputChange={onInputChange ?? (() => {})}
+                    />
+                )}
+                {userRole === "Inkoper" && (
+                    <KlantSidebar
+                        sidebarVisible={!!sidebarVisible}
+                        aankomendChecked={!!aankomendChecked}
+                        gekochtChecked={!!gekochtChecked}
+                        aChecked={!!aChecked}
+                        bChecked={!!bChecked}
+                        cChecked={!!cChecked}
+                        dChecked={!!dChecked}
+                        dateFilter={dateFilter || ""}
+                        merkFilter={merkFilter || ""}
+                        naamFilter={naamFilter || ""}
+                        onCheckboxChange={onCheckboxChange ?? (() => {})}
+                        onInputChange={onInputChange ?? (() => {})}
+                    />
+                )}
+                {userRole === "Veilingmeester" && (
+                    <VeilingmeesterSidebar
+                        sidebarVisible={!!sidebarVisible}
+                        aankomendChecked={!!aankomendChecked}
+                        inTePlannenChecked={!!inTePlannenChecked}
+                        aChecked={!!aChecked}
+                        bChecked={!!bChecked}
+                        cChecked={!!cChecked}
+                        dChecked={!!dChecked}
+                        dateFilter={dateFilter || ""}
+                        merkFilter={merkFilter || ""}
+                        naamFilter={naamFilter || ""}
+                        onCheckboxChange={onCheckboxChange ?? (() => {})}
+                        onInputChange={onInputChange ?? (() => {})}
+                    />
+                )}
+                
             </>
         );
     };

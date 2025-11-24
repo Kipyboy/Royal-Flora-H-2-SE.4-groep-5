@@ -270,20 +270,7 @@ input[type="file"]::file-selector-button:hover {
     box-sizing: border-box;
 }
 
-/* --------------------------------- */
-/* PROFILE PICTURE                     */
-/* --------------------------------- */
-.productRegistratieAanvoerder-page .pfp-container {
-    padding-right: 30px;
-}
 
-.productRegistratieAanvoerder-page .pfp-container img {
-        border-radius: 20px;
-        max-width: 80px;
-        max-height: 80px;
-        width: auto;
-        height: auto;
-    }
 
 /* --------------------------------- */
 /* MEDIA QUERIES                       */
