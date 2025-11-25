@@ -9,6 +9,7 @@ interface ProductCardProps {
     datum: string;
     locatie: string;
     status: string;
+    Aantal: number;
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({
@@ -17,7 +18,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
     prijs,
     datum,
     locatie,
-    status
+    status,
+    Aantal
 }) => 
 
     <div className="product-card">
@@ -27,6 +29,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
         <div className="info">
             <p id="naam">Naam: {naam}</p>
             <p id="merk">Merk: {merk}</p>
+            <p id="aantal">Aantal: {Aantal}</p>
             <p id="prijs">Prijs: {prijs}</p>
             <p id="datum">Datum: {datum}</p>
             <p id="locatie">Locatie: {locatie}</p>

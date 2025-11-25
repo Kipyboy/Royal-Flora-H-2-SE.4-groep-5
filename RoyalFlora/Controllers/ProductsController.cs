@@ -6,16 +6,17 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MySqlX.XDevAPI;
+using RoyalFlora.Migrations;
 
 namespace RoyalFlora.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class Products1Controller : ControllerBase
+    public class ProductsController : ControllerBase
     {
         private readonly MyDbContext _context;
 
-        public Products1Controller(MyDbContext context)
+        public ProductsController(MyDbContext context)
         {
             _context = context;
         }
@@ -45,7 +46,8 @@ namespace RoyalFlora.Controllers
                     prijs = product.MinimumPrijs ?? string.Empty,
                     datum = datum,
                     locatie = locatie,
-                    status = status
+                    status = status,
+                    aantal = product.Aantal
                 };
                 productDTOs.Add(dto);
             }
@@ -105,12 +107,26 @@ namespace RoyalFlora.Controllers
         // POST: api/Products1
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Product>> PostProduct(Product product)
+        public async Task<ActionResult<Product>> PostProduct([FromForm]Product product, [FromForm] List<IFormFile> images)
         {
+            try
+            {
             _context.Products.Add(product);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetProduct", new { id = product.IdProduct }, product);
+            _context.Fotos.AddRange(images.Select(image => new Foto
+            {
+                IdProduct = product.IdProduct,
+                FotoPath = image.FileName 
+            }));
+
+            await _context.SaveChangesAsync();
+            return Ok(product);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Registratie mislukt" });
+            }
         }
 
         // DELETE: api/Products1/5

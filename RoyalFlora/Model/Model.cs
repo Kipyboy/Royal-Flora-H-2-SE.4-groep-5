@@ -225,13 +225,15 @@ public class Product
 
     [Column(TypeName = "text")]
     public string? ProductBeschrijving { get; set; }
+
+    public int? Aantal { get; set; }
     
     [StringLength(45)]
     public string? MinimumPrijs { get; set; }
 
     public DateTime? Datum { get; set; }
 
-    public char? Locatie { get; set; }
+    public string? Locatie { get; set; }
     
     public int? Leverancier { get; set; }
     public int? Koper { get; set; }
