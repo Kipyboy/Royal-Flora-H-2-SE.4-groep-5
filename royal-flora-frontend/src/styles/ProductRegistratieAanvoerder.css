@@ -57,7 +57,18 @@
     outline: none;
     transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
-
+.productRegistratieAanvoerder-page select
+ {
+    font-size: 1.2rem;
+    padding: 0.5rem;
+    width: 100%;
+    box-sizing: border-box;
+    border: none;
+    border-radius: 8px;
+    background-color: #d4d4d4;
+    outline: none;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;  
+ }
 input:focus {
     background-color: #e0e0e0;
     box-shadow: 0 0 0 3px rgba(255, 96, 0, 0.2);

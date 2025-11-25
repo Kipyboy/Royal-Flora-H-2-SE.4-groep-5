@@ -51,7 +51,7 @@ export default function ProductRegistratieAanvoerderPage() {
 
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
-	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
 		const { name, value } = e.target;
 		setFormData(prev => ({
 			...prev,
@@ -189,19 +189,20 @@ export default function ProductRegistratieAanvoerderPage() {
 		try {
 			// data opslaan om naar de database te stuuren
 			const submitData = new FormData();
-			submitData.append('productNaam', formData.name);
-			submitData.append('productBeschrijving', formData.description);
-			submitData.append('minimumPrijs', formData.minimumPrice);
-			submitData.append('clockLocation', formData.clockLocation);
-			submitData.append('auctionDate', formData.auctionDate);
-			submitData.append('amount', formData.amount);
+			submitData.append('ProductNaam', formData.name);
+			submitData.append('ProductBeschrijving', formData.description);
+			submitData.append('MinimumPrijs', formData.minimumPrice);
+			submitData.append('Locatie', formData.clockLocation);
+			submitData.append('Datum', formData.auctionDate);
+			submitData.append('Aantal', formData.amount);
+			submitData.append('Leverancier', '1001'); // Hardcoded voor nu, later dynamisch maken
 			
 			formData.images.forEach((image, index) => {
 				submitData.append(`images[${index}]`, image);
 			});
 
 			// naar de database stuuren
-			const response = await fetch('http://localhost:5156/api/product/register', {
+			const response = await fetch('http://localhost:5156/api/products', {
 				method: 'POST',
 				body: submitData,
 				// Ik werd gewaarschuwed dat ik geen header type moet mee geven
@@ -263,15 +264,20 @@ export default function ProductRegistratieAanvoerderPage() {
 					<div className="inlineGroup">
 						<div className="groupContainer">
 							<label htmlFor="clockLocation">Klok locatie:</label>
-							<input 
+							<select 
 								id="clockLocation" 
 								name="clockLocation" 
-								type="datetime-local"
 								value={formData.clockLocation}
 								onChange={handleInputChange}
 								aria-describedby="clockLocation-error"
 								required
-							/>
+							>
+							<option>-- Selecteer locatie --</option>
+							<option value="Naaldwijk">Naaldwijk</option>
+							<option value="Aalsmeer">Aalsmeer</option>
+							<option value="Rijnsburg">Rijnsburg</option>
+							<option value="Eelde">Eelde</option>
+							</select>
 							{errors.clockLocation && (
 								<div id="clockLocation-error" className="error-message" aria-live="polite">
 									{errors.clockLocation}

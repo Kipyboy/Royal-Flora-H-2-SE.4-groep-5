@@ -17,7 +17,7 @@ const HomePage: React.FC = () => {
 
   const getProducts = async () => {
       try {
-        const response = await fetch("http://localhost:5156/api/products1");
+        const response = await fetch("http://localhost:5156/api/products");
         const data = await response.json();
         setProducts(data);
       }
@@ -72,10 +72,10 @@ const productenInladen = () => {
       (
         (aChecked || bChecked || cChecked || dChecked) &&
         (
-          (!aChecked && product.locatie === "A") ||
-          (!bChecked && product.locatie === "B") ||
-          (!cChecked && product.locatie === "C") ||
-          (!dChecked && product.locatie === "D")
+          (!aChecked && product.locatie === "Naaldwijk") ||
+          (!bChecked && product.locatie === "Aalsmeer") ||
+          (!cChecked && product.locatie === "Rijnsburg") ||
+          (!dChecked && product.locatie === "Eelde")
         )
       )
     ) return false
@@ -97,6 +97,7 @@ const productenInladen = () => {
       datum={product.datum}
       locatie={product.locatie}
       status={product.status}
+      Aantal={product.aantal}
       />
   ));
 };
@@ -143,7 +144,7 @@ const productenInladen = () => {
 
       <div className="content">
           <div className="veilingen">
-            {['A', 'B', 'C', 'D'].map((loc) => (
+            {['Naaldwijk', 'Aalsmeer', 'Rijnsburg', 'Eelde'].map((loc) => (
               <a key={loc} href="/veiling" className="card">
                 <p>Locatie {loc}</p>
                 <p>Aanvoerder:</p>
