@@ -139,8 +139,6 @@ namespace RoyalFlora.Controllers
             _context.Products.Add(product);
             await _context.SaveChangesAsync();
 
-            images = new List<IFormFile>();
-
             _context.Fotos.AddRange(images.Select(image => new Foto
             {
                 IdProduct = product.IdProduct,
@@ -153,7 +151,7 @@ namespace RoyalFlora.Controllers
                 }
 
             await _context.SaveChangesAsync();
-            return Ok(product);
+            return CreatedAtAction(nameof(GetProduct), new { id = product.IdProduct }, new ResponseDTO { naam = product.ProductNaam ?? string.Empty, bericht = "Product succesvol geregistreerd!" });
             }
             catch (Exception ex)
             {
