@@ -1,7 +1,6 @@
 "use client";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import '../../styles/clock.css';
-
 
 function formatMs(ms: number) {
   if (ms <= 0) return "00:00.000";
@@ -17,18 +16,40 @@ interface ClockProps {
   durationMs: number;
 }
 
+interface KlokDTO {
+  minimumPrijs: number;
+}
+
 export default function Clock({ endTs, durationMs }: ClockProps) {
   const svgRef = useRef<SVGSVGElement | null>(null);
+  const [minPrice, setMinPrice] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!svgRef.current || !endTs) return;
+    fetch("http://localhost:5156/api/Products/Klok")
+      .then(res => res.json())
+      .then((data: KlokDTO[] | any) => {
+        if (Array.isArray(data) && data.length > 0) {
+          const prices = data.map(p => Number(p.minimumPrijs ?? p.MinimumPrijs ?? 0)).filter(p => !Number.isNaN(p));
+          const min = prices.length ? Math.min(...prices) : 0;
+          setMinPrice(min);
+        } else {
+          setMinPrice(0);
+        }
+      })
+      .catch(err => {
+        console.error("Error fetching product:", err);
+        setMinPrice(0);
+      });
+  }, []);
+
+  useEffect(() => {
+    if (!svgRef.current || !endTs || minPrice === null) return;
     const svg = svgRef.current;
     svg.innerHTML = "";
 
     const radius = 200;
     const center = radius + 50;
-    const startingPrice = 10;
-    const minPrice = 1;
+    const startingPrice = minPrice * 10;
 
     const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
     circle.setAttribute("cx", center.toString());
@@ -88,7 +109,7 @@ export default function Clock({ endTs, durationMs }: ClockProps) {
     update();
 
     return () => cancelAnimationFrame(animationFrameId);
-  }, [endTs]);
+  }, [endTs, durationMs, minPrice]);
 
   return (<svg ref={svgRef} viewBox="0 0 500 500"></svg>);
 }

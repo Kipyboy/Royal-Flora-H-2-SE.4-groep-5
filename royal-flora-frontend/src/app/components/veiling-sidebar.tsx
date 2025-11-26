@@ -5,25 +5,38 @@ import '../../styles/veiling-sidebar.css';
 interface SidebarProps {
   onReset: () => void;
   onStop: () => void;
-  apiUrl: string;
+  locationName: string;
 }
 
 interface VeilingDTO {
     id: number;
     naam: string;
     beschrijving: string;
+    locatie?: string;
 }
 
-export default function Sidebar({ onReset, onStop, apiUrl}: SidebarProps) {
+export default function Sidebar({ onReset, onStop, locationName }: SidebarProps) {
 
   const [products, setProducts] = useState<VeilingDTO[]>([]);
 
   useEffect(() => {
-    fetch("http://localhost:5156/api/Products1/Veiling") 
+    const base = "http://localhost:5156/api/Products/Veiling";
+
+    fetch(base)
       .then(res => res.json())
-      .then(data => setProducts(data))
-      .catch(err => console.error("Error fetching product:", err));
-  }, []);
+      .then((data: VeilingDTO[]) => {
+        if (!Array.isArray(data)) {
+          setProducts([]);
+          return;
+        }
+        const filtered = data.filter(p => (p.locatie ?? "").toString().toLowerCase() === locationName.toLowerCase());
+        setProducts(filtered);
+      })
+      .catch(err => {
+        console.error("Error fetching product:", err);
+        setProducts([]);
+      });
+  }, [locationName]);
 
   const product = products[0];
 
