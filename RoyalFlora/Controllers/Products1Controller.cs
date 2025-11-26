@@ -13,6 +13,26 @@ namespace RoyalFlora.Controllers
     [ApiController]
     public class Products1Controller : ControllerBase
     {
+        private VeilingDTO VeilingProductInLaden(Product product)
+        {
+            return new VeilingDTO
+            {
+                id = product.IdProduct,
+                naam = product.ProductNaam ?? string.Empty,
+                beschrijving = product.ProductBeschrijving ?? string.Empty,
+                locatie = product.Locatie.ToString() ?? string.Empty, 
+                status = product.StatusNavigation?.Beschrijving ?? string.Empty
+            };
+        }
+
+        [HttpGet("Veiling")]
+        public async Task<ActionResult<IEnumerable<VeilingDTO>>> GetVeilingProducts()
+        {
+            var products = await _context.Products.ToListAsync();
+            var VeilingProducten = products.Select(VeilingProductInLaden).ToList();
+            return VeilingProducten;
+        }
+
         private readonly MyDbContext _context;
 
         public Products1Controller(MyDbContext context)
@@ -56,6 +76,8 @@ namespace RoyalFlora.Controllers
             }
             return productDTOs;
         }
+
+
 
         // GET: api/Products1/5
         [HttpGet("{id}")]
