@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BCrypt.Net;
+using Google.Protobuf.WellKnownTypes;
 
 namespace RoyalFlora.Controllers
 {
@@ -210,6 +211,110 @@ namespace RoyalFlora.Controllers
                 Role = HttpContext.Session.GetString("Role") ?? ""
             });
         }
+
+        [HttpGet("allUserInfo")]
+        public async Task<ActionResult<LoginResponse>> GetUserInfo()
+        {
+
+            var gebruiker = await _context.Gebruikers
+                .Include(g => g.RolNavigation)
+                .FirstOrDefaultAsync(g => g.Email == HttpContext.Session.GetString("Email"));
+
+            var userId = HttpContext.Session.GetInt32("UserId");
+            
+            if (userId == null || gebruiker == null)
+            {
+                return Unauthorized(new { message = "Niet ingelogd" });
+            }
+
+            return Ok(new Gebruiker
+            {
+                VoorNaam = gebruiker.VoorNaam,
+                AchterNaam = gebruiker.AchterNaam,
+                Email = gebruiker.Email,
+                Wachtwoord = gebruiker.Wachtwoord, 
+                Telefoonnummer = gebruiker.Telefoonnummer,
+                Adress = gebruiker.Adress,
+                Postcode = gebruiker.Postcode
+
+            });
+        }
+
+        [HttpPost("updateUserInfo")]
+        public async Task<ActionResult> UpdateUserInfo([FromBody] UpdateUserInfoRequest request)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            
+            if (userId == null)
+            {
+                return Unauthorized(new { message = "Niet ingelogd" });
+            }
+
+            var gebruiker = await _context.Gebruikers.FindAsync(userId.Value);
+            
+            if (gebruiker == null)
+            {
+                return NotFound(new { message = "Gebruiker niet gevonden" });
+            }
+
+            // Update alleen het specifieke veld
+            switch (request.Field.ToLower())
+            {
+                case "voornaam":
+                    gebruiker.VoorNaam = request.NewValue;
+                    break;
+                case "achternaam":
+                    gebruiker.AchterNaam = request.NewValue;
+                    break;
+                case "email":
+                    gebruiker.Email = request.NewValue;
+                    break;
+                case "telefoonnummer":
+                    gebruiker.Telefoonnummer = request.NewValue;
+                    break;
+                case "adress":
+                    gebruiker.Adress = request.NewValue;
+                    break;
+                case "postcode":
+                    gebruiker.Postcode = request.NewValue;
+                    break;
+                case "wachtwoord":
+                    gebruiker.Wachtwoord = hashPassword(request.NewValue);
+                    break;
+                default:
+                    return BadRequest(new { message = $"Ongeldig veld: {request.Field}" });
+            }
+
+            try
+            {
+                await _context.SaveChangesAsync();
+                
+                // Update session
+                if (request.Field.ToLower() == "voornaam" || request.Field.ToLower() == "achternaam")
+                {
+                    HttpContext.Session.SetString("Username", $"{gebruiker.VoorNaam} {gebruiker.AchterNaam}");
+                } else if (request.Field.ToLower() == "email")
+                {
+                    HttpContext.Session.SetString("Email", gebruiker.Email);
+                }
+
+                return Ok(new { 
+                    message = "Veld succesvol bijgewerkt",
+                    field = request.Field,
+                    newValue = request.Field.ToLower() == "wachtwoord" ? "***" : request.NewValue
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Fout bij het opslaan", error = ex.Message });
+            }
+        }
+    }
+
+    public class UpdateUserInfoRequest
+    {
+        public string Field { get; set; } = string.Empty;
+        public string NewValue { get; set; } = string.Empty;
     }
 
     public class LoginRequest
