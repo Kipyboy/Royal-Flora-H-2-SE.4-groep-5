@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import '../../styles/Login.css';
+import { setToken } from '../utils/auth';
+import type { LoginResponseDTO } from '../utils/dtos';
 
 export default function Login() {
     const router = useRouter();
@@ -76,19 +78,55 @@ export default function Login() {
                 }),
             });
 
-            if (response.ok) {
-                const data = await response.json();
-                // Moeten goed naa kijken wat voor informatie we bewaaren inplaats van de hele user
-                localStorage.setItem('user', JSON.stringify(data));
+            // Network error (server unreachable)
+            if (!response) {
+                alert('Kan geen verbinding maken met de server. Controleer of de backend draait.');
+                return;
+            }
+
+            // 401 Unauthorized: wrong credentials
+            if (response.status === 401) {
+                let errorData = null;
+                try {
+                    errorData = await response.json();
+                } catch {}
+                alert(`Inloggen mislukt: ${errorData?.Message || errorData?.message || 'Onjuiste email of wachtwoord'}`);
+                return;
+            }
+
+            // Other non-200 errors
+            if (!response.ok) {
+                alert('Er is een fout opgetreden bij het inloggen. Probeer het later opnieuw.');
+                return;
+            }
+
+            let data: LoginResponseDTO | null = null;
+            try {
+                data = await response.json();
+            } catch (jsonError) {
+                alert('Server gaf geen geldige response terug.');
+                return;
+            }
+
+            if (data && (data.Success === true || (data as any).success === true)) {
+                // Prefer token from response (token or Token)
+                const token = (data.token || data.Token) as string | undefined;
+                const user = (data.user || data.User) || null;
+                if (token) {
+                    setToken(token);
+                }
+                if (user) {
+                    // store minimal user info
+                    localStorage.setItem('user', JSON.stringify({ id: user.id, username: user.username, email: user.email, role: user.role }));
+                }
                 alert('Inloggen succesvol!');
                 router.push('/homepage');
             } else {
-                const error = await response.json();
-                alert(`Inloggen mislukt: ${error.message || 'Onjuiste email of wachtwoord'}`);
+                alert(`Inloggen mislukt: ${data?.Message || (data as any)?.message || 'Onjuiste email of wachtwoord'}`);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error:', error);
-            alert('Er is een fout opgetreden bij het inloggen');
+            alert('Kan geen verbinding maken met de server. Controleer of de backend draait.');
         }
     };
 

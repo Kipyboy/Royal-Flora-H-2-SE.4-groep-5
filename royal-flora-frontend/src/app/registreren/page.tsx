@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import '../../styles/Registreren.css';
+import { setToken } from '../utils/auth';
+import type { RegisterResponseDTO } from '../utils/dtos';
 
 
 export default function Registreren() {
@@ -77,9 +79,13 @@ export default function Registreren() {
         if (!formData.password) {
             newErrors.password = 'Wachtwoord is verplicht';
             isValid = false;
-        } else if (formData.password.length < 6) {
-            newErrors.password = 'Wachtwoord moet minimaal 6 karakters zijn';
-            isValid = false;
+        } else {
+            // At least 8 characters, at least one digit and one special character
+            const pwdRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
+            if (!pwdRegex.test(formData.password)) {
+                newErrors.password = 'Wachtwoord moet minimaal 8 tekens bevatten, inclusief een cijfer en een speciaal teken';
+                isValid = false;
+            }
         }
 
         if (!formData.confirmPassword) {
@@ -138,20 +144,25 @@ export default function Registreren() {
             });
 
             if (response.ok) {
-                alert('Registratie succesvol!');
-                    // Pak de huidige tijd in seconden
-                const currentTimeInSeconds = Math.floor(Date.now() / 1000);
-    
-                // Kijk of het door 2 deelbaar is
-                if (currentTimeInSeconds % 2 === 0) {
-                    // console.log('Y - Even seconde:', currentTimeInSeconds);
+                // On success, backend returns token and user similar to login
+                let data: RegisterResponseDTO | null = null;
+                try {
+                    data = await response.json();
+                } catch (jsonError) {
+                    alert('Registratie succesvol, maar onjuiste server response. Log in handmatig.');
                     router.push('/login');
                     return;
-                } else {
-                    // console.log('X - Oneven seconde:', currentTimeInSeconds);
-                    router.push('/homepage')
                 }
-                
+
+                const token = (data?.token || data?.Token) as string | undefined;
+                const user = (data?.user || data?.User) || null;
+                if (token) setToken(token);
+                if (user) {
+                    localStorage.setItem('user', JSON.stringify({ id: user.id, username: user.username, email: user.email, role: user.role }));
+                }
+
+                alert('Registratie succesvol! Je bent nu ingelogd.');
+                router.push('/homepage');
             } else {
                 const error = await response.json();
                 alert(`Registratie mislukt: ${error.message || 'Onbekende fout'}`);
