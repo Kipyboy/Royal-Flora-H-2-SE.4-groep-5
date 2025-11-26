@@ -31,6 +31,7 @@ export default function VeilingPage({ searchParams }: { searchParams: Promise<{ 
   const config = configs[location as keyof typeof configs];
 
   const [endTs, setEndTs] = useState<number | null>(null);
+  const [currentPrice, setCurrentPrice] = useState<number | null>(null);
 
   useEffect(() => {
   const stored = readEndFromStorage();
@@ -58,13 +59,20 @@ export default function VeilingPage({ searchParams }: { searchParams: Promise<{ 
 
   const handleStop = () => setEndTs(null);
 
+  const handleClockFinished = async () => {
+    const res = await fetch(`http://localhost:5156/api/Products/Advance?locatie=${config.locationName}`,  { method: "POST" });
+    console.log("Advance response:", res.status);
+    window.location.reload();
+  };
+
+
   return (
     <div className="veiling-page">
       <Topbar currentPage="Veiling" useSideBar={false} />
       <div className="clock-container">
-        <Clock endTs={endTs} durationMs={DEFAULT_MS} />
+        <Clock endTs={endTs} durationMs={DEFAULT_MS} onPriceChange={setCurrentPrice} locationName={config.locationName} onFinished={handleClockFinished}/>
       </div>
-      <VeilingSidebar onReset={handleReset} onStop={handleStop} locationName={config.locationName} />
+      <VeilingSidebar onReset={handleReset} onStop={handleStop} locationName={config.locationName} verkoopPrijs={currentPrice} />
     </div>
   );
 }

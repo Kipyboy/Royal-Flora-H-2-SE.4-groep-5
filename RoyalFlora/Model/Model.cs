@@ -237,7 +237,7 @@ public class Product
     
     public int? Leverancier { get; set; }
     public int? Koper { get; set; }
-    public int? verkoopPrijs { get; set; }
+    public decimal verkoopPrijs { get; set; }
     public int? Status { get; set; }
 
     // Navigation properties
