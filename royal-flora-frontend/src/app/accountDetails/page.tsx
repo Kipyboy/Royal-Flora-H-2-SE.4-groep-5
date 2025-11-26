@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import '../../styles/AccountDetails.css';
 import Topbar from '../components/Topbar';
+import { getSessionData } from '../utils/sessionService';
+import { logout as clearAuth } from '../utils/auth';
 
 interface UserDetails {
     voornaam: string;
@@ -38,22 +40,13 @@ const AccountDetails: React.FC = () => {
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState<boolean>(true);
 
-    // Fetch session data on component mount
+    // Fetch session data on component mount using bearer token
     React.useEffect(() => {
         const fetchSessionData = async () => {
             try {
-                const response = await fetch('http://localhost:5156/api/auth/session', {
-                    method: 'GET',
-                    credentials: 'include',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    // Parse username into voornaam and achternaam
-                    const nameParts = data.username.split(' ');
+                const data = await getSessionData();
+                if (data) {
+                    const nameParts = (data.username || '').split(' ');
                     const voornaam = nameParts[0] || '';
                     const achternaam = nameParts.slice(1).join(' ') || '';
 
@@ -123,14 +116,15 @@ const AccountDetails: React.FC = () => {
     };
 
     const handleLogout = async () => {
-        
-        const response = await fetch('http://localhost:5156/api/auth/logout', {
-                    method: 'POST',
-                    credentials: 'include',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
+        try {
+            await fetch('http://localhost:5156/api/auth/logout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+        } catch (err) {
+            // ignore network errors on logout
+        }
+        clearAuth();
         window.location.href = '/login';
     };
 
