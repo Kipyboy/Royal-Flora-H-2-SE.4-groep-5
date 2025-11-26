@@ -23,7 +23,7 @@ namespace RoyalFlora.Controllers
                 naam = product.ProductNaam ?? string.Empty,
                 beschrijving = product.ProductBeschrijving ?? string.Empty,
                 locatie = product.Locatie.ToString() ?? string.Empty, 
-                status = product.StatusNavigation?.Beschrijving ?? string.Empty
+                status = product.StatusNavigation?.Beschrijving ?? string.Empty,
             };
         }
 
@@ -35,6 +35,22 @@ namespace RoyalFlora.Controllers
             return VeilingProducten;
         }
 
+        private ClockDTO PrijsVoorKlok(Product product)
+        {
+            return new ClockDTO
+            {
+                minimumPrijs = float.TryParse(product.MinimumPrijs, out var price) ? price : 0f
+            };
+        }
+
+        [HttpGet("Klok")]
+        public async Task<ActionResult<IEnumerable<ClockDTO>>> GetKlokPrijs()
+        {
+            var products = await _context.Products.ToListAsync();
+            var KlokPrijs = products.Select(PrijsVoorKlok).ToList();
+            return KlokPrijs;
+        }
+
         private readonly MyDbContext _context;
 
         public ProductsController(MyDbContext context)
@@ -44,14 +60,24 @@ namespace RoyalFlora.Controllers
 
         // GET: api/Products1
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProductDTO>>> GetProducts()
+        public async Task<ActionResult<IEnumerable<ProductDTO>>> GetProducts([FromQuery] string? location)
         {
             List<Product> products = await _context.Products
+                .Include(p => p.LeverancierNavigation)
+                .ToListAsync();
+
+            if (!string.IsNullOrWhiteSpace(location))
+            {
+                products = products
+                    .Where(p => (p.Locatie?.ToString() ?? string.Empty)
+                        .Equals(location, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+            }
+
             .Include(p => p.LeverancierNavigation)
             .Include(p => p.StatusNavigation)
             .ToListAsync();
             List<ProductDTO> productDTOs = new List<ProductDTO>();
-           
 
             foreach (Product product in products)
             {
@@ -73,6 +99,7 @@ namespace RoyalFlora.Controllers
                 };
                 productDTOs.Add(dto);
             }
+
             
             // Debug output
             foreach (var dto in productDTOs)
@@ -85,7 +112,7 @@ namespace RoyalFlora.Controllers
 
 
         // GET: api/Products1/5
-        [HttpGet("{id}")]
+        [HttpGet("{id:int}")]
         public async Task<ActionResult<Product>> GetProduct(int id)
         {
             var product = await _context.Products.FindAsync(id);
@@ -100,7 +127,7 @@ namespace RoyalFlora.Controllers
 
         // PUT: api/Products1/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
+        [HttpPut("{id:int}")]
         public async Task<IActionResult> PutProduct(int id, Product product)
         {
             if (id != product.IdProduct)
@@ -162,7 +189,7 @@ namespace RoyalFlora.Controllers
         }
 
         // DELETE: api/Products1/5
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteProduct(int id)
         {
             var product = await _context.Products.FindAsync(id);

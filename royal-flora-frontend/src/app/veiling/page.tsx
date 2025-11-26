@@ -6,10 +6,10 @@ import Clock from "../components/clock";
 import VeilingSidebar from "../components/veiling-sidebar";
 
 const configs = {
-  a: { apiUrl: "/api/products?location=A", title: "Auction A" },
-  b: { apiUrl: "/api/products?location=B", title: "Auction B" },
-  c: { apiUrl: "/api/products?location=C", title: "Auction C" },
-  d: { apiUrl: "/api/products?location=D", title: "Auction D" },
+  a: { locationName: "Naaldwijk", title: "Auction A" },
+  b: { locationName: "Aalsmeer", title: "Auction B" },
+  c: { locationName: "Rijnsburg", title: "Auction C" },
+  d: { locationName: "Eelde", title: "Auction D" },
 };
 
 const DEFAULT_MS =  10 * 1000;
@@ -25,8 +25,9 @@ function writeEndToStorage(ts: number) {
   localStorage.setItem(STORAGE_KEY, String(ts));
 }
 
-export default function VeilingPage({ searchParams }: { searchParams: { loc?: string } }) {
-  const location = searchParams.loc ?? "a"; // default to A
+export default function VeilingPage({ searchParams }: { searchParams: Promise<{ loc?: string }> }) {
+  const params = React.use(searchParams);
+  const location = params.loc ?? "a"; 
   const config = configs[location as keyof typeof configs];
 
   const [endTs, setEndTs] = useState<number | null>(null);
@@ -63,7 +64,7 @@ export default function VeilingPage({ searchParams }: { searchParams: { loc?: st
       <div className="clock-container">
         <Clock endTs={endTs} durationMs={DEFAULT_MS} />
       </div>
-      <VeilingSidebar onReset={handleReset} onStop={handleStop} apiUrl={config.apiUrl}/>
+      <VeilingSidebar onReset={handleReset} onStop={handleStop} locationName={config.locationName} />
     </div>
   );
 }
