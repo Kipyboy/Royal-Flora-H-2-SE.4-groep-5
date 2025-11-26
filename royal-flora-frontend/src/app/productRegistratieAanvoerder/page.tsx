@@ -197,8 +197,8 @@ export default function ProductRegistratieAanvoerderPage() {
 			submitData.append('Aantal', formData.amount);
 			submitData.append('Leverancier', '10000001'); // Hardcoded voor nu, later dynamisch maken
 			
-			formData.images.forEach((image, index) => {
-				submitData.append(`images[${index}]`, image);
+			formData.images.forEach((image) => {
+				submitData.append(`images`, image);
 			});
 
 			// naar de database stuuren
