@@ -46,6 +46,7 @@ const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (id == "Aankomende producten") setAankomendChecked(checked)
     if (id == "Eigen producten") setEigenChecked(checked)
     if (id == "Gekochte producten") setGekochtChecked(checked)
+    if (id == "In te plannen producten") setInTePlannenChecked(checked)
     if (id == "A") setAChecked(checked)
     if (id == "B") setBChecked(checked)
     if (id == "C") setCChecked(checked)
@@ -144,9 +145,14 @@ const productenInladen = () => {
 
       <div className="content">
           <div className="veilingen">
-            {['Naaldwijk', 'Aalsmeer', 'Rijnsburg', 'Eelde'].map((loc) => (
-              <a key={loc} href="/veiling" className="card">
-                <p>Locatie {loc}</p>
+            {[
+              { name: 'Naaldwijk', key: 'a' },
+              { name: 'Aalsmeer', key: 'b' },
+              { name: 'Rijnsburg', key: 'c' },
+              { name: 'Eelde', key: 'd' }
+            ].map(({ name, key }) => (
+              <a key={name} href={`/veiling?loc=${key}`} className="card">
+                <p>Locatie {name}</p>
                 <p>Aanvoerder:</p>
                 <p>Verlopen tijd:</p>
                 <p>Huidig product:</p>
