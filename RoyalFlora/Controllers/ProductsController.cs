@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using MySqlX.XDevAPI;
 using RoyalFlora.Migrations;
 
@@ -47,6 +48,7 @@ namespace RoyalFlora.Controllers
         {
             List<Product> products = await _context.Products
             .Include(p => p.LeverancierNavigation)
+            .Include(p => p.StatusNavigation)
             .ToListAsync();
             List<ProductDTO> productDTOs = new List<ProductDTO>();
            
@@ -71,6 +73,7 @@ namespace RoyalFlora.Controllers
                 };
                 productDTOs.Add(dto);
             }
+            
             // Debug output
             foreach (var dto in productDTOs)
             {
@@ -136,11 +139,18 @@ namespace RoyalFlora.Controllers
             _context.Products.Add(product);
             await _context.SaveChangesAsync();
 
+            images = new List<IFormFile>();
+
             _context.Fotos.AddRange(images.Select(image => new Foto
             {
                 IdProduct = product.IdProduct,
                 FotoPath = image.FileName 
             }));
+
+            if (images.IsNullOrEmpty())
+                {
+                    Console.WriteLine("het werkt niet lol");
+                }
 
             await _context.SaveChangesAsync();
             return Ok(product);
