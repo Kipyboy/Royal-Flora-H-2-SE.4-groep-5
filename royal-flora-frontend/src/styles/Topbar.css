@@ -84,8 +84,8 @@
     min-height: 0.100rem;
 }
 
-body{
-    padding-top: 9.375rem;
+.topbar{
+    padding-bottom: 9.375rem;
 }
 
 .topbar nav {

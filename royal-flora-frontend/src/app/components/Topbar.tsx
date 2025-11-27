@@ -95,6 +95,8 @@ const Topbar: React.FC<TopbarProps> = ({
                 const data = await getSessionData();
                 if (data && data.role) {
                     setUserRole(data.role);
+                } else{
+                    router.push('/');
                 }
 
             } catch (error) {
