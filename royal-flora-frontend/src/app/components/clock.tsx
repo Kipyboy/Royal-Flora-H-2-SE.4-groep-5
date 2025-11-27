@@ -112,7 +112,6 @@ export default function Clock({endTs, durationMs, onPriceChange, locationName, o
       const remainingMs = Math.max(0, endTs - now);
       const ratio = Math.min(1, Math.max(0, remainingMs / durationMs));
       const activeIndex = Math.floor(ratio * 99);
-      console.log("remainingMs:", remainingMs, "finished:", finishedRef.current);
 
       if (remainingMs <= 0 && !finishedRef.current) {
         finishedRef.current = true;
