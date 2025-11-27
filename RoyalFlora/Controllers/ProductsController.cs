@@ -74,9 +74,6 @@ namespace RoyalFlora.Controllers
                     .ToList();
             }
 
-            .Include(p => p.LeverancierNavigation)
-            .Include(p => p.StatusNavigation)
-            .ToListAsync();
             List<ProductDTO> productDTOs = new List<ProductDTO>();
 
             foreach (Product product in products)
@@ -172,10 +169,6 @@ namespace RoyalFlora.Controllers
                 FotoPath = image.FileName 
             }));
 
-            if (images.IsNullOrEmpty())
-                {
-                    Console.WriteLine("het werkt niet lol");
-                }
 
             await _context.SaveChangesAsync();
             return CreatedAtAction(nameof(GetProduct), new { id = product.IdProduct }, new ResponseDTO { naam = product.ProductNaam ?? string.Empty, bericht = "Product succesvol geregistreerd!" });
