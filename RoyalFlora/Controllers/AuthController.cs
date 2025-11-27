@@ -266,18 +266,24 @@ namespace RoyalFlora.Controllers
         }
 
         [HttpGet("allUserInfo")]
+        [Microsoft.AspNetCore.Authorization.Authorize]
         public async Task<ActionResult<LoginResponse>> GetUserInfo()
         {
+            // Get user ID from JWT claims
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+            
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+            {
+                return Unauthorized(new { message = "Niet ingelogd" });
+            }
 
             var gebruiker = await _context.Gebruikers
                 .Include(g => g.RolNavigation)
-                .FirstOrDefaultAsync(g => g.Email == HttpContext.Session.GetString("Email"));
-
-            var userId = HttpContext.Session.GetInt32("UserId");
+                .FirstOrDefaultAsync(g => g.IdGebruiker == userId);
             
-            if (userId == null || gebruiker == null)
+            if (gebruiker == null)
             {
-                return Unauthorized(new { message = "Niet ingelogd" });
+                return NotFound(new { message = "Gebruiker niet gevonden" });
             }
 
             return Ok(new Gebruiker
@@ -294,16 +300,18 @@ namespace RoyalFlora.Controllers
         }
 
         [HttpPost("updateUserInfo")]
+        [Microsoft.AspNetCore.Authorization.Authorize]
         public async Task<ActionResult> UpdateUserInfo([FromBody] UpdateUserInfoRequest request)
         {
-            var userId = HttpContext.Session.GetInt32("UserId");
+            // Get user ID from JWT claims
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
             
-            if (userId == null)
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
             {
                 return Unauthorized(new { message = "Niet ingelogd" });
             }
 
-            var gebruiker = await _context.Gebruikers.FindAsync(userId.Value);
+            var gebruiker = await _context.Gebruikers.FindAsync(userId);
             
             if (gebruiker == null)
             {
@@ -341,15 +349,6 @@ namespace RoyalFlora.Controllers
             try
             {
                 await _context.SaveChangesAsync();
-                
-                // Update session
-                if (request.Field.ToLower() == "voornaam" || request.Field.ToLower() == "achternaam")
-                {
-                    HttpContext.Session.SetString("Username", $"{gebruiker.VoorNaam} {gebruiker.AchterNaam}");
-                } else if (request.Field.ToLower() == "email")
-                {
-                    HttpContext.Session.SetString("Email", gebruiker.Email);
-                }
 
                 return Ok(new { 
                     message = "Veld succesvol bijgewerkt",

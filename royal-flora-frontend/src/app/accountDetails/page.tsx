@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import '../../styles/AccountDetails.css';
 import Topbar from '../components/Topbar';
 import { getSessionData } from '../utils/sessionService';
-import { logout as clearAuth } from '../utils/auth';
+import { logout as clearAuth, getAuthHeaders } from '../utils/auth';
 
 interface UserDetails {
     voornaam: string;
@@ -40,16 +40,28 @@ const AccountDetails: React.FC = () => {
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState<boolean>(true);
 
-    // Fetch session data on component mount using bearer token
     React.useEffect(() => {
         const fetchSessionData = async () => {
             try {
-                const data = await getSessionData();
-                if (data) {
-                    const nameParts = (data.username || '').split(' ');
-                    const voornaam = nameParts[0] || '';
-                    const achternaam = nameParts.slice(1).join(' ') || '';
+                const authHeaders = getAuthHeaders();
+                
+                // Check if we have a token
+                if (!authHeaders.Authorization) {
+                    console.error('No token found');
+                    router.push('/');
+                    return;
+                }
 
+                const response = await fetch('http://localhost:5156/api/auth/allUserInfo', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...authHeaders,
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
                     setUserDetails({
                         voornaam: data.voorNaam,
                         achternaam: data.achterNaam,
@@ -60,8 +72,7 @@ const AccountDetails: React.FC = () => {
                         wachtwoord: '' 
                     });
                 } else {
-                    // Not logged in, redirect to login
-                    console.error('Not logged in');
+                    router.push('/');
                 }
             } catch (error) {
                 console.error('Error fetching session:', error);
@@ -96,12 +107,29 @@ const AccountDetails: React.FC = () => {
     const handleSave = async (field: keyof UserDetails) => {
         try {
             console.log(`Saving field ${field} with value ${userDetails[field]}`);
+            const authHeaders = getAuthHeaders();
+            
+            if (!authHeaders.Authorization) {
+                router.push('/');
+                return;
+            }
+            
+            if (field == 'wachtwoord') {
+                            // At least 8 characters, at least one digit and one special character
+            const pwdRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
+            if (!pwdRegex.test(userDetails[field])) {
+                return setErrors(prev => ({
+                    ...prev,
+                    [field]: 'Wachtwoord moet minstens 8 tekens bevatten, inclusief een cijfer en een speciaal teken'
+                }));
+            }
+            }
             // data opslag hier
             const response = await fetch('http://localhost:5156/api/auth/updateUserInfo', {
                     method: 'POST',
-                    credentials: 'include',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        ...authHeaders
                     },
                     body: JSON.stringify({
                         Field: field,
@@ -145,14 +173,14 @@ const AccountDetails: React.FC = () => {
             // ignore network errors on logout
         }
         clearAuth();
-        window.location.href = '/login';
+        router.push('/');
     };
 
     const handleDeleteAccount = () => {
         if (window.confirm('Weet je zeker dat je je account wilt verwijderen?')) {
             // Implementeer account verwijderen logica
             // await deleteAccount();
-            window.location.href = '/login';
+            router.push('/');
         }
     };
 

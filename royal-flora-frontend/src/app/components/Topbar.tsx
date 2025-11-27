@@ -11,9 +11,6 @@ import KlantSidebar from './KlantSidebar';
 import VeilingmeesterSidebar from './VeilingmeesterSidebar';
 
 
-
-
-
 interface TopbarProps {
     useSideBar?: boolean;
     currentPage: string;
@@ -75,7 +72,7 @@ const Topbar: React.FC<TopbarProps> = ({
         }
         clearAuth();
         setDropdownVisible(false);
-        router.push('/login');
+        router.push('/');
     };
 
     // Close dropdown when clicking outside
@@ -96,7 +93,9 @@ const Topbar: React.FC<TopbarProps> = ({
         const fetchSessionData = async () => {
             try {
                 const data = await getSessionData();
+                if (data && data.role) {
                     setUserRole(data.role);
+                }
 
             } catch (error) {
                 console.error('Error fetching session');
