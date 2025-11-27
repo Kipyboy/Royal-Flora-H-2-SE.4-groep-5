@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
-import '../../styles/clock.css';
+import "../../styles/clock.css";
 
 function formatMs(ms: number) {
   if (ms <= 0) return "00:00.000";
@@ -8,44 +8,61 @@ function formatMs(ms: number) {
   const min = Math.floor(totalSec / 60);
   const sec = totalSec % 60;
   const millis = ms % 1000;
-  return `${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")}.${String(millis).padStart(3, "0")}`;
+  return `${String(min).padStart(2, "0")}:${String(sec).padStart(2,"0")}.${String(millis).padStart(3, "0")}`;
 }
 
 interface ClockProps {
   endTs: number | null;
   durationMs: number;
+  onPriceChange?: (price: number) => void;
+  locationName?: string;
+  onFinished?: () => void;
 }
 
 interface KlokDTO {
   minimumPrijs: number;
+  locatie?: string;
+  status?: number;
 }
 
-export default function Clock({ endTs, durationMs }: ClockProps) {
+export default function Clock({endTs, durationMs, onPriceChange, locationName, onFinished}: ClockProps) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [minPrice, setMinPrice] = useState<number | null>(null);
+  const finishedRef = useRef(false); 
 
   useEffect(() => {
-    fetch("http://localhost:5156/api/Products/Klok")
-      .then(res => res.json())
-      .then((data: KlokDTO[] | any) => {
-        if (Array.isArray(data) && data.length > 0) {
-          const prices = data.map(p => Number(p.minimumPrijs ?? p.MinimumPrijs ?? 0)).filter(p => !Number.isNaN(p));
-          const min = prices.length ? Math.min(...prices) : 0;
-          setMinPrice(min);
-        } else {
-          setMinPrice(0);
+    if (!locationName) return;
+
+    fetch(
+      `http://localhost:5156/api/Products/Klok?locatie=${encodeURIComponent(
+        locationName
+      )}`
+    )
+      .then(async (res) => {
+        if (res.status === 404) {
+          setMinPrice(-1);
+          return null;
         }
+        return res.json();
       })
-      .catch(err => {
-        console.error("Error fetching product:", err);
-        setMinPrice(0);
+      .then((data: KlokDTO | null) => {
+        if (!data) return;
+        const price = Number(data.minimumPrijs);
+        setMinPrice(Number.isFinite(price) ? price : 0);
+      })
+      .catch((err) => {
+        console.error("Error fetching klok data:", err);
+        setMinPrice(-1);
       });
-  }, []);
+  }, [locationName]);
 
   useEffect(() => {
-    if (!svgRef.current || !endTs || minPrice === null) return;
+    if (!svgRef.current || endTs === null || minPrice === null || minPrice === -1)
+      return;
+
     const svg = svgRef.current;
     svg.innerHTML = "";
+    finishedRef.current = false;
 
     const radius = 200;
     const center = radius + 50;
@@ -89,11 +106,18 @@ export default function Clock({ endTs, durationMs }: ClockProps) {
     const timeText = createText(40, 18);
 
     let animationFrameId: number;
+
     const update = () => {
       const now = Date.now();
       const remainingMs = Math.max(0, endTs - now);
       const ratio = Math.min(1, Math.max(0, remainingMs / durationMs));
       const activeIndex = Math.floor(ratio * 99);
+      console.log("remainingMs:", remainingMs, "finished:", finishedRef.current);
+
+      if (remainingMs <= 0 && !finishedRef.current) {
+        finishedRef.current = true;
+        if (onFinished) onFinished();
+      }
 
       tickCircles.forEach((circle, index) => {
         circle.setAttribute("fill", index === activeIndex ? "#FF0000" : "#ccc");
@@ -102,14 +126,29 @@ export default function Clock({ endTs, durationMs }: ClockProps) {
       percentText.textContent = `${Math.floor(ratio * 100)}%`;
       const currentPrice = minPrice + (startingPrice - minPrice) * ratio;
       priceText.textContent = "€" + currentPrice.toFixed(2);
+
+      if (onPriceChange) {
+        try {
+          onPriceChange(Number(currentPrice.toFixed(2)));
+        } catch {}
+      }
+
       timeText.textContent = formatMs(remainingMs);
 
       animationFrameId = requestAnimationFrame(update);
     };
+
     update();
-
     return () => cancelAnimationFrame(animationFrameId);
-  }, [endTs, durationMs, minPrice]);
+  }, [endTs, durationMs, minPrice, onPriceChange, onFinished]);
 
-  return (<svg ref={svgRef} viewBox="0 0 500 500"></svg>);
+  if (minPrice === -1) {
+    return (
+    <div className="notice">
+       Geen veiling gaande op deze locatie
+    </div>
+    );
+  }
+
+  return <svg ref={svgRef} viewBox="0 0 500 500"></svg>;
 }

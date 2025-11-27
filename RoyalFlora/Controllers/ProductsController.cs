@@ -22,8 +22,8 @@ namespace RoyalFlora.Controllers
                 id = product.IdProduct,
                 naam = product.ProductNaam ?? string.Empty,
                 beschrijving = product.ProductBeschrijving ?? string.Empty,
-                locatie = product.Locatie.ToString() ?? string.Empty, 
-                status = product.StatusNavigation?.Beschrijving ?? string.Empty,
+                locatie = product.Locatie.ToString() ?? string.Empty,
+                status = product.Status ?? 0,
             };
         }
 
@@ -39,17 +39,31 @@ namespace RoyalFlora.Controllers
         {
             return new ClockDTO
             {
-                minimumPrijs = float.TryParse(product.MinimumPrijs, out var price) ? price : 0f
+                minimumPrijs = float.TryParse(product.MinimumPrijs, out var price) ? price : 0f,
+                locatie = product.Locatie.ToString() ?? string.Empty,
+                status = product.Status
             };
         }
 
         [HttpGet("Klok")]
-        public async Task<ActionResult<IEnumerable<ClockDTO>>> GetKlokPrijs()
+        public async Task<ActionResult<ClockDTO>> GetKlokPrijs([FromQuery] string locatie)
         {
-            var products = await _context.Products.ToListAsync();
-            var KlokPrijs = products.Select(PrijsVoorKlok).ToList();
-            return KlokPrijs;
+            var product = await _context.Products
+                .Where(p => p.Status == 3 &&
+                (p.Locatie ?? "").ToLower() == locatie.ToLower())
+                .FirstOrDefaultAsync();
+
+            if (product == null)
+                return NotFound();
+
+            return new ClockDTO
+            {
+                minimumPrijs = float.TryParse(product.MinimumPrijs, out var price) ? price : 0f,
+                locatie = product.Locatie,
+                status = product.Status
+            };
         }
+
 
         private readonly MyDbContext _context;
 
@@ -58,12 +72,41 @@ namespace RoyalFlora.Controllers
             _context = context;
         }
 
+        [HttpPatch("{id:int}/koop")]
+        public async Task<IActionResult> KoopProduct(int id, [FromBody] KoopDto dto)
+        {
+            var product = await _context.Products.FindAsync(id);
+            if (product == null) return NotFound();
+
+
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null) return Unauthorized();
+
+            product.Status = 4;
+            product.Koper = userId.Value;
+            product.verkoopPrijs = dto.verkoopPrijs;
+
+            _context.Entry(product).State = EntityState.Modified;
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!ProductExists(id)) return NotFound();
+                throw;
+            }
+
+            return NoContent();
+        }
+
         // GET: api/Products1
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProductDTO>>> GetProducts([FromQuery] string? location)
         {
             List<Product> products = await _context.Products
                 .Include(p => p.LeverancierNavigation)
+                .Include(p => p.StatusNavigation)
                 .ToListAsync();
 
             if (!string.IsNullOrWhiteSpace(location))
@@ -97,7 +140,7 @@ namespace RoyalFlora.Controllers
                 productDTOs.Add(dto);
             }
 
-            
+
             // Debug output
             foreach (var dto in productDTOs)
             {
@@ -156,13 +199,28 @@ namespace RoyalFlora.Controllers
         // POST: api/Products1
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Product>> PostProduct([FromForm]Product product, [FromForm] List<IFormFile> images)
+        public async Task<ActionResult<Product>> PostProduct([FromForm] Product product, [FromForm] List<IFormFile> images)
         {
             try
             {
-            _context.Products.Add(product);
-            await _context.SaveChangesAsync();
+                _context.Products.Add(product);
+                await _context.SaveChangesAsync();
 
+                images = new List<IFormFile>();
+
+                _context.Fotos.AddRange(images.Select(image => new Foto
+                {
+                    IdProduct = product.IdProduct,
+                    FotoPath = image.FileName
+                }));
+
+                if (images.IsNullOrEmpty())
+                {
+                    Console.WriteLine("het werkt niet lol");
+                }
+
+                await _context.SaveChangesAsync();
+                return Ok(product);
             _context.Fotos.AddRange(images.Select(image => new Foto
             {
                 IdProduct = product.IdProduct,
@@ -199,6 +257,44 @@ namespace RoyalFlora.Controllers
         {
             return _context.Products.Any(e => e.IdProduct == id);
         }
+
+        [HttpPost("Advance")]
+        public async Task<IActionResult> Advance([FromQuery] string locatie)
+        {
+            var current = await _context.Products
+                .Where(p => p.Status == 3 && (p.Locatie ?? "") == locatie)
+                .FirstOrDefaultAsync();
+
+            if (current == null)
+                return NotFound("No active product found");
+
+            // Mark current as finished
+            current.Status = 5;
+            _context.Entry(current).State = EntityState.Modified;
+
+            // Find next product
+            var next = await _context.Products
+                .Where(p => p.Status == 2 && (p.Locatie ?? "") == locatie)
+                .OrderBy(p => p.IdProduct)
+                .FirstOrDefaultAsync();
+
+            if (next == null)
+            {
+                await _context.SaveChangesAsync();
+                return NotFound("No next product available");
+            }
+
+            next.Status = 3;
+            _context.Entry(next).State = EntityState.Modified;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { nextId = next.IdProduct });
+        }
+
+
     }
-    
+
+
+
 }

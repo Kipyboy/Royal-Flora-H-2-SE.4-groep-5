@@ -4,5 +4,5 @@ public class VeilingDTO
     public string naam { get; set; } = string.Empty;
     public string beschrijving {get; set;} = string.Empty;
     public string locatie { get; set; } = string.Empty; 
-    public string status { get; set; } = string.Empty; 
+    public int? status { get; set; }
 }
