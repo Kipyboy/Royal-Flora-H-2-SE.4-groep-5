@@ -1,9 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using Google.Protobuf;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using MySqlX.XDevAPI;
@@ -72,6 +77,7 @@ namespace RoyalFlora.Controllers
             _context = context;
         }
 
+        [Authorize]
         [HttpPatch("{id:int}/koop")]
         public async Task<IActionResult> KoopProduct(int id, [FromBody] KoopDto dto)
         {
@@ -79,11 +85,19 @@ namespace RoyalFlora.Controllers
             if (product == null) return NotFound();
 
 
-            var userId = HttpContext.Session.GetInt32("UserId");
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
             if (userId == null) return Unauthorized();
 
             product.Status = 4;
-            product.Koper = userId.Value;
+            if (int.TryParse(userId, out int koperId))
+            {
+                product.Koper = koperId;
+            }
+            else
+            {
+                return Unauthorized(); 
+            }
+
             product.verkoopPrijs = dto.verkoopPrijs;
 
             _context.Entry(product).State = EntityState.Modified;

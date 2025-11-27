@@ -1,6 +1,8 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import "../../styles/veiling-sidebar.css";
+import { getSessionData } from "../utils/sessionService";
+import { getAuthHeaders } from "../utils/auth";
 
 interface SidebarProps {
   onReset: () => void;
@@ -68,6 +70,7 @@ export default function Sidebar({
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
+            ...getAuthHeaders()
           },
           body: JSON.stringify({
             verkoopPrijs: roundedPrijs,
@@ -80,6 +83,7 @@ export default function Sidebar({
         console.log("Product gekocht!");
         await fetch(`/api/Products/Advance?locatie=${locationName}`, {
           method: "POST",
+          ...getAuthHeaders()
         });
         window.location.reload();
       } else {
