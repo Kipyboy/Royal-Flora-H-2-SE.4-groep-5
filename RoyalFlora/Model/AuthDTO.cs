@@ -1,6 +1,11 @@
-namespace RoyalFlora.Model
+namespace RoyalFlora.AuthDTO
 {
-    // Login DTOs
+    public class UpdateUserInfoRequest
+    {
+        public string Field { get; set; } = string.Empty;
+        public string NewValue { get; set; } = string.Empty;
+    }
+
     public class LoginRequest
     {
         public string Email { get; set; } = string.Empty;
@@ -11,11 +16,10 @@ namespace RoyalFlora.Model
     {
         public bool Success { get; set; }
         public string Message { get; set; } = string.Empty;
-        public string? Token { get; set; }
+        public string Token { get; set; } = string.Empty;
         public UserInfo? User { get; set; }
     }
 
-    // Register DTOs
     public class RegisterRequest
     {
         public string VoorNaam { get; set; } = string.Empty;
@@ -31,11 +35,11 @@ namespace RoyalFlora.Model
     {
         public bool Success { get; set; }
         public string Message { get; set; } = string.Empty;
-        public string? Token { get; set; }
         public UserInfo? User { get; set; }
+
+        public string Token { get; set; } = string.Empty;
     }
 
-    // User Info DTO
     public class UserInfo
     {
         public int Id { get; set; }
