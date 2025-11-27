@@ -5,6 +5,7 @@ import '../../styles/Topbar.css';
 import Sidebar from './Sidebar';
 import { useRouter } from 'next/navigation';
 import { getSessionData } from '../utils/sessionService';
+import { logout as clearAuth } from '../utils/auth';
 import AanvoerderSidebar from './AanvoerderSidebar';
 import KlantSidebar from './KlantSidebar';
 import VeilingmeesterSidebar from './VeilingmeesterSidebar';
@@ -64,13 +65,15 @@ const Topbar: React.FC<TopbarProps> = ({
     };
 
     const handleLogout = async () => {
-        await fetch('http://localhost:5156/api/auth/logout', {
-            method: 'POST',
-            credentials: 'include',
-            headers: {  
-                'Content-Type': 'application/json',
-            }
-        });
+        try {
+            await fetch('http://localhost:5156/api/auth/logout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+        } catch (err) {
+            // ignore
+        }
+        clearAuth();
         setDropdownVisible(false);
         router.push('/login');
     };

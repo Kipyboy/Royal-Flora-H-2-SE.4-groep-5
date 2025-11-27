@@ -221,6 +221,15 @@ namespace RoyalFlora.Controllers
 
                 await _context.SaveChangesAsync();
                 return Ok(product);
+            _context.Fotos.AddRange(images.Select(image => new Foto
+            {
+                IdProduct = product.IdProduct,
+                FotoPath = image.FileName 
+            }));
+
+
+            await _context.SaveChangesAsync();
+            return CreatedAtAction(nameof(GetProduct), new { id = product.IdProduct }, new ResponseDTO { naam = product.ProductNaam ?? string.Empty, bericht = "Product succesvol geregistreerd!" });
             }
             catch (Exception ex)
             {

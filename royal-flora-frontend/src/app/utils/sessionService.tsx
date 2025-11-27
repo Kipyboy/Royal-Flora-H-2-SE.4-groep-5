@@ -1,17 +1,29 @@
 
 // Globale session methode die overal in de frontend gebruikt kan worden.
 // Exporteren we direct om een duidelijke named export te hebben voor Turbopack.
-export async function getSessionData(): Promise<any | null> {
+import { getAuthHeaders, getToken } from './auth';
+import type { UserResponseDTO } from './dtos';
+
+// Returns current user info by calling the protected `/auth/user` endpoint
+// Uses the stored JWT in Authorization header. Returns `null` when no token
+// or when the server returns non-ok.
+export async function getSessionData(): Promise<UserResponseDTO | null> {
     try {
-        const response = await fetch('http://localhost:5156/api/auth/session', {
-            credentials: 'include',
+        const token = getToken();
+        if (!token) return null;
+
+        const response = await fetch('http://localhost:5156/api/auth/user', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                ...getAuthHeaders(),
+            },
         });
-        if (!response.ok) {
-            return null;
-        }
-        return await response.json();
+
+        if (!response.ok) return null;
+        return await response.json() as UserResponseDTO;
     } catch (err) {
-        // In geval van netwerkfout gewoon null teruggeven zodat callers kunnen fallbacken.
+        // Network or parsing error
         return null;
     }
 }
