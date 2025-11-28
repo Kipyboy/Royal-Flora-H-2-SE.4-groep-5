@@ -2,6 +2,7 @@ import React from "react";
 import '../../styles/ProductCard.css';
 
 
+
 interface ProductCardProps {
     naam: string;
     merk: string;
@@ -10,6 +11,7 @@ interface ProductCardProps {
     locatie: string;
     status: string;
     Aantal: number;
+    FotoPath: string;
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({
@@ -19,12 +21,14 @@ const ProductCard: React.FC<ProductCardProps> = ({
     datum,
     locatie,
     status,
-    Aantal
-}) => 
-
+    Aantal,
+    FotoPath
+}) => {
+    const defaultImg = "https://syria.adra.cloud/wp-content/uploads/2021/10/empty.jpg";
+    return (
     <div className="product-card">
         <div className="image">
-            <img src="https://syria.adra.cloud/wp-content/uploads/2021/10/empty.jpg" alt="" />
+            <img src={FotoPath && FotoPath.trim() !== "" ? FotoPath : defaultImg} alt="" id="product-foto"/>
         </div>
         <div className="info">
             <p id="naam">Naam: {naam}</p>
@@ -36,6 +40,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             <p id="status">Status: {status}</p>
         </div>
     </div>
-
+    );
+};
 
 export default ProductCard;

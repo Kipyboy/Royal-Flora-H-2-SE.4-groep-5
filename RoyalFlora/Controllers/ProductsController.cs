@@ -149,7 +149,8 @@ namespace RoyalFlora.Controllers
                     datum = datum,
                     locatie = locatie,
                     status = status,
-                    aantal = product.Aantal
+                    aantal = product.Aantal,
+                    fotoPath = product.Fotos.First().FotoPath
                 };
                 productDTOs.Add(dto);
             }
@@ -222,10 +223,27 @@ namespace RoyalFlora.Controllers
 
                 images = new List<IFormFile>();
 
+                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+                string filePath = null;
+                
+                foreach (var image in images)
+                {
+                    filePath = Path.Combine(uploadsFolder, image.FileName);
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await image.CopyToAsync(stream);
+                    }
+
+                }
+
                 _context.Fotos.AddRange(images.Select(image => new Foto
                 {
                     IdProduct = product.IdProduct,
-                    FotoPath = image.FileName
+                    FotoPath = filePath
                 }));
 
                 

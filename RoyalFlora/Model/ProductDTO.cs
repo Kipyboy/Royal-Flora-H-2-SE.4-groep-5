@@ -9,4 +9,6 @@ public class ProductDTO
     public string locatie { get; set; } = string.Empty; 
     public string status { get; set; } = string.Empty; 
     public int? aantal { get; set; }
+    
+    public string? fotoPath { get; set; } = string.Empty;
 }

@@ -99,6 +99,7 @@ const productenInladen = () => {
       locatie={product.locatie}
       status={product.status}
       Aantal={product.aantal}
+      FotoPath={product.FotoPath}
       />
   ));
 };
