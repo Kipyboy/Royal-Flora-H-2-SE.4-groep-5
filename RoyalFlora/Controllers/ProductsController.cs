@@ -121,6 +121,7 @@ namespace RoyalFlora.Controllers
             List<Product> products = await _context.Products
                 .Include(p => p.LeverancierNavigation)
                 .Include(p => p.StatusNavigation)
+                .Include(p => p.Fotos)
                 .ToListAsync();
 
             if (!string.IsNullOrWhiteSpace(location))
@@ -150,7 +151,7 @@ namespace RoyalFlora.Controllers
                     locatie = locatie,
                     status = status,
                     aantal = product.Aantal,
-                    fotoPath = product.Fotos.First().FotoPath
+                    fotoPath = product.Fotos.FirstOrDefault()?.FotoPath ?? string.Empty
                 };
                 productDTOs.Add(dto);
             }
@@ -221,18 +222,24 @@ namespace RoyalFlora.Controllers
                 _context.Products.Add(product);
                 await _context.SaveChangesAsync();
 
-                images = new List<IFormFile>();
+                //images = new List<IFormFile>();
 
                 var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
                 if (!Directory.Exists(uploadsFolder))
                 {
                     Directory.CreateDirectory(uploadsFolder);
                 }
-                string filePath = null;
+                
                 
                 foreach (var image in images)
                 {
-                    filePath = Path.Combine(uploadsFolder, image.FileName);
+                    
+                    string filePath = Path.Combine(uploadsFolder, image.FileName);
+                    _context.Fotos.Add(new Foto
+                    {
+                        IdProduct =product.IdProduct,
+                        FotoPath = filePath
+                    });
                     using (var stream = new FileStream(filePath, FileMode.Create))
                     {
                         await image.CopyToAsync(stream);
@@ -240,16 +247,8 @@ namespace RoyalFlora.Controllers
 
                 }
 
-                _context.Fotos.AddRange(images.Select(image => new Foto
-                {
-                    IdProduct = product.IdProduct,
-                    FotoPath = filePath
-                }));
-
-                
-
                 await _context.SaveChangesAsync();
-                return Ok(product);
+                return CreatedAtAction(nameof(GetProduct), new { id = product.IdProduct }, new ResponseDTO { naam = product.ProductNaam ?? string.Empty, bericht = "Product succesvol geregistreerd!" });
             
             }
             catch (Exception ex)

@@ -195,7 +195,7 @@ export default function ProductRegistratieAanvoerderPage() {
 			submitData.append('Locatie', formData.clockLocation);
 			submitData.append('Datum', formData.auctionDate);
 			submitData.append('Aantal', formData.amount);
-			submitData.append('Leverancier', '10000001'); // Hardcoded voor nu, later dynamisch maken
+			submitData.append('Leverancier', '1001'); // Hardcoded voor nu, later dynamisch maken
 			
 			formData.images.forEach((image) => {
 				submitData.append(`images`, image);
