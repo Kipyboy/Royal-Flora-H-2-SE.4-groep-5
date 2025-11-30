@@ -25,9 +25,10 @@ namespace RoyalFlora.Controllers
         [HttpPost("register")]
         public async Task<ActionResult<RegisterResponse>> Register([FromBody] RegisterRequest request)
         {
-            // Basic validation
-            if (string.IsNullOrWhiteSpace(request.VoorNaam) || string.IsNullOrWhiteSpace(request.AchterNaam) ||
-                string.IsNullOrWhiteSpace(request.E_mail) || string.IsNullOrWhiteSpace(request.Wachtwoord))
+            if (string.IsNullOrWhiteSpace(request.VoorNaam) ||
+                string.IsNullOrWhiteSpace(request.AchterNaam) ||
+                string.IsNullOrWhiteSpace(request.E_mail) ||
+                string.IsNullOrWhiteSpace(request.Wachtwoord))
             {
                 return BadRequest(new RegisterResponse
                 {
@@ -45,7 +46,6 @@ namespace RoyalFlora.Controllers
                 });
             }
 
-            // Check if email already exists
             if (await _context.Gebruikers.AnyAsync(u => u.Email.ToLower() == request.E_mail.ToLower()))
             {
                 return BadRequest(new RegisterResponse
@@ -55,11 +55,9 @@ namespace RoyalFlora.Controllers
                 });
             }
 
-            // Role & hash password
             int rolId = request.AccountType == "bedrijf" ? 1 : 2;
             string hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.Wachtwoord);
 
-            // Create company if needed
             var bedrijf = await _context.Bedrijven.FirstOrDefaultAsync(b => b.KVK == kvkNummer);
             if (request.AccountType == "bedrijf" && bedrijf != null)
             {
@@ -70,7 +68,7 @@ namespace RoyalFlora.Controllers
                 });
             }
 
-            if (bedrijf == null)
+            if (bedrijf == null && request.AccountType == "bedrijf")
             {
                 bedrijf = new Bedrijf
                 {
@@ -82,7 +80,6 @@ namespace RoyalFlora.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            // Create user
             var newGebruiker = new Gebruiker
             {
                 VoorNaam = request.VoorNaam,
@@ -97,20 +94,19 @@ namespace RoyalFlora.Controllers
             _context.Gebruikers.Add(newGebruiker);
             await _context.SaveChangesAsync();
 
-            // Update company founder if needed
-            if (request.AccountType == "bedrijf")
+            if (request.AccountType == "bedrijf" && bedrijf != null)
             {
                 bedrijf.Oprichter = newGebruiker.IdGebruiker;
                 await _context.SaveChangesAsync();
             }
 
-            // Generate JWT
             var userInfo = new UserInfo
             {
                 Id = newGebruiker.IdGebruiker,
                 Username = $"{newGebruiker.VoorNaam} {newGebruiker.AchterNaam}",
                 Email = newGebruiker.Email,
-                Role = request.AccountType == "bedrijf" ? "Aanvoerder" : "Inkooper"
+                Role = request.AccountType == "bedrijf" ? "Aanvoerder" : "Inkoper",
+                KVK = newGebruiker.KVK.ToString() // ✅ include KVK
             };
 
             var token = GenerateJwtToken(userInfo);
@@ -140,17 +136,7 @@ namespace RoyalFlora.Controllers
                 .Include(g => g.RolNavigation)
                 .FirstOrDefaultAsync(g => g.Email.ToLower() == request.Email.ToLower());
 
-            if (gebruiker == null)
-            {
-                return Unauthorized(new LoginResponse
-                {
-                    Success = false,
-                    Message = "Ongeldige inloggegevens"
-                });
-            }
-
-            // Verify password
-            if (!BCrypt.Net.BCrypt.Verify(request.Password, gebruiker.Wachtwoord))
+            if (gebruiker == null || !BCrypt.Net.BCrypt.Verify(request.Password, gebruiker.Wachtwoord))
             {
                 return Unauthorized(new LoginResponse
                 {
@@ -164,7 +150,8 @@ namespace RoyalFlora.Controllers
                 Id = gebruiker.IdGebruiker,
                 Username = $"{gebruiker.VoorNaam} {gebruiker.AchterNaam}",
                 Email = gebruiker.Email,
-                Role = gebruiker.RolNavigation?.RolNaam ?? "User"
+                Role = gebruiker.RolNavigation?.RolNaam ?? "User",
+                KVK = gebruiker.KVK.ToString() // ✅ include KVK
             };
 
             var token = GenerateJwtToken(userInfo);
@@ -190,6 +177,7 @@ namespace RoyalFlora.Controllers
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
                 new Claim(ClaimTypes.Name, user.Username),
                 new Claim(ClaimTypes.Role, user.Role),
+                new Claim("KVK", user.KVK ?? ""), // ✅ add KVK here
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 

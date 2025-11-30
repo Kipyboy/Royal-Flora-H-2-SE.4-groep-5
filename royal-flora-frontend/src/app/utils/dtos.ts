@@ -5,6 +5,7 @@ export interface UserInfoDTO {
   username: string;
   email: string;
   role: string;
+  KVK?: string;
 }
 
 export interface LoginRequestDTO {

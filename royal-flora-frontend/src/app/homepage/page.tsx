@@ -2,16 +2,22 @@
 
 import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
-import Sidebar from '../components/Sidebar';
 import ProductCard from '../components/product-card';
 import '../../styles/homepage.css';
 import Topbar from '../components/Topbar';
 import { authFetch } from '../utils/api';
 import { getUser } from '../utils/auth';
 
+interface User {
+  username: string;
+  email: string;
+  role: string;
+  KVK?: string;
+}
+
 const HomePage: React.FC = () => {
   const [products, setProducts] = useState<any[]>([]);
-  const [user, setUser] = useState<{ username: string; email: string; role: string } | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Filters
@@ -28,16 +34,15 @@ const HomePage: React.FC = () => {
   const [naamFilter, setNaamFilter] = useState("");
   const [sidebarVisible, setSidebarVisible] = useState(true);
 
-  // Load user and products
   useEffect(() => {
     const fetchData = async () => {
-      const storedUser = getUser(); // fetch from session/localStorage
-      if (storedUser) {
-        setUser(storedUser);
+      const storedUser = getUser();
+      if (!storedUser) {
+        setLoading(false);
+        return;
       }
-      setLoading(false); // done loading even if no user
-
-      if (!storedUser) return; // don't fetch products if no user
+      setUser(storedUser);
+      setLoading(false);
 
       try {
         const response = await authFetch('http://localhost:5156/api/products');
@@ -141,7 +146,7 @@ const HomePage: React.FC = () => {
         naamFilter={naamFilter}
         onCheckboxChange={handleCheckboxChange}
         onInputChange={handleInputChange}
-        user={user} // Pass user object
+        user={user}
       />
 
       <div className="main-layout">

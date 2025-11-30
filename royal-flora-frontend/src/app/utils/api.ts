@@ -1,8 +1,9 @@
 // utils/api.ts
-import { getToken, setToken } from "./auth";
+import { getToken } from "./auth";
 
-export const TOKEN_KEY = "jwt_token";
-
+/**
+ * Wrapper around fetch that includes JWT Authorization header if available
+ */
 export function authFetch(input: RequestInfo, init?: RequestInit) {
   const token = getToken();
   const headers = token
@@ -13,10 +14,4 @@ export function authFetch(input: RequestInfo, init?: RequestInit) {
     : init?.headers;
 
   return fetch(input, { ...init, headers });
-}
-
-// Named export for logout
-export function logout() {
-  setToken(null);
-  localStorage.removeItem("user");
 }
