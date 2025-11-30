@@ -1,34 +1,20 @@
-"use client"
+'use client';
 
 import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
 import Sidebar from '../components/Sidebar';
-import ProductCard from '../components/product-card'
-import  '../../styles/homepage.css';
-import { mock } from 'node:test';
+import ProductCard from '../components/product-card';
+import '../../styles/homepage.css';
 import Topbar from '../components/Topbar';
-
-
+import { authFetch } from '../utils/api';
+import { getUser } from '../utils/auth';
 
 const HomePage: React.FC = () => {
   const [products, setProducts] = useState<any[]>([]);
+  const [user, setUser] = useState<{ username: string; email: string; role: string } | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  
-
-  const getProducts = async () => {
-      try {
-        const response = await fetch("http://localhost:5156/api/products");
-        const data = await response.json();
-        setProducts(data);
-      }
-      catch (error) {
-        console.log("Fout bij producten ophalen")
-      }
-  };
-  useEffect(() => {
-    getProducts();
-  }, []);
-
+  // Filters
   const [aankomendChecked, setAankomendChecked] = useState(true);
   const [eigenChecked, setEigenChecked] = useState(true);
   const [gekochtChecked, setGekochtChecked] = useState(true);
@@ -40,110 +26,126 @@ const HomePage: React.FC = () => {
   const [dateFilter, setDateFilter] = useState("");
   const [merkFilter, setMerkFilter] = useState("");
   const [naamFilter, setNaamFilter] = useState("");
-
-const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, checked } = e.target;
-    if (id == "Aankomende producten") setAankomendChecked(checked)
-    if (id == "Eigen producten") setEigenChecked(checked)
-    if (id == "Gekochte producten") setGekochtChecked(checked)
-    if (id == "In te plannen producten") setInTePlannenChecked(checked)
-    if (id == "A") setAChecked(checked)
-    if (id == "B") setBChecked(checked)
-    if (id == "C") setCChecked(checked)
-    if (id == "D") setDChecked(checked)
-}
-const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target;
-    if (id == "datum-input") setDateFilter(value);
-    if (id == "merk-input") setMerkFilter(value);
-    if (id == "naam-input") setNaamFilter(value);
-}
-
-const productenInladen = () => {
-  return products
-  .filter(product => {
-    if (
-      (!aankomendChecked && product.status === "Aankomend") ||
-      (!eigenChecked && product.status === "Eigen") ||
-      (!gekochtChecked && product.status === "Verkocht") ||
-      (!inTePlannenChecked && product.status === "In te plannen")
-    ) return false
-
-    if (
-      (
-        (aChecked || bChecked || cChecked || dChecked) &&
-        (
-          (!aChecked && product.locatie === "Naaldwijk") ||
-          (!bChecked && product.locatie === "Aalsmeer") ||
-          (!cChecked && product.locatie === "Rijnsburg") ||
-          (!dChecked && product.locatie === "Eelde")
-        )
-      )
-    ) return false
-
-    if (dateFilter && product.datum !== dateFilter) return false;
-
-    if(merkFilter && !product.merk.toLowerCase().includes(merkFilter.toLowerCase())) return false;
-
-    if(naamFilter && !product.naam.toLowerCase().includes(naamFilter.toLowerCase())) return false;
-
-    return true;
-  })
-  .map(product => (
-    <ProductCard
-      key={product.id}
-      naam={product.naam}
-      merk={product.merk}
-      prijs={product.prijs}
-      datum={product.datum}
-      locatie={product.locatie}
-      status={product.status}
-      Aantal={product.aantal}
-      />
-  ));
-};
-
   const [sidebarVisible, setSidebarVisible] = useState(true);
 
+  // Load user and products
+  useEffect(() => {
+    const fetchData = async () => {
+      const storedUser = getUser(); // fetch from session/localStorage
+      if (storedUser) {
+        setUser(storedUser);
+      }
+      setLoading(false); // done loading even if no user
 
-  const toggleSidebar = () => {
-    setSidebarVisible(!sidebarVisible);
+      if (!storedUser) return; // don't fetch products if no user
+
+      try {
+        const response = await authFetch('http://localhost:5156/api/products');
+        if (!response || !response.ok) {
+          console.error('Failed to fetch products');
+          return;
+        }
+        const data = await response.json();
+        setProducts(data);
+      } catch (err) {
+        console.error('Error fetching products', err);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, checked } = e.target;
+    if (id === "Aankomende producten") setAankomendChecked(checked);
+    if (id === "Eigen producten") setEigenChecked(checked);
+    if (id === "Gekochte producten") setGekochtChecked(checked);
+    if (id === "In te plannen producten") setInTePlannenChecked(checked);
+    if (id === "A") setAChecked(checked);
+    if (id === "B") setBChecked(checked);
+    if (id === "C") setCChecked(checked);
+    if (id === "D") setDChecked(checked);
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    if (id === "datum-input") setDateFilter(value);
+    if (id === "merk-input") setMerkFilter(value);
+    if (id === "naam-input") setNaamFilter(value);
+  };
+
+  const productenInladen = () =>
+    products
+      .filter(product => {
+        if (
+          (!aankomendChecked && product.status === "Aankomend") ||
+          (!eigenChecked && product.status === "Eigen") ||
+          (!gekochtChecked && product.status === "Verkocht") ||
+          (!inTePlannenChecked && product.status === "In te plannen")
+        ) return false;
+
+        if ((aChecked || bChecked || cChecked || dChecked) &&
+            ((!aChecked && product.locatie === "Naaldwijk") ||
+             (!bChecked && product.locatie === "Aalsmeer") ||
+             (!cChecked && product.locatie === "Rijnsburg") ||
+             (!dChecked && product.locatie === "Eelde"))
+        ) return false;
+
+        if (dateFilter && product.datum !== dateFilter) return false;
+        if (merkFilter && !product.merk.toLowerCase().includes(merkFilter.toLowerCase())) return false;
+        if (naamFilter && !product.naam.toLowerCase().includes(naamFilter.toLowerCase())) return false;
+
+        return true;
+      })
+      .map(product => (
+        <ProductCard
+          key={product.id}
+          naam={product.naam}
+          merk={product.merk}
+          prijs={product.prijs}
+          datum={product.datum}
+          locatie={product.locatie}
+          status={product.status}
+          Aantal={product.aantal}
+        />
+      ));
+
+  const toggleSidebar = () => setSidebarVisible(!sidebarVisible);
+
+  if (loading) return <p>Loading...</p>;
+  if (!user) return <p>Niet ingelogd. Log in om verder te gaan.</p>;
 
   return (
-    <div className='homepage-page'>
+    <div className="homepage-page">
       <Head>
         <title>Home - Royal FloraHolland</title>
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </Head>
 
-            <Topbar
-              useSideBar={true}
-              currentPage="Home"
-              sidebarVisible={sidebarVisible}
-              toggleSidebar={toggleSidebar}
-              aankomendChecked={aankomendChecked}
-              eigenChecked={eigenChecked}
-              gekochtChecked={gekochtChecked}
-              inTePlannenChecked={inTePlannenChecked}
-              aChecked={aChecked}
-              bChecked={bChecked}
-              cChecked={cChecked}
-              dChecked={dChecked}
-              dateFilter={dateFilter}
-              merkFilter={merkFilter}
-              naamFilter={naamFilter}
-              onCheckboxChange={handleCheckboxChange}
-              onInputChange={handleInputChange}
-            />
-  
+      <Topbar
+        useSideBar={true}
+        currentPage="Home"
+        sidebarVisible={sidebarVisible}
+        toggleSidebar={toggleSidebar}
+        aankomendChecked={aankomendChecked}
+        eigenChecked={eigenChecked}
+        gekochtChecked={gekochtChecked}
+        inTePlannenChecked={inTePlannenChecked}
+        aChecked={aChecked}
+        bChecked={bChecked}
+        cChecked={cChecked}
+        dChecked={dChecked}
+        dateFilter={dateFilter}
+        merkFilter={merkFilter}
+        naamFilter={naamFilter}
+        onCheckboxChange={handleCheckboxChange}
+        onInputChange={handleInputChange}
+        user={user} // Pass user object
+      />
+
       <div className="main-layout">
-
-    
-
-      <div className="content">
+        <div className="content">
           <div className="veilingen">
             {[
               { name: 'Naaldwijk', key: 'a' },
@@ -160,9 +162,7 @@ const productenInladen = () => {
             ))}
           </div>
 
-          <div className="producten">
-            {productenInladen()}
-          </div>
+          <div className="producten">{productenInladen()}</div>
         </div>
       </div>
     </div>
@@ -170,4 +170,3 @@ const productenInladen = () => {
 };
 
 export default HomePage;
-``

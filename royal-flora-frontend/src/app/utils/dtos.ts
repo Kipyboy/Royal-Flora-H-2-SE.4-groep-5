@@ -8,29 +8,27 @@ export interface UserInfoDTO {
 }
 
 export interface LoginRequestDTO {
-  Email: string;
-  Password: string;
+  email: string;
+  password: string;
 }
 
 export interface LoginResponseDTO {
-  Success: boolean;
-  Message: string;
-  Token?: string;
+  success: boolean;
+  message: string;
   token?: string;
-  User?: UserInfoDTO;
   user?: UserInfoDTO;
 }
 
 export interface RegisterRequestDTO {
-  VoorNaam: string;
-  AchterNaam: string;
-  Telefoonnummer?: string;
-  E_mail: string;
-  Wachtwoord: string;
-  KvkNummer: string;
-  AccountType: string;
-  Postcode?: string;
-  Adres?: string;
+  voorNaam: string;
+  achterNaam: string;
+  telefoonnummer?: string;
+  email: string;
+  wachtwoord: string;
+  kvkNummer: string;
+  accountType: string;
+  postcode?: string;
+  adres?: string;
 }
 
 export interface RegisterResponseDTO extends LoginResponseDTO {}

@@ -24,21 +24,13 @@ export default function Login() {
             ...prev,
             [name]: value
         }));
-        // Haalt de error weg wanneer je typed
-        setErrors(prev => ({
-            ...prev,
-            [name]: ''
-        }));
+        setErrors(prev => ({ ...prev, [name]: '' }));
     };
 
     const validateForm = () => {
-        const newErrors = {
-            email: '',
-            password: ''
-        };
+        const newErrors = { email: '', password: '' };
         let isValid = true;
 
-        // Email checken of het een email is en dat het niet leeg is
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!formData.email.trim()) {
             newErrors.email = 'Email is verplicht';
@@ -48,7 +40,6 @@ export default function Login() {
             isValid = false;
         }
 
-        // Wachtwoord Checken of het niet leeg is
         if (!formData.password) {
             newErrors.password = 'Wachtwoord is verplicht';
             isValid = false;
@@ -60,73 +51,43 @@ export default function Login() {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-
-        if (!validateForm()) {
-            return;
-        }
+        if (!validateForm()) return;
 
         try {
             const response = await fetch('http://localhost:5156/api/auth/login', {
                 method: 'POST',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    Email: formData.email,
-                    Password: formData.password
+                    email: formData.email,
+                    password: formData.password
                 }),
             });
 
-            // Network error (server unreachable)
-            if (!response) {
-                alert('Kan geen verbinding maken met de server. Controleer of de backend draait.');
-                return;
-            }
-
-            // 401 Unauthorized: wrong credentials
-            if (response.status === 401) {
-                let errorData = null;
-                try {
-                    errorData = await response.json();
-                } catch {}
-                alert(`Inloggen mislukt: ${errorData?.Message || errorData?.message || 'Onjuiste email of wachtwoord'}`);
-                return;
-            }
-
-            // Other non-200 errors
             if (!response.ok) {
-                alert('Er is een fout opgetreden bij het inloggen. Probeer het later opnieuw.');
+                const errorData = await response.json().catch(() => ({}));
+                alert(errorData?.message || errorData?.Message || 'Inloggen mislukt');
                 return;
             }
 
-            let data: LoginResponseDTO | null = null;
-            try {
-                data = await response.json();
-            } catch (jsonError) {
-                alert('Server gaf geen geldige response terug.');
-                return;
-            }
-
-            if (data && (data.Success === true || (data as any).success === true)) {
-                // Prefer token from response (token or Token)
-                const token = (data.token || data.Token) as string | undefined;
-                const user = (data.user || data.User) || null;
-                if (token) {
-                    setToken(token);
-                }
-                if (user) {
-                    // store minimal user info
-                    localStorage.setItem('user', JSON.stringify({ id: user.id, username: user.username, email: user.email, role: user.role }));
+            const data: LoginResponseDTO = await response.json();
+            if (data.success) {
+                if (data.token) setToken(data.token);
+                if (data.user) {
+                    localStorage.setItem('user', JSON.stringify({
+                        id: data.user.id,
+                        username: data.user.username,
+                        email: data.user.email,
+                        role: data.user.role
+                    }));
                 }
                 alert('Inloggen succesvol!');
                 router.push('/homepage');
             } else {
-                alert(`Inloggen mislukt: ${data?.Message || (data as any)?.message || 'Onjuiste email of wachtwoord'}`);
+                alert(data.message || 'Onjuiste email of wachtwoord');
             }
-        } catch (error: any) {
-            console.error('Error:', error);
-            alert('Kan geen verbinding maken met de server. Controleer of de backend draait.');
+        } catch (error) {
+            console.error(error);
+            alert('Kan geen verbinding maken met de server.');
         }
     };
 
@@ -134,55 +95,44 @@ export default function Login() {
         <div className="login-page">
             <main id="main">
                 <a href="#main" className="skip-link">Spring naar hoofdinhoud</a>
-                
                 <form onSubmit={handleSubmit} aria-labelledby="login-title">
-                <h1 id="login-title">Inloggen</h1>
-                
-                <div className="form-group">
-                    <label htmlFor="email">Email adres</label>
-                    <input 
-                        type="email" 
-                        id="email" 
-                        name="email" 
-                        required 
-                        aria-describedby="email-error"
-                        autoComplete="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                    />
-                    {errors.email && (
-                        <div id="email-error" className="error-message" aria-live="polite">
-                            {errors.email}
-                        </div>
-                    )}
-                </div>
-                
-                <div className="form-group">
-                    <label htmlFor="password">Wachtwoord</label>
-                    <input 
-                        type="password" 
-                        id="password" 
-                        name="password" 
-                        required 
-                        aria-describedby="password-error"
-                        autoComplete="current-password"
-                        value={formData.password}
-                        onChange={handleChange}
-                    />
-                    {errors.password && (
-                        <div id="password-error" className="error-message" aria-live="polite">
-                            {errors.password}
-                        </div>
-                    )}
-                </div>
-                
-                <Link href="/forgot-password" className="forgot-password">
-                    Wachtwoord vergeten?
-                </Link>
-                
-                <button type="submit" className="login-button">Inloggen</button>
-            </form>
-        </main>
+                    <h1 id="login-title">Inloggen</h1>
+
+                    <div className="form-group">
+                        <label htmlFor="email">Email adres</label>
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            autoComplete="email"
+                            value={formData.email}
+                            onChange={handleChange}
+                            required
+                        />
+                        {errors.email && <div className="error-message">{errors.email}</div>}
+                    </div>
+
+                    <div className="form-group">
+                        <label htmlFor="password">Wachtwoord</label>
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            autoComplete="current-password"
+                            value={formData.password}
+                            onChange={handleChange}
+                            required
+                        />
+                        {errors.password && <div className="error-message">{errors.password}</div>}
+                    </div>
+
+                    <Link href="/forgot-password" className="forgot-password">
+                        Wachtwoord vergeten?
+                    </Link>
+
+                    <button type="submit" className="login-button">Inloggen</button>
+                </form>
+            </main>
         </div>
     );
 }

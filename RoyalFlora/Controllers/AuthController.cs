@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BCrypt.Net;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -12,7 +11,6 @@ namespace RoyalFlora.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-
     public class AuthController : ControllerBase
     {
         private readonly MyDbContext _context;
@@ -24,34 +22,144 @@ namespace RoyalFlora.Controllers
             _configuration = configuration;
         }
 
-    [HttpPost("login")]
-    public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request)
-    {
-        // Validate input
-        if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
+        [HttpPost("register")]
+        public async Task<ActionResult<RegisterResponse>> Register([FromBody] RegisterRequest request)
         {
-            return BadRequest(new LoginResponse
+            // Basic validation
+            if (string.IsNullOrWhiteSpace(request.VoorNaam) || string.IsNullOrWhiteSpace(request.AchterNaam) ||
+                string.IsNullOrWhiteSpace(request.E_mail) || string.IsNullOrWhiteSpace(request.Wachtwoord))
             {
-                Success = false,
-                Message = "Email en wachtwoord zijn verplicht"
+                return BadRequest(new RegisterResponse
+                {
+                    Success = false,
+                    Message = "Alle velden zijn verplicht"
+                });
+            }
+
+            if (!int.TryParse(request.KvkNummer, out int kvkNummer) || request.KvkNummer.Length != 8)
+            {
+                return BadRequest(new RegisterResponse
+                {
+                    Success = false,
+                    Message = "KvK-nummer moet 8 cijfers bevatten"
+                });
+            }
+
+            // Check if email already exists
+            if (await _context.Gebruikers.AnyAsync(u => u.Email.ToLower() == request.E_mail.ToLower()))
+            {
+                return BadRequest(new RegisterResponse
+                {
+                    Success = false,
+                    Message = "Email adres is al in gebruik"
+                });
+            }
+
+            // Role & hash password
+            int rolId = request.AccountType == "bedrijf" ? 1 : 2;
+            string hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.Wachtwoord);
+
+            // Create company if needed
+            var bedrijf = await _context.Bedrijven.FirstOrDefaultAsync(b => b.KVK == kvkNummer);
+            if (request.AccountType == "bedrijf" && bedrijf != null)
+            {
+                return BadRequest(new RegisterResponse
+                {
+                    Success = false,
+                    Message = "KvK-nummer is al in gebruik"
+                });
+            }
+
+            if (bedrijf == null)
+            {
+                bedrijf = new Bedrijf
+                {
+                    KVK = kvkNummer,
+                    BedrijfNaam = $"Bedrijf {request.VoorNaam} {request.AchterNaam}",
+                    Oprichter = null
+                };
+                _context.Bedrijven.Add(bedrijf);
+                await _context.SaveChangesAsync();
+            }
+
+            // Create user
+            var newGebruiker = new Gebruiker
+            {
+                VoorNaam = request.VoorNaam,
+                AchterNaam = request.AchterNaam,
+                Email = request.E_mail,
+                Wachtwoord = hashedPassword,
+                Telefoonnummer = request.Telefoonnummer,
+                Rol = rolId,
+                KVK = kvkNummer
+            };
+
+            _context.Gebruikers.Add(newGebruiker);
+            await _context.SaveChangesAsync();
+
+            // Update company founder if needed
+            if (request.AccountType == "bedrijf")
+            {
+                bedrijf.Oprichter = newGebruiker.IdGebruiker;
+                await _context.SaveChangesAsync();
+            }
+
+            // Generate JWT
+            var userInfo = new UserInfo
+            {
+                Id = newGebruiker.IdGebruiker,
+                Username = $"{newGebruiker.VoorNaam} {newGebruiker.AchterNaam}",
+                Email = newGebruiker.Email,
+                Role = request.AccountType == "bedrijf" ? "Aanvoerder" : "Inkooper"
+            };
+
+            var token = GenerateJwtToken(userInfo);
+
+            return Ok(new RegisterResponse
+            {
+                Success = true,
+                Message = "Registratie succesvol",
+                Token = token,
+                User = userInfo
             });
         }
 
-        var gebruiker = await _context.Gebruikers
-            .Include(g => g.RolNavigation)
-            .FirstOrDefaultAsync(g => g.Email == request.Email);
-
-        if (gebruiker == null || !BCrypt.Net.BCrypt.Verify(request.Password, gebruiker.Wachtwoord))
+        [HttpPost("login")]
+        public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request)
         {
-            return Unauthorized(new LoginResponse
+            if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
             {
-                Success = false,
-                Message = "Ongeldige inloggegevens"
-            });
-        }
+                return BadRequest(new LoginResponse
+                {
+                    Success = false,
+                    Message = "Email en wachtwoord zijn verplicht"
+                });
+            }
 
-            // Login succesvol
-            var user = new UserInfo
+            var gebruiker = await _context.Gebruikers
+                .Include(g => g.RolNavigation)
+                .FirstOrDefaultAsync(g => g.Email.ToLower() == request.Email.ToLower());
+
+            if (gebruiker == null)
+            {
+                return Unauthorized(new LoginResponse
+                {
+                    Success = false,
+                    Message = "Ongeldige inloggegevens"
+                });
+            }
+
+            // Verify password
+            if (!BCrypt.Net.BCrypt.Verify(request.Password, gebruiker.Wachtwoord))
+            {
+                return Unauthorized(new LoginResponse
+                {
+                    Success = false,
+                    Message = "Ongeldige inloggegevens"
+                });
+            }
+
+            var userInfo = new UserInfo
             {
                 Id = gebruiker.IdGebruiker,
                 Username = $"{gebruiker.VoorNaam} {gebruiker.AchterNaam}",
@@ -59,30 +167,22 @@ namespace RoyalFlora.Controllers
                 Role = gebruiker.RolNavigation?.RolNaam ?? "User"
             };
 
-            // Generate JWT token
-            var token = GenerateJwtToken(user);
+            var token = GenerateJwtToken(userInfo);
 
             return Ok(new LoginResponse
             {
                 Success = true,
                 Message = "Login succesvol",
                 Token = token,
-                User = user
+                User = userInfo
             });
         }
 
         private string GenerateJwtToken(UserInfo user)
         {
             var jwtSettings = _configuration.GetSection("Jwt");
-            var jwtKey = jwtSettings["Key"];
-            
-            if (string.IsNullOrEmpty(jwtKey))
-            {
-                throw new InvalidOperationException("JWT Key is not configured");
-            }
-            
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
-            var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]!));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var claims = new[]
             {
@@ -98,270 +198,10 @@ namespace RoyalFlora.Controllers
                 audience: jwtSettings["Audience"],
                 claims: claims,
                 expires: DateTime.UtcNow.AddMinutes(Convert.ToDouble(jwtSettings["ExpirationInMinutes"])),
-                signingCredentials: credentials
+                signingCredentials: creds
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-        
-        private string hashPassword(string password)
-        {
-            return BCrypt.Net.BCrypt.HashPassword(password);
-        }
-
-        [HttpPost("register")]
-        public async Task<ActionResult<RegisterResponse>> Register([FromBody] RegisterRequest request)
-        {
-            // Basis validatie
-            if (string.IsNullOrEmpty(request.VoorNaam) || string.IsNullOrEmpty(request.AchterNaam))
-            {
-                return BadRequest(new RegisterResponse
-                {
-                    Success = false,
-                    Message = "Voornaam en achternaam zijn verplicht"
-                });
-            }
-
-            if (string.IsNullOrEmpty(request.E_mail) || string.IsNullOrEmpty(request.Wachtwoord))
-            {
-                return BadRequest(new RegisterResponse
-                {
-                    Success = false,
-                    Message = "Email en wachtwoord zijn verplicht"
-                });
-            }
-
-            // KvK nummer validatie
-            if (string.IsNullOrEmpty(request.KvkNummer) || request.KvkNummer.Length != 8)
-            {
-                return BadRequest(new RegisterResponse
-                {
-                    Success = false,
-                    Message = "KvK-nummer moet 8 cijfers bevatten"
-                });
-            }
-
-            // Check of email al bestaat
-            var existingUser = await _context.Gebruikers.FirstOrDefaultAsync(u => u.Email == request.E_mail);
-            if (existingUser != null)
-            {
-                return BadRequest(new RegisterResponse
-                {
-                    Success = false,
-                    Message = "Email adres is al in gebruik"
-                });
-            }
-
-            // Check of KVK al bestaat
-            int kvkNummer = int.Parse(request.KvkNummer);
-            var bedrijf = await _context.Bedrijven.FirstOrDefaultAsync(b => b.KVK == kvkNummer);
-            
-            // Voor bedrijf accounttype: KVK mag niet bestaan
-            // Voor inkooper: KVK moet bestaan (tenzij we altijd een bedrijf aanmaken)
-            if (request.AccountType == "bedrijf" && bedrijf != null)
-            {
-                return BadRequest(new RegisterResponse
-                {
-                    Success = false,
-                    Message = "KvK-nummer is al in gebruik"
-                });
-            }
-            
-            // Bepaal rol ID (1 = Aanvoerder, 2 = Inkooper, aanpasbaar)
-            int rolId = request.AccountType == "bedrijf" ? 1 : 2;
-
-            // hash wachtwoord
-            request.Wachtwoord = hashPassword(request.Wachtwoord);
-
-            // Maak eerst bedrijf aan als het nog niet bestaat
-            if (bedrijf == null)
-            {
-                var newBedrijf = new Bedrijf
-                {
-                    KVK = kvkNummer,
-                    BedrijfNaam = $"Bedrijf {request.VoorNaam} {request.AchterNaam}",
-                    Oprichter = null // Wordt later ingevuld
-                };
-                _context.Bedrijven.Add(newBedrijf);
-                await _context.SaveChangesAsync();
-            }
-
-            // Maak nieuwe gebruiker aan
-            var newGebruiker = new Gebruiker
-            {
-                VoorNaam = request.VoorNaam,
-                AchterNaam = request.AchterNaam,
-                Email = request.E_mail,
-                Wachtwoord = request.Wachtwoord, 
-                Telefoonnummer = request.Telefoonnummer,
-                Rol = rolId,
-                KVK = kvkNummer
-            };
-
-            _context.Gebruikers.Add(newGebruiker);
-            await _context.SaveChangesAsync();
-
-            // Update bedrijf oprichter als het een bedrijfsaccount is
-            if (request.AccountType == "bedrijf")
-            {
-                var bedrijfToUpdate = await _context.Bedrijven.FirstAsync(b => b.KVK == kvkNummer);
-                bedrijfToUpdate.Oprichter = newGebruiker.IdGebruiker;
-                await _context.SaveChangesAsync();
-            }
-
-            // Simuleer succesvolle registratie
-            var username = $"{request.VoorNaam} {request.AchterNaam}";
-            var role = request.AccountType == "bedrijf" ? "Aanvoerder" : "Inkooper";
-            
-            var user = new UserInfo
-            {
-                Id = newGebruiker.IdGebruiker,
-                Username = username,
-                Email = request.E_mail,
-                Role = role
-            };
-
-            // Generate JWT token (automatisch inloggen na registratie)
-            var token = GenerateJwtToken(user);
-
-            return Ok(new RegisterResponse
-            {
-                Success = true,
-                Message = "Registratie succesvol",
-                Token = token,
-                User = user
-            });
-        }
-
-        [HttpPost("logout")]
-        public ActionResult Logout()
-        {
-            // With JWT, logout is handled client-side by removing the token
-            // No server-side session to clear
-            return Ok(new { message = "Succesvol uitgelogd. Verwijder het token client-side." });
-        }
-
-        [HttpGet("user")]
-        [Microsoft.AspNetCore.Authorization.Authorize]
-        public ActionResult<UserInfo> GetCurrentUser()
-        {
-            // Get user info from JWT claims
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-            var username = User.FindFirst(ClaimTypes.Name)?.Value;
-            var email = User.FindFirst(ClaimTypes.Email)?.Value ?? User.FindFirst(JwtRegisteredClaimNames.Email)?.Value;
-            var role = User.FindFirst(ClaimTypes.Role)?.Value;
-            
-            if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out var id))
-            {
-                return Unauthorized(new { message = "Niet ingelogd" });
-            }
-
-            return Ok(new UserInfo
-            {
-                Id = id,
-                Username = username ?? "",
-                Email = email ?? "",
-                Role = role ?? ""
-            });
-        }
-
-        [HttpGet("allUserInfo")]
-        [Microsoft.AspNetCore.Authorization.Authorize]
-        public async Task<ActionResult<LoginResponse>> GetUserInfo()
-        {
-            // Get user ID from JWT claims
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-            
-            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
-            {
-                return Unauthorized(new { message = "Niet ingelogd" });
-            }
-
-            var gebruiker = await _context.Gebruikers
-                .Include(g => g.RolNavigation)
-                .FirstOrDefaultAsync(g => g.IdGebruiker == userId);
-            
-            if (gebruiker == null)
-            {
-                return NotFound(new { message = "Gebruiker niet gevonden" });
-            }
-
-            return Ok(new Gebruiker
-            {
-                VoorNaam = gebruiker.VoorNaam,
-                AchterNaam = gebruiker.AchterNaam,
-                Email = gebruiker.Email,
-                Wachtwoord = gebruiker.Wachtwoord, 
-                Telefoonnummer = gebruiker.Telefoonnummer,
-                Adress = gebruiker.Adress,
-                Postcode = gebruiker.Postcode
-
-            });
-        }
-
-        [HttpPost("updateUserInfo")]
-        [Microsoft.AspNetCore.Authorization.Authorize]
-        public async Task<ActionResult> UpdateUserInfo([FromBody] UpdateUserInfoRequest request)
-        {
-            // Get user ID from JWT claims
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-            
-            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
-            {
-                return Unauthorized(new { message = "Niet ingelogd" });
-            }
-
-            var gebruiker = await _context.Gebruikers.FindAsync(userId);
-            
-            if (gebruiker == null)
-            {
-                return NotFound(new { message = "Gebruiker niet gevonden" });
-            }
-
-            // Update alleen het specifieke veld
-            switch (request.Field.ToLower())
-            {
-                case "voornaam":
-                    gebruiker.VoorNaam = request.NewValue;
-                    break;
-                case "achternaam":
-                    gebruiker.AchterNaam = request.NewValue;
-                    break;
-                case "email":
-                    gebruiker.Email = request.NewValue;
-                    break;
-                case "telefoonnummer":
-                    gebruiker.Telefoonnummer = request.NewValue;
-                    break;
-                case "adress":
-                    gebruiker.Adress = request.NewValue;
-                    break;
-                case "postcode":
-                    gebruiker.Postcode = request.NewValue;
-                    break;
-                case "wachtwoord":
-                    gebruiker.Wachtwoord = hashPassword(request.NewValue);
-                    break;
-                default:
-                    return BadRequest(new { message = $"Ongeldig veld: {request.Field}" });
-            }
-
-            try
-            {
-                await _context.SaveChangesAsync();
-
-                return Ok(new { 
-                    message = "Veld succesvol bijgewerkt",
-                    field = request.Field,
-                    newValue = request.Field.ToLower() == "wachtwoord" ? "***" : request.NewValue
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Fout bij het opslaan", error = ex.Message });
-            }
-        }
     }
-
-
 }
