@@ -34,7 +34,7 @@ public class MyDbContext : DbContext
         // Seed data - Rollen
         modelBuilder.Entity<Rol>().HasData(
             new Rol { IdRollen = 1, RolNaam = "Aanvoerder" },
-            new Rol { IdRollen = 2, RolNaam = "Inkooper" }
+            new Rol { IdRollen = 2, RolNaam = "Inkoper" }
         );
 
         // Bedrijf - Oprichter (Gebruiker)

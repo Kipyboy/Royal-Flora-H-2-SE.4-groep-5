@@ -28,7 +28,10 @@ export function getUser(): { id: number; username: string; email: string; role: 
   if (userRaw) {
     try {
       user = JSON.parse(userRaw);
-    } catch {}
+    } catch (err) {
+      console.error("Failed to parse user from localStorage:", err, "Raw data:", userRaw);
+      localStorage.removeItem("user");
+    }
   }
 
   if (token) {
@@ -46,6 +49,19 @@ export function getUser(): { id: number; username: string; email: string; role: 
   console.log("Loaded user from localStorage:", user);
   console.log("JWT token:", token);
   return user;
+}
+
+/**
+ * Returns headers object with JWT authorization token
+ */
+export function getAuthHeaders(): { Authorization: string } {
+  const token = getToken();
+  if (!token) {
+    return { Authorization: "" };
+  }
+  return {
+    Authorization: `Bearer ${token}`
+  };
 }
 
 export function logout() {

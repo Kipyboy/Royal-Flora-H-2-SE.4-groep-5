@@ -58,13 +58,32 @@ export default function ProductRegistratieAanvoerderPage() {
       router.push('/login');
       return;
     }
+    if (currentUser.role !== 'Aanvoerder') {
+      router.push('/homepage');
+      return;
+    }
     setUser(currentUser);
     setLoading(false);
   }, [router]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // For price fields, normalize comma to dot
+    let processedValue = value;
+    if (name === 'minimumPrice' && value) {
+      // Allow only digits, comma, and dot
+      processedValue = value.replace(/[^0-9.,]/g, '');
+      // Convert comma to dot for consistency
+      processedValue = processedValue.replace(',', '.');
+      // Prevent multiple dots
+      const parts = processedValue.split('.');
+      if (parts.length > 2) {
+        processedValue = parts[0] + '.' + parts.slice(1).join('');
+      }
+    }
+    
+    setFormData(prev => ({ ...prev, [name]: processedValue }));
     setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
@@ -126,10 +145,20 @@ export default function ProductRegistratieAanvoerderPage() {
     setIsSubmitting(true);
 
     try{
+      // Normalize the price: replace comma with dot for decimal separation
+      const normalizedPrice = formData.minimumPrice.replace(',', '.');
+      const priceValue = parseFloat(normalizedPrice);
+      
+      if (isNaN(priceValue)) {
+        alert('Ongeldig prijsformat');
+        setIsSubmitting(false);
+        return;
+      }
+
       const submitData = new FormData();
       submitData.append('ProductNaam', formData.name);
       submitData.append('ProductBeschrijving', formData.description);
-      submitData.append('MinimumPrijs', formData.minimumPrice.toString()); // ✅ decimal-safe
+      submitData.append('MinimumPrijs', priceValue.toString()); // ✅ send as normalized float
       submitData.append('Locatie', formData.clockLocation);
       submitData.append('Datum', formData.auctionDate);
       submitData.append('Aantal', formData.amount);
@@ -232,9 +261,8 @@ export default function ProductRegistratieAanvoerderPage() {
               <input
                 id="minimumPrice"
                 name="minimumPrice"
-                type="number"
-                min="0"
-                step="0.01"
+                type="text"
+                placeholder="0.00"
                 value={formData.minimumPrice}
                 onChange={handleInputChange}
                 required

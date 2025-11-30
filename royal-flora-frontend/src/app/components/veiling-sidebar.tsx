@@ -35,20 +35,31 @@ export default function Sidebar({
     }
 
     fetch(base)
-      .then((res) => res.json())
-      .then((data: VeilingDTO[]) => {
-        if (!Array.isArray(data)) {
-          setProducts([]);
-          return;
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
         }
+        return res.text();
+      })
+      .then((text) => {
+        try {
+          const data = JSON.parse(text);
+          if (!Array.isArray(data)) {
+            setProducts([]);
+            return;
+          }
 
-        const filtered = data.filter(
-          (p) =>
-            p.locatie?.toLowerCase() === locationName.toLowerCase() &&
-            p.status === 3
-        );
+          const filtered = data.filter(
+            (p) =>
+              p.locatie?.toLowerCase() === locationName.toLowerCase() &&
+              p.status === 3
+          );
 
-        setProducts(filtered);
+          setProducts(filtered);
+        } catch (parseError) {
+          console.error("Error parsing JSON response:", parseError, "Response text:", text);
+          setProducts([]);
+        }
       })
       .catch((err) => {
         console.error("Error fetching product:", err);

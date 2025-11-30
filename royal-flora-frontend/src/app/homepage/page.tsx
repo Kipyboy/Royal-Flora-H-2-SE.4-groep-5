@@ -52,9 +52,14 @@ const HomePage: React.FC = () => {
           console.error('Failed to fetch products', response.status, text);
           return;
         }
-        const data = await response.json();
-        console.log('Fetched products:', data); // debug log
-        setProducts(data);
+        try {
+          const data = await response.json();
+          console.log('Fetched products:', data); // debug log
+          setProducts(data);
+        } catch (parseErr) {
+          const text = await response.text();
+          console.error('Failed to parse products JSON:', parseErr, "Response text:", text);
+        }
       } catch (err) {
         console.error('Error fetching products', err);
       }

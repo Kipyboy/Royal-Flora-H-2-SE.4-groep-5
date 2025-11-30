@@ -164,8 +164,20 @@ export default function Registreren() {
                 alert('Registratie succesvol! Je bent nu ingelogd.');
                 router.push('/homepage');
             } else {
-                const error = await response.json();
-                alert(`Registratie mislukt: ${error.message || 'Onbekende fout'}`);
+                try {
+                    const errorText = await response.text();
+                    let errorMessage = 'Onbekende fout';
+                    try {
+                        const error = JSON.parse(errorText);
+                        errorMessage = error.message || errorMessage;
+                    } catch {
+                        // If not JSON, just use the text or a generic message
+                        errorMessage = errorText ? errorText.substring(0, 100) : errorMessage;
+                    }
+                    alert(`Registratie mislukt: ${errorMessage}`);
+                } catch (error) {
+                    alert('Registratie mislukt: Er is een fout opgetreden');
+                }
             }
         } catch (error) {
             console.error('Error:', error);
@@ -366,7 +378,7 @@ export default function Registreren() {
                         value={formData.accountType}
                         onChange={handleChange}
                     >
-                        <option value='klant'>Inkooper</option>
+                        <option value='klant'>Inkoper</option>
                         <option value='bedrijf'>Aanvoerder</option>
                     </select>
                 </div>

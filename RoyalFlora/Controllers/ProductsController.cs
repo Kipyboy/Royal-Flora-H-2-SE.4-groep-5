@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
@@ -56,7 +57,7 @@ namespace RoyalFlora.Controllers
         public async Task<ActionResult<ClockDTO>> GetKlokPrijs([FromQuery] string locatie)
         {
             var product = await _context.Products
-                .Where(p => p.Status == 3 && (p.Locatie ?? "").Equals(locatie, StringComparison.OrdinalIgnoreCase))
+                .Where(p => p.Status == 3 && (p.Locatie ?? "").ToLower() == locatie.ToLower())
                 .FirstOrDefaultAsync();
 
             if (product == null) return NotFound();
@@ -147,10 +148,82 @@ namespace RoyalFlora.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<ProductDTO>> PostProduct([FromForm] Product product, [FromForm] List<IFormFile> images)
+        public async Task<ActionResult<ProductDTO>> PostProduct([FromForm] string? ProductNaam, 
+            [FromForm] string? ProductBeschrijving, 
+            [FromForm] string? MinimumPrijs, 
+            [FromForm] string? Locatie,
+            [FromForm] string? Datum,
+            [FromForm] string? Aantal,
+            [FromForm] string? Leverancier,
+            [FromForm] List<IFormFile> images)
         {
             try
             {
+                Console.WriteLine($"DEBUG: Received ProductNaam={ProductNaam}, MinimumPrijs={MinimumPrijs}, Locatie={Locatie}, Datum={Datum}, Aantal={Aantal}, Leverancier={Leverancier}");
+
+                // Parse MinimumPrijs with invariant culture to handle decimal correctly
+                decimal minimumPrijsValue = 0;
+                if (!string.IsNullOrWhiteSpace(MinimumPrijs))
+                {
+                    if (decimal.TryParse(MinimumPrijs, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal parsed))
+                    {
+                        minimumPrijsValue = parsed;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"ERROR: Failed to parse MinimumPrijs: {MinimumPrijs}");
+                        return BadRequest(new { message = "Registratie mislukt", details = $"Invalid price format: {MinimumPrijs}" });
+                    }
+                }
+
+                // Parse Aantal
+                int? aantalValue = null;
+                if (!string.IsNullOrWhiteSpace(Aantal) && int.TryParse(Aantal, out int aantalParsed))
+                {
+                    aantalValue = aantalParsed;
+                }
+
+                // Parse Leverancier (KVK)
+                int? leverancierValue = null;
+                if (!string.IsNullOrWhiteSpace(Leverancier) && int.TryParse(Leverancier, out int leverancierParsed))
+                {
+                    leverancierValue = leverancierParsed;
+                    Console.WriteLine($"DEBUG: Parsed Leverancier={leverancierValue}");
+                    
+                    // Check if this KVK exists in Bedrijf table
+                    var bedrijfExists = _context.Bedrijven.Any(b => b.KVK == leverancierValue);
+                    Console.WriteLine($"DEBUG: KVK {leverancierValue} exists in Bedrijf table: {bedrijfExists}");
+                }
+                else
+                {
+                    Console.WriteLine($"ERROR: Failed to parse Leverancier: {Leverancier}");
+                }
+                DateTime? datumValue = null;
+                if (!string.IsNullOrWhiteSpace(Datum))
+                {
+                    if (DateTime.TryParse(Datum, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime datumParsed))
+                    {
+                        datumValue = datumParsed;
+                    }
+                    else
+                    {
+                        Console.WriteLine($"ERROR: Failed to parse Datum: {Datum}");
+                        return BadRequest(new { message = "Registratie mislukt", details = $"Invalid date format: {Datum}" });
+                    }
+                }
+
+                var product = new Product
+                {
+                    ProductNaam = ProductNaam,
+                    ProductBeschrijving = ProductBeschrijving,
+                    MinimumPrijs = minimumPrijsValue,
+                    Locatie = Locatie,
+                    Datum = datumValue,
+                    Aantal = aantalValue,
+                    Leverancier = leverancierValue,
+                    Status = null  // Status will be set later or is optional
+                };
+
                 _context.Products.Add(product);
                 await _context.SaveChangesAsync();
 
@@ -180,7 +253,9 @@ namespace RoyalFlora.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = "Registratie mislukt", details = ex.Message });
+                Console.WriteLine($"ERROR: {ex.Message}");
+                Console.WriteLine($"STACKTRACE: {ex.StackTrace}");
+                return BadRequest(new { message = "Registratie mislukt", details = ex.Message, stackTrace = ex.StackTrace });
             }
         }
 

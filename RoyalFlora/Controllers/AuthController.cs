@@ -37,15 +37,6 @@ namespace RoyalFlora.Controllers
                 });
             }
 
-            if (!int.TryParse(request.KvkNummer, out int kvkNummer) || request.KvkNummer.Length != 8)
-            {
-                return BadRequest(new RegisterResponse
-                {
-                    Success = false,
-                    Message = "KvK-nummer moet 8 cijfers bevatten"
-                });
-            }
-
             if (await _context.Gebruikers.AnyAsync(u => u.Email.ToLower() == request.E_mail.ToLower()))
             {
                 return BadRequest(new RegisterResponse
@@ -55,21 +46,36 @@ namespace RoyalFlora.Controllers
                 });
             }
 
+            // Only require KVK for bedrijf accounts
+            int kvkNummer = 0;
+            if (request.AccountType == "bedrijf")
+            {
+                if (!int.TryParse(request.KvkNummer, out kvkNummer) || request.KvkNummer.Length != 8)
+                {
+                    return BadRequest(new RegisterResponse
+                    {
+                        Success = false,
+                        Message = "KvK-nummer moet 8 cijfers bevatten"
+                    });
+                }
+            }
+
             int rolId = request.AccountType == "bedrijf" ? 1 : 2;
             string hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.Wachtwoord);
 
-            var bedrijf = await _context.Bedrijven.FirstOrDefaultAsync(b => b.KVK == kvkNummer);
-            if (request.AccountType == "bedrijf" && bedrijf != null)
+            Bedrijf bedrijf = null;
+            if (request.AccountType == "bedrijf")
             {
-                return BadRequest(new RegisterResponse
+                bedrijf = await _context.Bedrijven.FirstOrDefaultAsync(b => b.KVK == kvkNummer);
+                if (bedrijf != null)
                 {
-                    Success = false,
-                    Message = "KvK-nummer is al in gebruik"
-                });
-            }
+                    return BadRequest(new RegisterResponse
+                    {
+                        Success = false,
+                        Message = "KvK-nummer is al in gebruik"
+                    });
+                }
 
-            if (bedrijf == null && request.AccountType == "bedrijf")
-            {
                 bedrijf = new Bedrijf
                 {
                     KVK = kvkNummer,
@@ -87,8 +93,10 @@ namespace RoyalFlora.Controllers
                 Email = request.E_mail,
                 Wachtwoord = hashedPassword,
                 Telefoonnummer = request.Telefoonnummer,
+                Postcode = request.Postcode,
+                Adress = request.Adres,
                 Rol = rolId,
-                KVK = kvkNummer
+                KVK = kvkNummer // Only set KVK if bedrijf account
             };
 
             _context.Gebruikers.Add(newGebruiker);

@@ -29,6 +29,8 @@ namespace RoyalFlora.AuthDTO
         public string Wachtwoord { get; set; } = string.Empty;
         public string KvkNummer { get; set; } = string.Empty;
         public string AccountType { get; set; } = string.Empty;
+        public string? Postcode { get; set; }
+        public string? Adres { get; set; }
     }
 
     public class RegisterResponse
