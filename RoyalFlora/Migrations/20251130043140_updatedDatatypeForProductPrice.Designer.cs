@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace RoyalFlora.Migrations
 {
     [DbContext(typeof(MyDbContext))]
-    partial class MyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251130043140_updatedDatatypeForProductPrice")]
+    partial class updatedDatatypeForProductPrice
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -165,7 +168,8 @@ namespace RoyalFlora.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("MinimumPrijs")
-                        .HasColumnType("decimal(10, 2)");
+                        .HasMaxLength(45)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("ProductBeschrijving")
                         .HasColumnType("text");
@@ -178,7 +182,7 @@ namespace RoyalFlora.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("verkoopPrijs")
-                        .HasColumnType("decimal(10, 2)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("IdProduct");
 

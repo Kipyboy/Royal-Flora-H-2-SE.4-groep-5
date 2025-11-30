@@ -228,8 +228,8 @@ public class Product
 
     public int? Aantal { get; set; }
     
-    [StringLength(45)]
-    public string? MinimumPrijs { get; set; }
+    [Column(TypeName = "decimal(10, 2)")]
+    public decimal MinimumPrijs { get; set; }
 
     public DateTime? Datum { get; set; }
 
@@ -237,6 +237,7 @@ public class Product
     
     public int? Leverancier { get; set; }
     public int? Koper { get; set; }
+    [Column(TypeName = "decimal(10, 2)")]
     public decimal verkoopPrijs { get; set; }
     public int? Status { get; set; }
 

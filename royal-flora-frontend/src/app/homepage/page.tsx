@@ -45,12 +45,15 @@ const HomePage: React.FC = () => {
       setLoading(false);
 
       try {
-        const response = await authFetch('http://localhost:5156/api/products');
+        // ✅ Updated fetch URL to match backend
+        const response = await authFetch('http://localhost:5156/api/Products');
         if (!response || !response.ok) {
-          console.error('Failed to fetch products');
+          const text = await response.text();
+          console.error('Failed to fetch products', response.status, text);
           return;
         }
         const data = await response.json();
+        console.log('Fetched products:', data); // debug log
         setProducts(data);
       } catch (err) {
         console.error('Error fetching products', err);
@@ -152,12 +155,7 @@ const HomePage: React.FC = () => {
       <div className="main-layout">
         <div className="content">
           <div className="veilingen">
-            {[
-              { name: 'Naaldwijk', key: 'a' },
-              { name: 'Aalsmeer', key: 'b' },
-              { name: 'Rijnsburg', key: 'c' },
-              { name: 'Eelde', key: 'd' }
-            ].map(({ name, key }) => (
+            {[{ name: 'Naaldwijk', key: 'a' }, { name: 'Aalsmeer', key: 'b' }, { name: 'Rijnsburg', key: 'c' }, { name: 'Eelde', key: 'd' }].map(({ name, key }) => (
               <a key={name} href={`/veiling?loc=${key}`} className="card">
                 <p>Locatie {name}</p>
                 <p>Aanvoerder:</p>

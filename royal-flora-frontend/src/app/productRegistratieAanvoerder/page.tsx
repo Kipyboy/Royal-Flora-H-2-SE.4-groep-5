@@ -50,14 +50,10 @@ export default function ProductRegistratieAanvoerderPage() {
     name:'', clockLocation:'', auctionDate:'', amount:'', minimumPrice:'', description:'', image:''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // DEBUG: show loading state
   const [loading, setLoading] = useState(true);
 
-  // Load user
   useEffect(() => {
     const currentUser = getUser();
-    console.log("Loaded user from localStorage:", currentUser); // ✅ debug log
     if (!currentUser) {
       router.push('/login');
       return;
@@ -121,8 +117,6 @@ export default function ProductRegistratieAanvoerderPage() {
     e.preventDefault();
     if(!validateForm()) return;
 
-    console.log("Submitting product with user:", user); // ✅ debug log
-
     if(!user || !user.KVK){
       alert("Kan leverancier niet bepalen. Log opnieuw in.");
       router.push('/login');
@@ -135,7 +129,7 @@ export default function ProductRegistratieAanvoerderPage() {
       const submitData = new FormData();
       submitData.append('ProductNaam', formData.name);
       submitData.append('ProductBeschrijving', formData.description);
-      submitData.append('MinimumPrijs', formData.minimumPrice);
+      submitData.append('MinimumPrijs', formData.minimumPrice.toString()); // ✅ decimal-safe
       submitData.append('Locatie', formData.clockLocation);
       submitData.append('Datum', formData.auctionDate);
       submitData.append('Aantal', formData.amount);
@@ -164,7 +158,7 @@ export default function ProductRegistratieAanvoerderPage() {
     }
   };
 
-  if(loading) return <p>Loading...</p>; // Show loading while fetching user
+  if(loading) return <p>Loading...</p>;
   if(!user) return <p>Geen gebruiker gevonden. Log opnieuw in.</p>;
 
   return (
@@ -172,8 +166,6 @@ export default function ProductRegistratieAanvoerderPage() {
       <Topbar currentPage="Product registreren" />
       <div className="content">
         <form className="formContainer" onSubmit={handleSubmit}>
-
-          {/* Product Name */}
           <div className="groupContainer">
             <label htmlFor="name">Product naam:</label>
             <input
@@ -187,7 +179,6 @@ export default function ProductRegistratieAanvoerderPage() {
             {errors.name && <div className="error-message">{errors.name}</div>}
           </div>
 
-          {/* Clock location & auction date */}
           <div className="inlineGroup">
             <div className="groupContainer">
               <label htmlFor="clockLocation">Klok locatie:</label>
@@ -221,7 +212,6 @@ export default function ProductRegistratieAanvoerderPage() {
             </div>
           </div>
 
-          {/* Amount & Minimum Price */}
           <div className="inlineGroup">
             <div className="groupContainer">
               <label htmlFor="amount">Aantal:</label>
@@ -253,7 +243,6 @@ export default function ProductRegistratieAanvoerderPage() {
             </div>
           </div>
 
-          {/* Description */}
           <div className="groupContainer">
             <label htmlFor="description">Omschrijving:</label>
             <input
@@ -269,7 +258,6 @@ export default function ProductRegistratieAanvoerderPage() {
             {errors.description && <div className="error-message">{errors.description}</div>}
           </div>
 
-          {/* Images */}
           <div className="groupContainer">
             <label htmlFor="image">Upload afbeelding(en):</label>
             <input
@@ -296,7 +284,6 @@ export default function ProductRegistratieAanvoerderPage() {
             {errors.image && <div className="error-message">{errors.image}</div>}
           </div>
 
-          {/* Submit */}
           <div className="groupContainer">
             <input
               type="submit"
@@ -305,7 +292,6 @@ export default function ProductRegistratieAanvoerderPage() {
               disabled={isSubmitting}
             />
           </div>
-
         </form>
       </div>
     </div>
