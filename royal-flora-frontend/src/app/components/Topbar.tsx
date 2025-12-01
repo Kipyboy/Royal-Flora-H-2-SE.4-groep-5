@@ -189,7 +189,7 @@ const Topbar: React.FC<TopbarProps> = ({
                         onInputChange={onInputChange ?? (() => {})}
                     />
                 )}
-                {userRole === "Inkoper" && (
+                {userRole === "Inkooper" && (
                     <KlantSidebar
                         sidebarVisible={!!sidebarVisible}
                         aankomendChecked={!!aankomendChecked}

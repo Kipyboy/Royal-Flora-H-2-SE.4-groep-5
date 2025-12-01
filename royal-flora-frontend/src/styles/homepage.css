@@ -108,6 +108,12 @@
     margin-bottom: 1rem;
 }
 
+.homepage-page .card img {
+    width: 9rem;
+    height: auto;
+    margin: 0.5rem;
+}
+
 .homepage-page .toptext {
     font-size: 1.25rem;
     font-weight: bold;

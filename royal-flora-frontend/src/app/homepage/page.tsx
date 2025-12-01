@@ -30,9 +30,9 @@ const HomePage: React.FC = () => {
   }, []);
 
   const [aankomendChecked, setAankomendChecked] = useState(true);
-  const [eigenChecked, setEigenChecked] = useState(true);
-  const [gekochtChecked, setGekochtChecked] = useState(true);
-  const [inTePlannenChecked, setInTePlannenChecked] = useState(true);
+  const [eigenChecked, setEigenChecked] = useState(false);
+  const [gekochtChecked, setGekochtChecked] = useState(false);
+  const [inTePlannenChecked, setInTePlannenChecked] = useState(false);
   const [aChecked, setAChecked] = useState(false);
   const [bChecked, setBChecked] = useState(false);
   const [cChecked, setCChecked] = useState(false);
@@ -98,8 +98,8 @@ const productenInladen = () => {
       datum={product.datum}
       locatie={product.locatie}
       status={product.status}
-      Aantal={product.aantal}
-      FotoPath={product.FotoPath}
+      aantal={product.aantal}
+      fotoPath={product.fotoPath}
       />
   ));
 };
@@ -154,9 +154,7 @@ const productenInladen = () => {
             ].map(({ name, key }) => (
               <a key={name} href={`/veiling?loc=${key}`} className="card">
                 <p>Locatie {name}</p>
-                <p>Aanvoerder:</p>
-                <p>Verlopen tijd:</p>
-                <p>Huidig product:</p>
+                <img src={`http://localhost:5156/images/locatie-${key}.jpg`} alt="" />
               </a>
             ))}
           </div>

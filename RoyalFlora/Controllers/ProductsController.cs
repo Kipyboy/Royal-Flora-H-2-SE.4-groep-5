@@ -222,7 +222,7 @@ namespace RoyalFlora.Controllers
                 _context.Products.Add(product);
                 await _context.SaveChangesAsync();
 
-                //images = new List<IFormFile>();
+                
 
                 var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
                 if (!Directory.Exists(uploadsFolder))
@@ -237,8 +237,8 @@ namespace RoyalFlora.Controllers
                     string filePath = Path.Combine(uploadsFolder, image.FileName);
                     _context.Fotos.Add(new Foto
                     {
-                        IdProduct =product.IdProduct,
-                        FotoPath = filePath
+                        IdProduct = product.IdProduct,
+                        FotoPath = image.FileName
                     });
                     using (var stream = new FileStream(filePath, FileMode.Create))
                     {
