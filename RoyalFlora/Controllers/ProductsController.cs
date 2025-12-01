@@ -106,9 +106,8 @@ namespace RoyalFlora.Controllers
             if (!int.TryParse(userIdClaim, out var userId)) return Unauthorized();
 
             var gebruiker = await _context.Gebruikers
-            .Include(g => g.BedrijfNavigation)
-            .SingleOrDefaultAsync(g => g.IdGebruiker == userId);
-
+                .Include(g => g.BedrijfNavigation)
+                .SingleOrDefaultAsync(g => g.IdGebruiker == userId);
 
             if (gebruiker == null) return Unauthorized();
 
@@ -122,19 +121,15 @@ namespace RoyalFlora.Controllers
                     .ToList();
             }
 
-            var productDTOs = products.Select(product => new ProductDTO
+            var productDTOs = new List<ProductDTO>();
+            foreach (var product in products)
             {
-                id = product.IdProduct,
-                naam = product.ProductNaam ?? string.Empty,
-                merk = product.LeverancierNavigation?.BedrijfNaam ?? string.Empty,
-                prijs = product.MinimumPrijs,
-                datum = product.Datum?.ToString("yyyy-MM-dd") ?? string.Empty,
-                locatie = product.Locatie ?? string.Empty,
-                status = product.StatusNavigation?.Beschrijving ?? string.Empty,
-                aantal = product.Aantal
-            }).ToList();
+                var leverancierNaam = product.LeverancierNavigation?.BedrijfNaam ?? string.Empty;
+                var datum = product.Datum?.ToString("yyyy-MM-dd") ?? string.Empty;
+                var locatie = product.Locatie ?? string.Empty;
+                var status = product.StatusNavigation?.Beschrijving ?? string.Empty;
 
-                if(product.Status.Equals("gekocht"))
+                if (status.Equals("gekocht", StringComparison.OrdinalIgnoreCase))
                 {
                     var gekochtdto = new ProductDTO
                     {
@@ -151,7 +146,7 @@ namespace RoyalFlora.Controllers
                     };
                     productDTOs.Add(gekochtdto);
                 }
-                else if (leverancierNaam.Equals(bedrijf))
+                else if (leverancierNaam.Equals(bedrijf, StringComparison.OrdinalIgnoreCase))
                 {
                     var eigendto = new ProductDTO
                     {
@@ -159,33 +154,33 @@ namespace RoyalFlora.Controllers
                         naam = product.ProductNaam ?? string.Empty,
                         merk = leverancierNaam,
                         verkoopPrijs = product.verkoopPrijs,
-                        koper = product.KoperNavigation?.VoorNaam + " " + product.KoperNavigation?.AchterNaam ?? string.Empty,
+                        koper = (product.KoperNavigation?.VoorNaam ?? string.Empty) + " " + (product.KoperNavigation?.AchterNaam ?? string.Empty),
                         datum = datum,
                         locatie = locatie,
                         status = status,
                         aantal = product.Aantal,
-                        fotoPath = product.Fotos.FirstOrDefault()?.FotoPath ?? string.Empty,    
+                        fotoPath = product.Fotos.FirstOrDefault()?.FotoPath ?? string.Empty,
                         type = "eigen"
                     };
                     productDTOs.Add(eigendto);
                 }
-                else {
-                var dto = new ProductDTO
+                else
                 {
-                    id = product.IdProduct,
-                    naam = product.ProductNaam ?? string.Empty,
-                    merk = leverancierNaam,
-                    prijs = product.MinimumPrijs ?? string.Empty,
-                    datum = datum,
-                    locatie = locatie,
-                    status = status,
-                    aantal = product.Aantal,
-                    fotoPath = product.Fotos.FirstOrDefault()?.FotoPath ?? string.Empty
-                };
-                productDTOs.Add(dto);
+                    var dto = new ProductDTO
+                    {
+                        id = product.IdProduct,
+                        naam = product.ProductNaam ?? string.Empty,
+                        merk = leverancierNaam,
+                        prijs = product.MinimumPrijs,
+                        datum = datum,
+                        locatie = locatie,
+                        status = status,
+                        aantal = product.Aantal,
+                        fotoPath = product.Fotos.FirstOrDefault()?.FotoPath ?? string.Empty
+                    };
+                    productDTOs.Add(dto);
                 }
             }
-
 
             // Debug output
             foreach (var dto in productDTOs)
