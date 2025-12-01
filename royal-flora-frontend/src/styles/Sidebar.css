@@ -11,7 +11,7 @@
     top: 1rem;
 }
 .toptext {
-    margin-top: 10rem;
+    margin-top: var(--TopbarPadding);
 }
 .sidebar input[type='text'] {
     max-width: 8rem;
