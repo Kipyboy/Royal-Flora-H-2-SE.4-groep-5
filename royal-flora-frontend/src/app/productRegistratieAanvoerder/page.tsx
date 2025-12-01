@@ -1,422 +1,327 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import '../../styles/ProductRegistratieAanvoerder.css';
 import Topbar from '../components/Topbar';
-
+import { authFetch } from '../utils/api';
+import { getUser } from '../utils/auth';
 
 interface ProductFormData {
-	name: string;
-	clockLocation: string;
-	auctionDate: string;
-	amount: string;
-	minimumPrice: string;
-	description: string;
-	images: File[];
+  name: string;
+  clockLocation: string;
+  auctionDate: string;
+  amount: string;
+  minimumPrice: string;
+  description: string;
+  images: File[];
 }
 
 interface FormErrors {
-	name: string;
-	clockLocation: string;
-	auctionDate: string;
-	amount: string;
-	minimumPrice: string;
-	description: string;
-	image: string;
+  name: string;
+  clockLocation: string;
+  auctionDate: string;
+  amount: string;
+  minimumPrice: string;
+  description: string;
+  image: string;
+}
+
+interface User {
+  username: string;
+  email: string;
+  role: string;
+  KVK?: string;
 }
 
 export default function ProductRegistratieAanvoerderPage() {
-	const router = useRouter();
-	const [formData, setFormData] = useState<ProductFormData>({
-		name: '',
-		clockLocation: '',
-		auctionDate: '',
-		amount: '',
-		minimumPrice: '',
-		description: '',
-		images: []
-	});
+  const router = useRouter();
+  const [user, setUser] = useState<User | null>(null);
+  const [formData, setFormData] = useState<ProductFormData>({
+    name: '',
+    clockLocation: '',
+    auctionDate: '',
+    amount: '',
+    minimumPrice: '',
+    description: '',
+    images: [],
+  });
+  const [errors, setErrors] = useState<FormErrors>({
+    name:'', clockLocation:'', auctionDate:'', amount:'', minimumPrice:'', description:'', image:''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-	const [errors, setErrors] = useState<FormErrors>({
-		name: '',
-		clockLocation: '',
-		auctionDate: '',
-		amount: '',
-		minimumPrice: '',
-		description: '',
-		image: ''
-	});
+  useEffect(() => {
+    const currentUser = getUser();
+    if (!currentUser) {
+      router.push('/login');
+      return;
+    }
+    if (currentUser.role !== 'Aanvoerder') {
+      router.push('/homepage');
+      return;
+    }
+    setUser(currentUser);
+    setLoading(false);
+  }, [router]);
 
-	const [isSubmitting, setIsSubmitting] = useState(false);
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    
+    // For price fields, normalize comma to dot
+    let processedValue = value;
+    if (name === 'minimumPrice' && value) {
+      // Allow only digits, comma, and dot
+      processedValue = value.replace(/[^0-9.,]/g, '');
+      // Convert comma to dot for consistency
+      processedValue = processedValue.replace(',', '.');
+      // Prevent multiple dots
+      const parts = processedValue.split('.');
+      if (parts.length > 2) {
+        processedValue = parts[0] + '.' + parts.slice(1).join('');
+      }
+    }
+    
+    setFormData(prev => ({ ...prev, [name]: processedValue }));
+    setErrors(prev => ({ ...prev, [name]: '' }));
+  };
 
-	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-		const { name, value } = e.target;
-		setFormData(prev => ({
-			...prev,
-			[name]: value
-		}));
-		// Error's weg halen waneer je aan het typen bent
-		setErrors(prev => ({
-			...prev,
-			[name]: ''
-		}));
-	};
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const validFiles: File[] = [];
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
 
-	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const files = Array.from(e.target.files || []);
-		
-		// Lijst van de geldige bestands types
-		const validFiles: File[] = [];
-		const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
-		
-		for (const file of files) {
-			// Geldig bestand?
-			if (!validTypes.includes(file.type)) {
-				setErrors(prev => ({
-					...prev,
-					image: 'Alleen afbeeldingen (JPEG, PNG, GIF) zijn toegestaan'
-				}));
-				continue;
-			}
-			// Kijken of het niet te groot is
-			if (file.size > 5 * 1024 * 1024) {
-				setErrors(prev => ({
-					...prev,
-					image: 'Elk bestand mag maximaal 5MB zijn'
-				}));
-				continue;
-			}
-			validFiles.push(file);
-		}
+    files.forEach(file => {
+      if (!validTypes.includes(file.type)) {
+        setErrors(prev => ({ ...prev, image: 'Alleen afbeeldingen (JPEG, PNG, GIF) zijn toegestaan' }));
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        setErrors(prev => ({ ...prev, image: 'Elk bestand mag maximaal 5MB zijn' }));
+        return;
+      }
+      validFiles.push(file);
+    });
 
-		if (validFiles.length > 0) {
-			setFormData(prev => ({
-				...prev,
-				images: [...prev.images, ...validFiles]
-			}));
-			setErrors(prev => ({
-				...prev,
-				image: ''
-			}));
-		}
-		
-		// File waarde leeg halen zodat er een nieuwe weer gekozen kan worden
-		e.target.value = '';
-	};
+    if (validFiles.length > 0) {
+      setFormData(prev => ({ ...prev, images: [...prev.images, ...validFiles] }));
+      setErrors(prev => ({ ...prev, image: '' }));
+    }
 
-	const removeImage = (index: number) => {
-		setFormData(prev => ({
-			...prev,
-			images: prev.images.filter((_, i) => i !== index)
-		}));
-	};
+    if (e.target) e.target.value = '';
+  };
 
-	const validateForm = (): boolean => {
-		const newErrors: FormErrors = {
-			name: '',
-			clockLocation: '',
-			auctionDate: '',
-			amount: '',
-			minimumPrice: '',
-			description: '',
-			image: ''
-		};
-		let isValid = true;
+  const removeImage = (index: number) => {
+    setFormData(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }));
+  };
 
-		// Kijken of een input leeg is of niet
-		if (!formData.name.trim()) {
-			newErrors.name = 'Product naam is verplicht';
-			isValid = false;
-		}
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = { name:'', clockLocation:'', auctionDate:'', amount:'', minimumPrice:'', description:'', image:'' };
+    let isValid = true;
 
-		if (!formData.clockLocation) {
-			newErrors.clockLocation = 'Klok locatie is verplicht';
-			isValid = false;
-		}
+    if (!formData.name.trim()) { newErrors.name='Product naam is verplicht'; isValid=false; }
+    if (!formData.clockLocation) { newErrors.clockLocation='Klok locatie is verplicht'; isValid=false; }
+    if (!formData.auctionDate) { newErrors.auctionDate='Veilingdatum is verplicht'; isValid=false; }
+    else if(new Date(formData.auctionDate) < new Date(new Date().toDateString())){ newErrors.auctionDate='Veilingdatum moet in de toekomst liggen'; isValid=false; }
+    if(!formData.amount || parseInt(formData.amount)<=0){ newErrors.amount='Aantal moet groter dan 0 zijn'; isValid=false; }
+    if(!formData.minimumPrice || parseFloat(formData.minimumPrice)<0){ newErrors.minimumPrice='Minimum prijs moet positief zijn'; isValid=false; }
+    if(!formData.description.trim() || formData.description.trim().length<10){ newErrors.description='Omschrijving moet minimaal 10 karakters zijn'; isValid=false; }
 
-		if (!formData.auctionDate) {
-			newErrors.auctionDate = 'Veilingdatum is verplicht';
-			isValid = false;
-		} else {
-			const selectedDate = new Date(formData.auctionDate);
-			const today = new Date();
-			today.setHours(0, 0, 0, 0);
-			if (selectedDate < today) {
-				newErrors.auctionDate = 'Veilingdatum moet in de toekomst liggen';
-				isValid = false;
-			}
-		}
+    setErrors(newErrors);
+    return isValid;
+  };
 
-		if (!formData.amount) {
-			newErrors.amount = 'Aantal is verplicht';
-			isValid = false;
-		} else if (parseInt(formData.amount) <= 0) {
-			newErrors.amount = 'Aantal moet groter dan 0 zijn';
-			isValid = false;
-		}
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if(!validateForm()) return;
 
-		if (!formData.minimumPrice) {
-			newErrors.minimumPrice = 'Minimum prijs is verplicht';
-			isValid = false;
-		} else if (parseFloat(formData.minimumPrice) < 0) {
-			newErrors.minimumPrice = 'Minimum prijs moet positief zijn';
-			isValid = false;
-		}
+    if(!user || !user.KVK){
+      alert("Kan leverancier niet bepalen. Log opnieuw in.");
+      router.push('/login');
+      return;
+    }
 
-		if (!formData.description.trim()) {
-			newErrors.description = 'Omschrijving is verplicht';
-			isValid = false;
-		} else if (formData.description.trim().length < 10) {
-			newErrors.description = 'Omschrijving moet minimaal 10 karakters zijn';
-			isValid = false;
-		}
+    setIsSubmitting(true);
 
-		setErrors(newErrors);
-		return isValid;
-	};
+    try{
+      // Normalize the price: replace comma with dot for decimal separation
+      const normalizedPrice = formData.minimumPrice.replace(',', '.');
+      const priceValue = parseFloat(normalizedPrice);
+      
+      if (isNaN(priceValue)) {
+        alert('Ongeldig prijsformat');
+        setIsSubmitting(false);
+        return;
+      }
 
-	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-		e.preventDefault();
+      const submitData = new FormData();
+      submitData.append('ProductNaam', formData.name);
+      submitData.append('ProductBeschrijving', formData.description);
+      submitData.append('MinimumPrijs', priceValue.toString()); // ✅ send as normalized float
+      submitData.append('Locatie', formData.clockLocation);
+      submitData.append('Datum', formData.auctionDate);
+      submitData.append('Aantal', formData.amount);
+      submitData.append('Leverancier', user.KVK);
 
-		if (!validateForm()) {
-			return;
-		}
+      formData.images.forEach(img => submitData.append('images', img));
 
-		setIsSubmitting(true);
+      const response = await authFetch('http://localhost:5156/api/products', { method: 'POST', body: submitData });
 
-		try {
-			// data opslaan om naar de database te stuuren
-			const submitData = new FormData();
-			submitData.append('ProductNaam', formData.name);
-			submitData.append('ProductBeschrijving', formData.description);
-			submitData.append('MinimumPrijs', formData.minimumPrice);
-			submitData.append('Locatie', formData.clockLocation);
-			submitData.append('Datum', formData.auctionDate);
-			submitData.append('Aantal', formData.amount);
-			submitData.append('Leverancier', '10000001'); // Hardcoded voor nu, later dynamisch maken
-			
-			formData.images.forEach((image) => {
-				submitData.append(`images`, image);
-			});
+      if(!response.ok){
+        const error = await response.json();
+        alert(`Registratie mislukt: ${error.message || 'Onbekende fout'}`);
+        return;
+      }
 
-			// naar de database stuuren
-			const response = await fetch('http://localhost:5156/api/products', {
-				method: 'POST',
-				body: submitData,
-				// Ik werd gewaarschuwed dat ik geen header type moet mee geven
-			});
+      alert('Product succesvol geregistreerd!');
+      setFormData({ name:'', clockLocation:'', auctionDate:'', amount:'', minimumPrice:'', description:'', images:[] });
 
-			if (response.ok) {
-				const data = await response.json();
-				alert('Product succesvol geregistreerd!');
-				// Alles leeg halen
-				setFormData({
-					name: '',
-					clockLocation: '',
-					auctionDate: '',
-					amount: '',
-					minimumPrice: '',
-					description: '',
-					images: []
-				});
-				const fileInput = document.getElementById('image') as HTMLInputElement;
-				if (fileInput) fileInput.value = '';
+      const fileInput = document.getElementById('image') as HTMLInputElement;
+      if(fileInput) fileInput.value='';
+    } catch(err){
+      console.error(err);
+      alert('Er is een fout opgetreden bij het registreren van het product');
+    } finally{
+      setIsSubmitting(false);
+    }
+  };
 
-			} else {
-				const error = await response.json();
-				alert(`Registratie mislukt: ${error.message || 'Onbekende fout'}`);
-			}
-		} catch (error) {
-			console.error('Error:', error);
-			alert('Er is een fout opgetreden bij het registreren van het product');
-		} finally {
-			setIsSubmitting(false);
-		}
-	};
+  if(loading) return <p>Loading...</p>;
+  if(!user) return <p>Geen gebruiker gevonden. Log opnieuw in.</p>;
 
-	return (
-		<div className="productRegistratieAanvoerder-page">
-			<Topbar
-			currentPage="Product registreren"></Topbar>
+  return (
+    <div className="productRegistratieAanvoerder-page">
+      <Topbar currentPage="Product registreren" />
+      <div className="content">
+        <form className="formContainer" onSubmit={handleSubmit}>
+          <div className="groupContainer">
+            <label htmlFor="name">Product naam:</label>
+            <input
+              id="name"
+              name="name"
+              type="text"
+              value={formData.name}
+              onChange={handleInputChange}
+              required
+            />
+            {errors.name && <div className="error-message">{errors.name}</div>}
+          </div>
 
-			<div className="content">
-				<form className="formContainer" onSubmit={handleSubmit}>
-					<div className="groupContainer">
-						<label htmlFor="name">Product naam:</label>
-						<input 
-							id="name" 
-							name="name" 
-							type="text"
-							value={formData.name}
-							onChange={handleInputChange}
-							aria-describedby="name-error"
-							required
-						/>
-						{errors.name && (
-							<div id="name-error" className="error-message" aria-live="polite">
-								{errors.name}
-							</div>
-						)}
-					</div>
+          <div className="inlineGroup">
+            <div className="groupContainer">
+              <label htmlFor="clockLocation">Klok locatie:</label>
+              <select
+                id="clockLocation"
+                name="clockLocation"
+                value={formData.clockLocation}
+                onChange={handleInputChange}
+                required
+              >
+                <option value="">-- Selecteer locatie --</option>
+                <option value="Naaldwijk">Naaldwijk</option>
+                <option value="Aalsmeer">Aalsmeer</option>
+                <option value="Rijnsburg">Rijnsburg</option>
+                <option value="Eelde">Eelde</option>
+              </select>
+              {errors.clockLocation && <div className="error-message">{errors.clockLocation}</div>}
+            </div>
 
-					<div className="inlineGroup">
-						<div className="groupContainer">
-							<label htmlFor="clockLocation">Klok locatie:</label>
-							<select 
-								id="clockLocation" 
-								name="clockLocation" 
-								value={formData.clockLocation}
-								onChange={handleInputChange}
-								aria-describedby="clockLocation-error"
-								required
-							>
-							<option>-- Selecteer locatie --</option>
-							<option value="Naaldwijk">Naaldwijk</option>
-							<option value="Aalsmeer">Aalsmeer</option>
-							<option value="Rijnsburg">Rijnsburg</option>
-							<option value="Eelde">Eelde</option>
-							</select>
-							{errors.clockLocation && (
-								<div id="clockLocation-error" className="error-message" aria-live="polite">
-									{errors.clockLocation}
-								</div>
-							)}
-						</div>
+            <div className="groupContainer">
+              <label htmlFor="auctionDate">Veilingdatum:</label>
+              <input
+                id="auctionDate"
+                name="auctionDate"
+                type="date"
+                value={formData.auctionDate}
+                onChange={handleInputChange}
+                required
+              />
+              {errors.auctionDate && <div className="error-message">{errors.auctionDate}</div>}
+            </div>
+          </div>
 
-						<div className="groupContainer">
-							<label htmlFor="auctionDate">Veilingdatum:</label>
-							<input 
-								id="auctionDate" 
-								name="auctionDate" 
-								type="date"
-								value={formData.auctionDate}
-								onChange={handleInputChange}
-								aria-describedby="auctionDate-error"
-								required
-							/>
-							{errors.auctionDate && (
-								<div id="auctionDate-error" className="error-message" aria-live="polite">
-									{errors.auctionDate}
-								</div>
-							)}
-						</div>
-					</div>
+          <div className="inlineGroup">
+            <div className="groupContainer">
+              <label htmlFor="amount">Aantal:</label>
+              <input
+                id="amount"
+                name="amount"
+                type="number"
+                min="1"
+                value={formData.amount}
+                onChange={handleInputChange}
+                required
+              />
+              {errors.amount && <div className="error-message">{errors.amount}</div>}
+            </div>
 
-					<div className="inlineGroup">
-						<div className="groupContainer">
-							<label htmlFor="amount">Aantal:</label>
-							<input 
-								id="amount" 
-								name="amount" 
-								type="number"
-								min="1"
-								value={formData.amount}
-								onChange={handleInputChange}
-								aria-describedby="amount-error"
-								required
-							/>
-							{errors.amount && (
-								<div id="amount-error" className="error-message" aria-live="polite">
-									{errors.amount}
-								</div>
-							)}
-						</div>
+            <div className="groupContainer">
+              <label htmlFor="minimumPrice">Minimum prijs (€):</label>
+              <input
+                id="minimumPrice"
+                name="minimumPrice"
+                type="text"
+                placeholder="0.00"
+                value={formData.minimumPrice}
+                onChange={handleInputChange}
+                required
+              />
+              {errors.minimumPrice && <div className="error-message">{errors.minimumPrice}</div>}
+            </div>
+          </div>
 
-						<div className="groupContainer">
-							<label htmlFor="minimumPrice">Minimum prijs (€):</label>
-							<input 
-								id="minimumPrice" 
-								name="minimumPrice" 
-								type="number"
-								min="0"
-								step="0.01"
-								value={formData.minimumPrice}
-								onChange={handleInputChange}
-								aria-describedby="minimumPrice-error"
-								required
-							/>
-							{errors.minimumPrice && (
-								<div id="minimumPrice-error" className="error-message" aria-live="polite">
-									{errors.minimumPrice}
-								</div>
-							)}
-						</div>
-					</div>
+          <div className="groupContainer">
+            <label htmlFor="description">Omschrijving:</label>
+            <input
+              id="description"
+              name="description"
+              type="text"
+              className="bigInput"
+              value={formData.description}
+              onChange={handleInputChange}
+              required
+              minLength={10}
+            />
+            {errors.description && <div className="error-message">{errors.description}</div>}
+          </div>
 
-					<div className="groupContainer">
-						<label htmlFor="description">Omschrijving:</label>
-						<input 
-							id="description" 
-							name="description" 
-							type="text" 
-							className="bigInput"
-							value={formData.description}
-							onChange={handleInputChange}
-							aria-describedby="description-error"
-							required
-							minLength={10}
-						/>
-						{errors.description && (
-							<div id="description-error" className="error-message" aria-live="polite">
-								{errors.description}
-							</div>
-						)}
-					</div>
+          <div className="groupContainer">
+            <label htmlFor="image">Upload afbeelding(en):</label>
+            <input
+              id="image"
+              name="image"
+              type="file"
+              accept="image/jpeg,image/jpg,image/png,image/gif"
+              onChange={handleFileChange}
+              multiple
+            />
+            {formData.images.length > 0 && (
+              <div className="image-preview-container">
+                {formData.images.map((img, i) => (
+                  <div key={i} className="image-preview-item">
+                    <img src={URL.createObjectURL(img)} alt={`Preview ${i + 1}`} className="image-preview" />
+                    <div className="image-preview-info">
+                      <span className="image-name">{img.name}</span>
+                      <button type="button" className="remove-image-btn" onClick={() => removeImage(i)}>✕</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {errors.image && <div className="error-message">{errors.image}</div>}
+          </div>
 
-					<div className="groupContainer">
-						<label htmlFor="image">Upload afbeelding(en):</label>
-						<input 
-							id="image" 
-							name="image" 
-							type="file"
-							accept="image/jpeg,image/jpg,image/png,image/gif"
-							onChange={handleFileChange}
-							aria-describedby="image-error"
-							multiple
-						/>
-						{formData.images.length > 0 && (
-							<div className="image-preview-container">
-								{formData.images.map((img, index) => (
-									<div key={index} className="image-preview-item">
-										<img 
-											src={URL.createObjectURL(img)} 
-											alt={`Preview ${index + 1}`}
-											className="image-preview"
-										/>
-										<div className="image-preview-info">
-											<span className="image-name">{img.name}</span>
-											<button 
-												type="button"
-												className="remove-image-btn"
-												onClick={() => removeImage(index)}
-												aria-label={`Verwijder ${img.name}`}
-											>
-												✕
-											</button>
-										</div>
-									</div>
-								))}
-							</div>
-						)}
-						{errors.image && (
-							<div id="image-error" className="error-message" aria-live="polite">
-								{errors.image}
-							</div>
-						)}
-					</div>
-
-					<div className="groupContainer">
-						<input 
-							type="submit" 
-							className="submitButton" 
-							value={isSubmitting ? 'Registreren...' : 'Registreer Product'}
-							disabled={isSubmitting}
-						/>
-					</div>
-				</form>
-			</div>
-		</div>
-	);
+          <div className="groupContainer">
+            <input
+              type="submit"
+              className="submitButton"
+              value={isSubmitting ? 'Registreren...' : 'Registreer Product'}
+              disabled={isSubmitting}
+            />
+          </div>
+        </form>
+      </div>
+    </div>
+  );
 }

@@ -1,9 +1,11 @@
 "use client";
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import '../../styles/Veiling.css';
 import Topbar from "../components/Topbar";
 import Clock from "../components/clock";
 import VeilingSidebar from "../components/veiling-sidebar";
+import { getUser } from "../utils/auth";
 
 const configs = {
   a: { locationName: "Naaldwijk", title: "Auction A" },
@@ -26,12 +28,27 @@ function writeEndToStorage(ts: number) {
 }
 
 export default function VeilingPage({ searchParams }: { searchParams: Promise<{ loc?: string }> }) {
+  const router = useRouter();
   const params = React.use(searchParams);
   const location = params.loc ?? "a"; 
   const config = configs[location as keyof typeof configs];
 
   const [endTs, setEndTs] = useState<number | null>(null);
   const [currentPrice, setCurrentPrice] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const currentUser = getUser();
+    if (!currentUser) {
+      router.push('/login');
+      return;
+    }
+    if (currentUser.role !== 'Inkoper') {
+      router.push('/homepage');
+      return;
+    }
+    setLoading(false);
+  }, [router]);
 
   useEffect(() => {
   const stored = readEndFromStorage();
@@ -58,6 +75,10 @@ export default function VeilingPage({ searchParams }: { searchParams: Promise<{ 
   };
 
   const handleStop = () => setEndTs(null);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   const handleClockFinished = async () => {
     const res = await fetch(`http://localhost:5156/api/Products/Advance?locatie=${config.locationName}`,  { method: "POST" });

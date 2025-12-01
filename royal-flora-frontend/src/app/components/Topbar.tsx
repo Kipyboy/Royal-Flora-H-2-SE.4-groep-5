@@ -1,20 +1,22 @@
-"use client";
+'use client';
 
 import React, { useEffect, useState } from 'react';
 import '../../styles/Topbar.css';
 import Sidebar from './Sidebar';
 import { useRouter } from 'next/navigation';
-import { getSessionData } from '../utils/sessionService';
 import { logout as clearAuth } from '../utils/auth';
 import AanvoerderSidebar from './AanvoerderSidebar';
 import KlantSidebar from './KlantSidebar';
 import VeilingmeesterSidebar from './VeilingmeesterSidebar';
 
-
 interface TopbarProps {
     useSideBar?: boolean;
     currentPage: string;
-    userRole?: string;
+    user?: {
+        username: string;
+        role: string;
+        email?: string;
+    };
 
     sidebarVisible?: boolean;
     toggleSidebar?: () => void;
@@ -36,6 +38,7 @@ interface TopbarProps {
 const Topbar: React.FC<TopbarProps> = ({
     useSideBar = false,
     currentPage,
+    user,
     sidebarVisible,
     toggleSidebar,
     aankomendChecked,
@@ -52,9 +55,8 @@ const Topbar: React.FC<TopbarProps> = ({
     onCheckboxChange,
     onInputChange
 }) => {
-    const [userRole, setUserRole] = useState<string | undefined>(undefined);
-    const router = useRouter();
     const [dropdownVisible, setDropdownVisible] = useState(false);
+    const router = useRouter();
 
     const toggleDropdown = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -72,91 +74,94 @@ const Topbar: React.FC<TopbarProps> = ({
         }
         clearAuth();
         setDropdownVisible(false);
-        router.push('/');
+        router.push('/login');
     };
 
     // Close dropdown when clicking outside
-    React.useEffect(() => {
+    useEffect(() => {
         const handleClickOutside = () => {
-            if (dropdownVisible) {
-                setDropdownVisible(false);
-            }
+            if (dropdownVisible) setDropdownVisible(false);
         };
-
         document.addEventListener('click', handleClickOutside);
-        return () => {
-            document.removeEventListener('click', handleClickOutside);
-        };
+        return () => document.removeEventListener('click', handleClickOutside);
     }, [dropdownVisible]);
 
-    React.useEffect(() => {
-        const fetchSessionData = async () => {
-            try {
-                const data = await getSessionData();
-                if (data && data.role) {
-                    setUserRole(data.role);
-                } else{
-                    router.push('/');
-                }
-
-            } catch (error) {
-                console.error('Error fetching session');
-            }
-        };
-
-        fetchSessionData();
-    }, []);
-
     return (
-            <>
-                <div className="topbar">
-                    <nav className="nav">
-                        <div className="left">
-                            {useSideBar && (
-                                <div className="hamburger" onClick={toggleSidebar}>
-                                    <span></span>
-                                    <span></span>
-                                    <span></span>
-                                </div>
-                            )}
-                            <span className="nav-text">{currentPage}</span>
-                        </div>
-                        <div className="nav-logo-container">
-                            <a href="/homepage" className="nav-logo-link" aria-label="Ga naar homepagina" onClick={() => router.push('/homepage')}>
-                                <img
-                                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Royal_FloraHolland_Logo.svg/1200px-Royal_FloraHolland_Logo.svg.png"
-                                    alt="Royal FloraHolland Logo"
-                                    className="nav-logo"
-                                />
-                            </a>
-                        </div>
-                        
-                        <div className="pfp-container" onClick={toggleDropdown}>
+        <>
+            <div className="topbar">
+                <nav className="nav">
+                    <div className="left">
+                        {useSideBar && (
+                            <div className="hamburger" onClick={toggleSidebar}>
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                        )}
+                        <span className="nav-text">{currentPage}</span>
+                    </div>
+
+                    <div className="nav-logo-container">
+                        <a
+                            href="/homepage"
+                            className="nav-logo-link"
+                            aria-label="Ga naar homepagina"
+                            onClick={() => router.push('/homepage')}
+                        >
                             <img
-                                alt="Profiel"
-                                src="https://www.pikpng.com/pngl/m/80-805068_my-profile-icon-blank-profile-picture-circle-clipart.png"
-                                className="pfp-img"
-                                aria-label="Account menu"
+                                src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Royal_FloraHolland_Logo.svg/1200px-Royal_FloraHolland_Logo.svg.png"
+                                alt="Royal FloraHolland Logo"
+                                className="nav-logo"
                             />
-                            {dropdownVisible && (
-                                <div className="dropdown-menu" onClick={(e) => e.stopPropagation()}>
-                                    <button onClick={() => { setDropdownVisible(false); router.push('/accountDetails'); }}>
-                                        Account Details
+                        </a>
+                    </div>
+
+                    <div className="pfp-container" onClick={toggleDropdown}>
+                        <img
+                            alt="Profiel"
+                            src="https://www.pikpng.com/pngl/m/80-805068_my-profile-icon-blank-profile-picture-circle-clipart.png"
+                            className="pfp-img"
+                            aria-label="Account menu"
+                        />
+                        {user && (
+                            <div className="user-info">
+                                <span className="username">{user.username}</span>
+                                <span className="role">{user.role}</span>
+                            </div>
+                        )}
+                        {dropdownVisible && (
+                            <div className="dropdown-menu" onClick={(e) => e.stopPropagation()}>
+                                <button
+                                    onClick={() => {
+                                        setDropdownVisible(false);
+                                        router.push('/accountDetails');
+                                    }}
+                                >
+                                    Account Details
+                                </button>
+                                {user?.role === 'Aanvoerder' && (
+                                    <button
+                                        onClick={() => {
+                                            setDropdownVisible(false);
+                                            router.push('/productRegistratieAanvoerder');
+                                        }}
+                                    >
+                                        Product registreren
                                     </button>
-                                    {userRole === 'Aanvoerder' && (
-                                        <button onClick={() => { setDropdownVisible(false); router.push('/productRegistratieAanvoerder'); }}>
-                                            Product registreren
-                                        </button>
-                                    )}
-                                    <button className='logoutButton' onClick={handleLogout}>
-                                        Uitloggen
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    </nav>
-                </div>
-                {useSideBar && sidebarVisible !== undefined && onCheckboxChange && onInputChange && (
+                                )}
+                                <button className="logoutButton" onClick={handleLogout}>
+                                    Uitloggen
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </nav>
+            </div>
+
+            {useSideBar &&
+                sidebarVisible !== undefined &&
+                onCheckboxChange &&
+                onInputChange && (
                     <Sidebar
                         sidebarVisible={!!sidebarVisible}
                         aankomendChecked={!!aankomendChecked}
@@ -166,63 +171,64 @@ const Topbar: React.FC<TopbarProps> = ({
                         bChecked={!!bChecked}
                         cChecked={!!cChecked}
                         dChecked={!!dChecked}
-                        dateFilter={dateFilter || ""}
-                        merkFilter={merkFilter || ""}
-                        naamFilter={naamFilter || ""}
+                        dateFilter={dateFilter || ''}
+                        merkFilter={merkFilter || ''}
+                        naamFilter={naamFilter || ''}
                         onCheckboxChange={onCheckboxChange}
                         onInputChange={onInputChange}
                     />
                 )}
-                {userRole === "Aanvoerder" && (
-                    <AanvoerderSidebar
-                        sidebarVisible={!!sidebarVisible}
-                        aankomendChecked={!!aankomendChecked}
-                        eigenChecked={!!eigenChecked}
-                        aChecked={!!aChecked}
-                        bChecked={!!bChecked}
-                        cChecked={!!cChecked}
-                        dChecked={!!dChecked}
-                        dateFilter={dateFilter || ""}
-                        merkFilter={merkFilter || ""}
-                        naamFilter={naamFilter || ""}
-                        onCheckboxChange={onCheckboxChange ?? (() => {})}
-                        onInputChange={onInputChange ?? (() => {})}
-                    />
-                )}
-                {userRole === "Inkoper" && (
-                    <KlantSidebar
-                        sidebarVisible={!!sidebarVisible}
-                        aankomendChecked={!!aankomendChecked}
-                        gekochtChecked={!!gekochtChecked}
-                        aChecked={!!aChecked}
-                        bChecked={!!bChecked}
-                        cChecked={!!cChecked}
-                        dChecked={!!dChecked}
-                        dateFilter={dateFilter || ""}
-                        merkFilter={merkFilter || ""}
-                        naamFilter={naamFilter || ""}
-                        onCheckboxChange={onCheckboxChange ?? (() => {})}
-                        onInputChange={onInputChange ?? (() => {})}
-                    />
-                )}
-                {userRole === "Veilingmeester" && (
-                    <VeilingmeesterSidebar
-                        sidebarVisible={!!sidebarVisible}
-                        aankomendChecked={!!aankomendChecked}
-                        inTePlannenChecked={!!inTePlannenChecked}
-                        aChecked={!!aChecked}
-                        bChecked={!!bChecked}
-                        cChecked={!!cChecked}
-                        dChecked={!!dChecked}
-                        dateFilter={dateFilter || ""}
-                        merkFilter={merkFilter || ""}
-                        naamFilter={naamFilter || ""}
-                        onCheckboxChange={onCheckboxChange ?? (() => {})}
-                        onInputChange={onInputChange ?? (() => {})}
-                    />
-                )}
-                
-            </>
-        );
-    };
-    export default Topbar;
+
+            {user?.role === 'Aanvoerder' && (
+                <AanvoerderSidebar
+                    sidebarVisible={!!sidebarVisible}
+                    aankomendChecked={!!aankomendChecked}
+                    eigenChecked={!!eigenChecked}
+                    aChecked={!!aChecked}
+                    bChecked={!!bChecked}
+                    cChecked={!!cChecked}
+                    dChecked={!!dChecked}
+                    dateFilter={dateFilter || ''}
+                    merkFilter={merkFilter || ''}
+                    naamFilter={naamFilter || ''}
+                    onCheckboxChange={onCheckboxChange ?? (() => {})}
+                    onInputChange={onInputChange ?? (() => {})}
+                />
+            )}
+            {user?.role === 'Inkoper' && (
+                <KlantSidebar
+                    sidebarVisible={!!sidebarVisible}
+                    aankomendChecked={!!aankomendChecked}
+                    gekochtChecked={!!gekochtChecked}
+                    aChecked={!!aChecked}
+                    bChecked={!!bChecked}
+                    cChecked={!!cChecked}
+                    dChecked={!!dChecked}
+                    dateFilter={dateFilter || ''}
+                    merkFilter={merkFilter || ''}
+                    naamFilter={naamFilter || ''}
+                    onCheckboxChange={onCheckboxChange ?? (() => {})}
+                    onInputChange={onInputChange ?? (() => {})}
+                />
+            )}
+            {user?.role === 'Veilingmeester' && (
+                <VeilingmeesterSidebar
+                    sidebarVisible={!!sidebarVisible}
+                    aankomendChecked={!!aankomendChecked}
+                    inTePlannenChecked={!!inTePlannenChecked}
+                    aChecked={!!aChecked}
+                    bChecked={!!bChecked}
+                    cChecked={!!cChecked}
+                    dChecked={!!dChecked}
+                    dateFilter={dateFilter || ''}
+                    merkFilter={merkFilter || ''}
+                    naamFilter={naamFilter || ''}
+                    onCheckboxChange={onCheckboxChange ?? (() => {})}
+                    onInputChange={onInputChange ?? (() => {})}
+                />
+            )}
+        </>
+    );
+};
+
+export default Topbar;

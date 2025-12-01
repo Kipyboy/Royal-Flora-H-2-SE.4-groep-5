@@ -43,12 +43,24 @@ export default function Clock({endTs, durationMs, onPriceChange, locationName, o
           setMinPrice(-1);
           return null;
         }
-        return res.json();
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error("Error fetching klok data:", res.status, errorText);
+          setMinPrice(-1);
+          return null;
+        }
+        return res.text();
       })
-      .then((data: KlokDTO | null) => {
-        if (!data) return;
-        const price = Number(data.minimumPrijs);
-        setMinPrice(Number.isFinite(price) ? price : 0);
+      .then((text) => {
+        if (!text) return;
+        try {
+          const data: KlokDTO = JSON.parse(text);
+          const price = Number(data.minimumPrijs);
+          setMinPrice(Number.isFinite(price) ? price : 0);
+        } catch (parseErr) {
+          console.error("Failed to parse klok JSON:", parseErr, "Response text:", text);
+          setMinPrice(-1);
+        }
       })
       .catch((err) => {
         console.error("Error fetching klok data:", err);

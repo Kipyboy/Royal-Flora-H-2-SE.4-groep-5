@@ -51,7 +51,7 @@ Register a new user account and receive a JWT token.
   "e_mail": "user@example.com",
   "wachtwoord": "password123",
   "kvkNummer": "12345678",
-  "accountType": "inkooper"
+  "accountType": "inkoper"
 }
 ```
 
