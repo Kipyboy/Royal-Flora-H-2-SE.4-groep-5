@@ -204,8 +204,11 @@ namespace RoyalFlora.Controllers
         public async Task<ActionResult> DeleteAccount()
         {
             // Get user ID from JWT claims
-            var userId = GetUserInfo().Id;
-
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+            {
+                return Unauthorized(new { message = "Ongeldige gebruiker" });
+            }
 
             var gebruiker = await _context.Gebruikers.FindAsync(userId);
             
@@ -226,5 +229,7 @@ namespace RoyalFlora.Controllers
                 return StatusCode(500, new { message = "Fout bij het verwijderen van het account", error = ex.Message });
             }
         }
+
+        
     }
 }

@@ -142,16 +142,7 @@ const Topbar: React.FC<TopbarProps> = ({
                                 >
                                     Account Details
                                 </button>
-                                {user?.role === 'Aanvoerder' && (
-                                    <button
-                                        onClick={() => {
-                                            setDropdownVisible(false);
-                                            router.push('/productRegistratieAanvoerder');
-                                        }}
-                                    >
-                                        Product registreren
-                                    </button>
-                                )}
+
                                 <button className='logoutButton' onClick={handleLogout}>
                                     Uitloggen
                                 </button>
