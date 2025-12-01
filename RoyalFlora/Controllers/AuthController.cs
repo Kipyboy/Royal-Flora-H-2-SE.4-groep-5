@@ -199,5 +199,32 @@ namespace RoyalFlora.Controllers
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+
+        [HttpDelete("deleteAccount")]
+        public async Task<ActionResult> DeleteAccount()
+        {
+            // Get user ID from JWT claims
+            var userId = GetUserInfo().Id;
+
+
+            var gebruiker = await _context.Gebruikers.FindAsync(userId);
+            
+            if (gebruiker == null)
+            {
+                return NotFound(new { message = "Gebruiker niet gevonden" });
+            }
+
+            _context.Gebruikers.Remove(gebruiker);
+
+            try
+            {
+                await _context.SaveChangesAsync();
+                return Ok(new { message = "Account succesvol verwijderd" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Fout bij het verwijderen van het account", error = ex.Message });
+            }
+        }
     }
 }
