@@ -226,10 +226,8 @@ namespace RoyalFlora.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Fout bij het verwijderen van het account", error = ex.Message });
+                return StatusCode(500, new { message = "Fout bij het opslaan", error = ex.Message });
             }
         }
-
-        
     }
 }
