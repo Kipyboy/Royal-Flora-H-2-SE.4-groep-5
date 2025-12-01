@@ -90,6 +90,7 @@
 }
 .homepage-page .card {
     display: flex;
+    justify-content: center;
     background-color: var(--button);
     width: 20%;
     height: fit-content;

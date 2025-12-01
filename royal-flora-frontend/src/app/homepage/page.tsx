@@ -4,9 +4,12 @@ import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
 import Sidebar from '../components/Sidebar';
 import ProductCard from '../components/product-card'
+import GekochtProductCard from '../components/gekocht-product-card'
+import EigenProductCard from '../components/eigen-product-card'
 import  '../../styles/homepage.css';
 import { mock } from 'node:test';
 import Topbar from '../components/Topbar';
+import { getToken } from '../utils/auth';
 
 
 
@@ -17,7 +20,13 @@ const HomePage: React.FC = () => {
 
   const getProducts = async () => {
       try {
-        const response = await fetch("http://localhost:5156/api/products");
+        const token = getToken();
+        const headers: Record<string,string> = { "Content-Type": "application/json" };
+            if (token) headers["Authorization"] = `Bearer ${token}`;
+        const response = await fetch("http://localhost:5156/api/products", {
+          method: "GET",
+          headers
+        });
         const data = await response.json();
         setProducts(data);
       }
@@ -60,8 +69,7 @@ const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 }
 
 const productenInladen = () => {
-  return products
-  .filter(product => {
+  const filtered = products.filter(product => {
     if (
       (!aankomendChecked && product.status === "Aankomend") ||
       (!eigenChecked && product.status === "Eigen") ||
@@ -88,20 +96,62 @@ const productenInladen = () => {
     if(naamFilter && !product.naam.toLowerCase().includes(naamFilter.toLowerCase())) return false;
 
     return true;
-  })
-  .map(product => (
-    <ProductCard
-      key={product.id}
-      naam={product.naam}
-      merk={product.merk}
-      prijs={product.prijs}
-      datum={product.datum}
-      locatie={product.locatie}
-      status={product.status}
-      aantal={product.aantal}
-      fotoPath={product.fotoPath}
+  });
+
+  const renderCard = (product: any) => {
+    // Prefer explicit checks for both the 'Type' and 'status' fields because the API might use either.
+    const isGekocht = (product.type && product.type.toString().toLowerCase() === 'gekocht');
+    const isEigen =  (product.type && product.type.toString().toLowerCase() === 'eigen');
+
+    if (isGekocht) {
+      return (
+        <GekochtProductCard
+          key={product.id}
+          naam={product.naam}
+          merk={product.merk}
+          verkoopPrijs={(product.verkoopPrijs ?? product.prijs)?.toString()}
+          datum={product.datum}
+          locatie={product.locatie}
+          status={product.status}
+          aantal={product.aantal}
+          fotoPath={product.fotoPath}
+        />
+      );
+    }
+
+    if (isEigen) {
+      return (
+        <EigenProductCard
+          key={product.id}
+          naam={product.naam}
+          merk={product.merk}
+          verkoopPrijs={(product.verkoopPrijs ?? product.prijs)?.toString()}
+          koper={product.koper ?? ''}
+          datum={product.datum}
+          locatie={product.locatie}
+          status={product.status}
+          aantal={product.aantal}
+          fotoPath={product.fotoPath}
+        />
+      );
+    }
+
+    return (
+      <ProductCard
+        key={product.id}
+        naam={product.naam}
+        merk={product.merk}
+        prijs={product.prijs}
+        datum={product.datum}
+        locatie={product.locatie}
+        status={product.status}
+        aantal={product.aantal}
+        fotoPath={product.fotoPath}
       />
-  ));
+    );
+  };
+
+  return filtered.map(renderCard);
 };
 
   const [sidebarVisible, setSidebarVisible] = useState(true);
