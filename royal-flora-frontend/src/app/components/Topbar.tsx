@@ -101,53 +101,22 @@ const Topbar: React.FC<TopbarProps> = ({
                         <span className="nav-text">{currentPage}</span>
                     </div>
 
-            } catch (error) {
-                console.error('Error fetching session');
-            }
-        };
-
-        fetchSessionData();
-    }, []);
-
-    return (
-            <>
-                <div className="topbar">
-                    <nav className="nav">
-                        <div className="left">
-                            {useSideBar && (
-                                <div className="hamburger" onClick={toggleSidebar}>
-                                    <span></span>
-                                    <span></span>
-                                    <span></span>
-                                </div>
-                            )}
-                            <span className="nav-text">{currentPage}</span>
-                        </div>
-                        <div className="nav-logo-container">
-                            <a href="/homepage" className="nav-logo-link" aria-label="Ga naar homepagina" onClick={() => router.push('/homepage')}>
-                                <img
-                                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Royal_FloraHolland_Logo.svg/1200px-Royal_FloraHolland_Logo.svg.png"
-                                    alt="Royal FloraHolland Logo"
-                                    className="nav-logo"
-                                />
-                            </a>
-                        </div>
-
-                        <div className="role-specific-nav-text">
-                            {userRole === 'Aanvoerder' && (
-                                <a onClick={() => { setDropdownVisible(false); router.push('/productRegistratieAanvoerder'); }}>
-                                            Product registreren
-                                </a>
-                            )}
-                        </div>
-                        
-                        <div className="pfp-container" onClick={toggleDropdown}>
+                    <div className="nav-logo-container">
+                        <a href="/homepage" className="nav-logo-link" aria-label="Ga naar homepagina" onClick={() => router.push('/homepage')}>
                             <img
                                 src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Royal_FloraHolland_Logo.svg/1200px-Royal_FloraHolland_Logo.svg.png"
                                 alt="Royal FloraHolland Logo"
                                 className="nav-logo"
                             />
                         </a>
+                    </div>
+
+                    <div className="role-specific-nav-text">
+                        {user?.role === 'Aanvoerder' && (
+                            <a onClick={() => { setDropdownVisible(false); router.push('/productRegistratieAanvoerder'); }}>
+                                Product registreren
+                            </a>
+                        )}
                     </div>
 
                     <div className="pfp-container" onClick={toggleDropdown}>
@@ -182,14 +151,15 @@ const Topbar: React.FC<TopbarProps> = ({
                                     >
                                         Product registreren
                                     </button>
-                                    <button className='logoutButton' onClick={handleLogout}>
-                                        Uitloggen
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    </nav>
-                </div>
+                                )}
+                                <button className='logoutButton' onClick={handleLogout}>
+                                    Uitloggen
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </nav>
+            </div>
                 {useSideBar && sidebarVisible !== undefined && onCheckboxChange && onInputChange && (
                     <Sidebar
                         sidebarVisible={!!sidebarVisible}
