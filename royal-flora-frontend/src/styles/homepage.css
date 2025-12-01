@@ -90,6 +90,7 @@
 }
 .homepage-page .card {
     display: flex;
+    justify-content: center;
     background-color: var(--button);
     width: 20%;
     height: fit-content;
@@ -106,6 +107,12 @@
     color: var(--Text_on_button);
     margin-top: 1rem;
     margin-bottom: 1rem;
+}
+
+.homepage-page .card img {
+    width: 9rem;
+    height: auto;
+    margin: 0.5rem;
 }
 
 .homepage-page .toptext {

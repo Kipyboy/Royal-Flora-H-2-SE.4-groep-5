@@ -70,28 +70,28 @@ const AanvoerderSidebar: React.FC<SidebarProps> = ({
                   checked={aChecked}
                   onChange={onCheckboxChange}
                   />
-                  <label htmlFor="A">A</label>
+                  <label htmlFor="A">Naaldwijk</label>
                 </div>
                 <div>
                   <input type="checkbox" name="B" id="B" 
                   checked={bChecked}
                   onChange={onCheckboxChange}
                   />
-                  <label htmlFor="B">B</label>
+                  <label htmlFor="B">Aalsmeer</label>
                 </div>
                 <div>
                   <input type="checkbox" name="C" id="C" 
                   checked={cChecked}
                   onChange={onCheckboxChange}
                   />
-                  <label htmlFor="C">C</label>
+                  <label htmlFor="C">Rijnsburg</label>
                 </div>
                 <div>
                   <input type="checkbox" name="D" id="D" 
                   checked={dChecked}
                   onChange={onCheckboxChange}
                   />
-                  <label htmlFor="D">D</label>
+                  <label htmlFor="D">Eelde</label>
                 </div>
               </div>
             </fieldset>

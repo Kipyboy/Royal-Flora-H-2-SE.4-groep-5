@@ -4,9 +4,16 @@ import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
 import ProductCard from '../components/product-card';
 import '../../styles/homepage.css';
+import Sidebar from '../components/Sidebar';
+import ProductCard from '../components/product-card'
+import GekochtProductCard from '../components/gekocht-product-card'
+import EigenProductCard from '../components/eigen-product-card'
+import  '../../styles/homepage.css';
+import { mock } from 'node:test';
 import Topbar from '../components/Topbar';
 import { authFetch } from '../utils/api';
 import { getUser } from '../utils/auth';
+import { getToken } from '../utils/auth';
 
 interface User {
   username: string;
@@ -20,11 +27,32 @@ const HomePage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Filters
+  
+
+  const getProducts = async () => {
+      try {
+        const token = getToken();
+        const headers: Record<string,string> = { "Content-Type": "application/json" };
+            if (token) headers["Authorization"] = `Bearer ${token}`;
+        const response = await fetch("http://localhost:5156/api/products", {
+          method: "GET",
+          headers
+        });
+        const data = await response.json();
+        setProducts(data);
+      }
+      catch (error) {
+        console.log("Fout bij producten ophalen")
+      }
+  };
+  useEffect(() => {
+    getProducts();
+  }, []);
+
   const [aankomendChecked, setAankomendChecked] = useState(true);
-  const [eigenChecked, setEigenChecked] = useState(true);
-  const [gekochtChecked, setGekochtChecked] = useState(true);
-  const [inTePlannenChecked, setInTePlannenChecked] = useState(true);
+  const [eigenChecked, setEigenChecked] = useState(false);
+  const [gekochtChecked, setGekochtChecked] = useState(false);
+  const [inTePlannenChecked, setInTePlannenChecked] = useState(false);
   const [aChecked, setAChecked] = useState(false);
   const [bChecked, setBChecked] = useState(false);
   const [cChecked, setCChecked] = useState(false);
@@ -44,26 +72,14 @@ const HomePage: React.FC = () => {
       setUser(storedUser);
       setLoading(false);
 
-      try {
-        // ✅ Updated fetch URL to match backend
-        const response = await authFetch('http://localhost:5156/api/Products');
-        if (!response || !response.ok) {
-          const text = await response.text();
-          console.error('Failed to fetch products', response.status, text);
-          return;
-        }
-        try {
-          const data = await response.json();
-          console.log('Fetched products:', data); // debug log
-          setProducts(data);
-        } catch (parseErr) {
-          const text = await response.text();
-          console.error('Failed to parse products JSON:', parseErr, "Response text:", text);
-        }
-      } catch (err) {
-        console.error('Error fetching products', err);
-      }
-    };
+const productenInladen = () => {
+  const filtered = products.filter(product => {
+    if (
+      (!aankomendChecked && product.status === "Aankomend") ||
+      (!eigenChecked && product.status === "Eigen") ||
+      (!gekochtChecked && product.status === "Verkocht") ||
+      (!inTePlannenChecked && product.status === "In te plannen")
+    ) return false
 
     fetchData();
   }, []);
@@ -97,12 +113,64 @@ const HomePage: React.FC = () => {
           (!inTePlannenChecked && product.status === "In te plannen")
         ) return false;
 
-        if ((aChecked || bChecked || cChecked || dChecked) &&
-            ((!aChecked && product.locatie === "Naaldwijk") ||
-             (!bChecked && product.locatie === "Aalsmeer") ||
-             (!cChecked && product.locatie === "Rijnsburg") ||
-             (!dChecked && product.locatie === "Eelde"))
-        ) return false;
+    return true;
+  });
+
+  const renderCard = (product: any) => {
+    // Prefer explicit checks for both the 'Type' and 'status' fields because the API might use either.
+    const isGekocht = (product.type && product.type.toString().toLowerCase() === 'gekocht');
+    const isEigen =  (product.type && product.type.toString().toLowerCase() === 'eigen');
+
+    if (isGekocht) {
+      return (
+        <GekochtProductCard
+          key={product.id}
+          naam={product.naam}
+          merk={product.merk}
+          verkoopPrijs={(product.verkoopPrijs ?? product.prijs)?.toString()}
+          datum={product.datum}
+          locatie={product.locatie}
+          status={product.status}
+          aantal={product.aantal}
+          fotoPath={product.fotoPath}
+        />
+      );
+    }
+
+    if (isEigen) {
+      return (
+        <EigenProductCard
+          key={product.id}
+          naam={product.naam}
+          merk={product.merk}
+          verkoopPrijs={(product.verkoopPrijs ?? product.prijs)?.toString()}
+          koper={product.koper ?? ''}
+          datum={product.datum}
+          locatie={product.locatie}
+          status={product.status}
+          aantal={product.aantal}
+          fotoPath={product.fotoPath}
+        />
+      );
+    }
+
+    return (
+      <ProductCard
+        key={product.id}
+        naam={product.naam}
+        merk={product.merk}
+        prijs={product.prijs}
+        datum={product.datum}
+        locatie={product.locatie}
+        status={product.status}
+        aantal={product.aantal}
+        fotoPath={product.fotoPath}
+      />
+    );
+  };
+
+  return filtered.map(renderCard);
+};
 
         if (dateFilter && product.datum !== dateFilter) return false;
         if (merkFilter && !product.merk.toLowerCase().includes(merkFilter.toLowerCase())) return false;
@@ -163,9 +231,7 @@ const HomePage: React.FC = () => {
             {[{ name: 'Naaldwijk', key: 'a' }, { name: 'Aalsmeer', key: 'b' }, { name: 'Rijnsburg', key: 'c' }, { name: 'Eelde', key: 'd' }].map(({ name, key }) => (
               <a key={name} href={`/veiling?loc=${key}`} className="card">
                 <p>Locatie {name}</p>
-                <p>Aanvoerder:</p>
-                <p>Verlopen tijd:</p>
-                <p>Huidig product:</p>
+                <img src={`http://localhost:5156/images/locatie-${key}.jpg`} alt="" />
               </a>
             ))}
           </div>

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
@@ -98,7 +98,21 @@ namespace RoyalFlora.Controllers
             var products = await _context.Products
                 .Include(p => p.LeverancierNavigation)
                 .Include(p => p.StatusNavigation)
+                .Include(p => p.Fotos)
+                .Include(p => p.KoperNavigation)
                 .ToListAsync();
+
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+            if (!int.TryParse(userIdClaim, out var userId)) return Unauthorized();
+
+            var gebruiker = await _context.Gebruikers
+            .Include(g => g.BedrijfNavigation)
+            .SingleOrDefaultAsync(g => g.IdGebruiker == userId);
+
+
+            if (gebruiker == null) return Unauthorized();
+
+            var bedrijf = gebruiker.BedrijfNavigation.BedrijfNaam;
 
             if (!string.IsNullOrWhiteSpace(location))
             {
@@ -120,6 +134,64 @@ namespace RoyalFlora.Controllers
                 aantal = product.Aantal
             }).ToList();
 
+                if(product.Status.Equals("gekocht"))
+                {
+                    var gekochtdto = new ProductDTO
+                    {
+                        id = product.IdProduct,
+                        naam = product.ProductNaam ?? string.Empty,
+                        merk = leverancierNaam,
+                        verkoopPrijs = product.verkoopPrijs,
+                        datum = datum,
+                        locatie = locatie,
+                        status = status,
+                        aantal = product.Aantal,
+                        fotoPath = product.Fotos.FirstOrDefault()?.FotoPath ?? string.Empty,
+                        type = "gekocht"
+                    };
+                    productDTOs.Add(gekochtdto);
+                }
+                else if (leverancierNaam.Equals(bedrijf))
+                {
+                    var eigendto = new ProductDTO
+                    {
+                        id = product.IdProduct,
+                        naam = product.ProductNaam ?? string.Empty,
+                        merk = leverancierNaam,
+                        verkoopPrijs = product.verkoopPrijs,
+                        koper = product.KoperNavigation?.VoorNaam + " " + product.KoperNavigation?.AchterNaam ?? string.Empty,
+                        datum = datum,
+                        locatie = locatie,
+                        status = status,
+                        aantal = product.Aantal,
+                        fotoPath = product.Fotos.FirstOrDefault()?.FotoPath ?? string.Empty,    
+                        type = "eigen"
+                    };
+                    productDTOs.Add(eigendto);
+                }
+                else {
+                var dto = new ProductDTO
+                {
+                    id = product.IdProduct,
+                    naam = product.ProductNaam ?? string.Empty,
+                    merk = leverancierNaam,
+                    prijs = product.MinimumPrijs ?? string.Empty,
+                    datum = datum,
+                    locatie = locatie,
+                    status = status,
+                    aantal = product.Aantal,
+                    fotoPath = product.Fotos.FirstOrDefault()?.FotoPath ?? string.Empty
+                };
+                productDTOs.Add(dto);
+                }
+            }
+
+
+            // Debug output
+            foreach (var dto in productDTOs)
+            {
+                Console.WriteLine($"ProductDTO - Id: {dto.id}, Naam: {dto.naam}, Merk: {dto.merk}, Prijs: {dto.prijs}, Datum: {dto.datum}, Locatie: {dto.locatie}, Status: {dto.status}");
+            }
             return productDTOs;
         }
 
@@ -227,29 +299,34 @@ namespace RoyalFlora.Controllers
                 _context.Products.Add(product);
                 await _context.SaveChangesAsync();
 
-                if (images != null && images.Count > 0)
+                images = new List<IFormFile>();
+
+                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
+                if (!Directory.Exists(uploadsFolder))
                 {
-                    _context.Fotos.AddRange(images.Select(img => new Foto
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+                
+                
+                foreach (var image in images)
+                {
+                    
+                    string filePath = Path.Combine(uploadsFolder, image.FileName);
+                    _context.Fotos.Add(new Foto
                     {
                         IdProduct = product.IdProduct,
-                        FotoPath = img.FileName
-                    }));
-                    await _context.SaveChangesAsync();
+                        FotoPath = image.FileName
+                    });
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await image.CopyToAsync(stream);
+                    }
+
                 }
 
-                var productDTO = new ProductDTO
-                {
-                    id = product.IdProduct,
-                    naam = product.ProductNaam ?? string.Empty,
-                    merk = string.Empty,
-                    prijs = product.MinimumPrijs,
-                    datum = product.Datum?.ToString("yyyy-MM-dd") ?? string.Empty,
-                    locatie = product.Locatie ?? string.Empty,
-                    status = string.Empty,
-                    aantal = product.Aantal
-                };
-
-                return Ok(productDTO);
+                await _context.SaveChangesAsync();
+                return CreatedAtAction(nameof(GetProduct), new { id = product.IdProduct }, new ResponseDTO { naam = product.ProductNaam ?? string.Empty, bericht = "Product succesvol geregistreerd!" });
+            
             }
             catch (Exception ex)
             {

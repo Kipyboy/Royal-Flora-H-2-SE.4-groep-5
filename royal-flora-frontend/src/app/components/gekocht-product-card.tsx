@@ -3,10 +3,10 @@ import '../../styles/ProductCard.css';
 
 
 
-interface ProductCardProps {
+interface GekochtProductCardProps {
     naam: string;
     merk: string;
-    prijs: string | number;
+    verkoopPrijs: string;
     datum: string;
     locatie: string;
     status: string;
@@ -14,21 +14,10 @@ interface ProductCardProps {
     fotoPath: string;
 }
 
-const formatPrice = (price: string | number): string => {
-    const numPrice = typeof price === 'string' ? parseFloat(price) : price;
-    if (isNaN(numPrice)) {
-        return "€0.00";
-    }
-    return new Intl.NumberFormat('nl-NL', {
-        style: 'currency',
-        currency: 'EUR'
-    }).format(numPrice);
-};
-
-const ProductCard: React.FC<ProductCardProps> = ({
+const GekochtProductCard: React.FC<GekochtProductCardProps> = ({
     naam,
     merk,
-    prijs,
+    verkoopPrijs,
     datum,
     locatie,
     status,
@@ -45,7 +34,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             <p id="naam">Naam: {naam}</p>
             <p id="merk">Merk: {merk}</p>
             <p id="aantal">Aantal: {aantal}</p>
-            <p id="prijs">Prijs: {prijs}</p>
+            <p id="prijs">Gekocht voor: {verkoopPrijs}</p>
             <p id="datum">Datum: {datum}</p>
             <p id="locatie">Locatie: {locatie}</p>
             <p id="status">Status: {status}</p>
@@ -54,4 +43,4 @@ const ProductCard: React.FC<ProductCardProps> = ({
     );
 };
 
-export default ProductCard;
+export default GekochtProductCard;
