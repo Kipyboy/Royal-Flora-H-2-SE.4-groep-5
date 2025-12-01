@@ -17,6 +17,7 @@ interface UserDetails {
 }
 
 const AccountDetails: React.FC = () => {
+    const router = useRouter();
     const [userDetails, setUserDetails] = useState<UserDetails>({
         voornaam: '',
         achternaam: '',
@@ -176,15 +177,27 @@ const AccountDetails: React.FC = () => {
         router.push('/');
     };
 
-    const handleDeleteAccount = () => {
+    const handleDeleteAccount = async () => {
         if (window.confirm('Weet je zeker dat je je account wilt verwijderen?')) {
-            // Implementeer account verwijderen logica
-            // await deleteAccount();
-            router.push('/');
-        }
+            try{
+                const authHeaders = getAuthHeaders();
+                const response = await fetch('http://localhost:5156/api/auth/deleteAccount', {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            ...authHeaders,
+                        }
+                    })
+            clearAuth();
+            console.log(response)
+                router.push('/');
+            } catch (error) {
+                setErrors({ general: 'Kon account niet verwijderen' });
+            }
+        }   
     };
 
-    const router = useRouter();
+    
 
         if (loading) {
         return (

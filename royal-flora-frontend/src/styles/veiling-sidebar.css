@@ -1,8 +1,8 @@
 .veiling-page .sidebar {
   position: fixed;
-  top: 9.375rem;
+  top: var(--TopbarPadding);
   width: clamp(12rem, 25vw, 15.625rem);
-  height: calc(100% - 9.375rem);
+  height: calc(100% - var(--TopbarPadding));
   background-color: var(--Secondair);
   border-left: 0.0625rem solid #ccc;
   padding: 1rem;

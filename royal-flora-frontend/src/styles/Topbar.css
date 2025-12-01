@@ -1,5 +1,11 @@
+:root {
+    --TopbarPadding: 6.375rem;
+}
+
 .topbar .nav-logo-container {
-    flex: 1;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -8,6 +14,7 @@
     height: 100px;
     width: auto;
     border-radius: 0;
+    justify-content: center;
 }
 .topbar .pfp-container {
     position: relative;
@@ -84,20 +91,16 @@
     min-height: 0.100rem;
 }
 
-.topbar{
-    padding-bottom: 9.375rem;
-}
-
 .topbar nav {
     background-color: var(--Secondair);
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    height: 9.375rem;
+    height: var(--TopbarPadding);
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
     gap: clamp(0.5rem, 2vw, 1rem);
     padding: clamp(0.5rem, 2vw, 1rem);
     z-index: 1000;
@@ -115,5 +118,23 @@
     display: flex;
     flex-direction: row;
     align-items: center;
-    right: 1rem;
+    gap: 1rem;
+    flex: 1;
+}
+
+
+.topbar .role-specific-nav-text {
+    display: flex;
+    justify-content: right;
+    align-items: center;
+    cursor: pointer;
+    left: 75%;
+    transform: translateX(-75%);
+    font-weight: bold;
+    font-size: larger;
+    color: var(--Text_on_button);
+}
+
+body:has(.topbar) {
+    padding-top: var(--TopbarPadding);
 }

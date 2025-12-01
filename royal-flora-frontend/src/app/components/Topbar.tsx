@@ -102,18 +102,21 @@ const Topbar: React.FC<TopbarProps> = ({
                     </div>
 
                     <div className="nav-logo-container">
-                        <a
-                            href="/homepage"
-                            className="nav-logo-link"
-                            aria-label="Ga naar homepagina"
-                            onClick={() => router.push('/homepage')}
-                        >
+                        <a href="/homepage" className="nav-logo-link" aria-label="Ga naar homepagina" onClick={() => router.push('/homepage')}>
                             <img
                                 src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Royal_FloraHolland_Logo.svg/1200px-Royal_FloraHolland_Logo.svg.png"
                                 alt="Royal FloraHolland Logo"
                                 className="nav-logo"
                             />
                         </a>
+                    </div>
+
+                    <div className="role-specific-nav-text">
+                        {user?.role === 'Aanvoerder' && (
+                            <a onClick={() => { setDropdownVisible(false); router.push('/productRegistratieAanvoerder'); }}>
+                                Product registreren
+                            </a>
+                        )}
                     </div>
 
                     <div className="pfp-container" onClick={toggleDropdown}>
@@ -139,17 +142,8 @@ const Topbar: React.FC<TopbarProps> = ({
                                 >
                                     Account Details
                                 </button>
-                                {user?.role === 'Aanvoerder' && (
-                                    <button
-                                        onClick={() => {
-                                            setDropdownVisible(false);
-                                            router.push('/productRegistratieAanvoerder');
-                                        }}
-                                    >
-                                        Product registreren
-                                    </button>
-                                )}
-                                <button className="logoutButton" onClick={handleLogout}>
+
+                                <button className='logoutButton' onClick={handleLogout}>
                                     Uitloggen
                                 </button>
                             </div>
@@ -157,11 +151,7 @@ const Topbar: React.FC<TopbarProps> = ({
                     </div>
                 </nav>
             </div>
-
-            {useSideBar &&
-                sidebarVisible !== undefined &&
-                onCheckboxChange &&
-                onInputChange && (
+                {useSideBar && sidebarVisible !== undefined && onCheckboxChange && onInputChange && (
                     <Sidebar
                         sidebarVisible={!!sidebarVisible}
                         aankomendChecked={!!aankomendChecked}

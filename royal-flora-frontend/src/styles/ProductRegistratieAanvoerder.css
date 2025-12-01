@@ -5,7 +5,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: clamp(1rem, 3vw, 3rem);
+    /* padding: clamp(1rem, 3vw, 3rem); kan weer worden toegevoegd als je wilt maar ziet er beter uit zo imo*/
 }
 
 ﻿/* --------------------------------- */
