@@ -75,11 +75,20 @@ export default function Registreren() {
             newErrors.email = 'Email is verplicht';
             isValid = false;
         }
+        else if ((formData.email.length) > 45) {
+            newErrors.email = 'Email mag niet langer zijn dan 45 tekens'
+            isValid = false;
+        }
 
         if (!formData.password) {
             newErrors.password = 'Wachtwoord is verplicht';
             isValid = false;
-        } else {
+        } 
+        else if ((formData.password.length) > 60) {
+            newErrors.password = 'Wachtwoord mag niet langer zijn dan 60 tekens'
+            isValid = false;
+        }
+        else {
             // At least 8 characters, at least one digit and one special character
             const pwdRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
             if (!pwdRegex.test(formData.password)) {
@@ -154,8 +163,8 @@ export default function Registreren() {
                     return;
                 }
 
-                const token = (data?.token || data?.Token) as string | undefined;
-                const user = (data?.user || data?.User) || null;
+                const token = (data?.token || data?.token) as string | undefined;
+                const user = (data?.user || data?.user) || null;
                 if (token) setToken(token);
                 if (user) {
                     localStorage.setItem('user', JSON.stringify({ id: user.id, username: user.username, email: user.email, role: user.role }));
