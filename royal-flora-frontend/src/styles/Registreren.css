@@ -16,6 +16,11 @@
     font-weight: bold;
     letter-spacing: 0.02em;
 }
+.registreren-page h2 {
+    text-align: center;
+    color: var(--Text_on_primair);
+    margin-bottom: clamp(1rem, 3vw, 2rem);
+}
 
 .registreren-page form {
     width: min(95vw, 50rem);

@@ -20,6 +20,8 @@ namespace RoyalFlora.AuthDTO
         public UserInfo? User { get; set; }
     }
 
+
+
     public class RegisterRequest
     {
         public string VoorNaam { get; set; } = string.Empty;
@@ -31,6 +33,9 @@ namespace RoyalFlora.AuthDTO
         public string AccountType { get; set; } = string.Empty;
         public string? Postcode { get; set; }
         public string? Adres { get; set; }
+        public string? BedrijfNaam { get; set; }
+        public string? BedrijfPostcode {get; set; }
+        public string? BedrijfAdres { get; set; }
     }
 
     public class RegisterResponse
