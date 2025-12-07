@@ -131,6 +131,31 @@ export default function Registreren() {
         if (!validateForm()) {
             return;
         }
+        try {
+            const response = await fetch(`http://localhost:5156/api/auth/kvk-exists/${formData.kvk}`);
+            if (!response.ok) {
+                alert('Fout bij het controleren van het KvK-nummer');
+                return;
+            }
+            const exists = await response.json();
+
+            if (!exists) {
+                try {
+                    sessionStorage.setItem('registrationForm', JSON.stringify(formData));
+                } catch (e) {
+                    console.warn('Kon formData niet in sessionStorage zetten', e);
+                }
+
+                
+                router.push('/bedrijfRegistratie');
+                return;
+            }
+            // else KvK exists -> continue and call register endpoint below
+        } catch (err) {
+            console.error('Error checking KvK:', err);
+            alert('Kon KvK-nummer niet controleren. Probeer het later opnieuw.');
+            return;
+        }
 
         try {
             const response = await fetch('http://localhost:5156/api/auth/register', {
