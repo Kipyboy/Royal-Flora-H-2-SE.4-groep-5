@@ -73,6 +73,7 @@ const AccountDetails: React.FC = () => {
                         wachtwoord: '' 
                     });
                 } else {
+                    console.error('Failed to fetch session data');
                     router.push('/');
                 }
             } catch (error) {
@@ -164,15 +165,7 @@ const AccountDetails: React.FC = () => {
         }
     };
 
-    const handleLogout = async () => {
-        try {
-            await fetch('http://localhost:5156/api/auth/logout', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            });
-        } catch (err) {
-            // ignore network errors on logout
-        }
+    const handleLogout = () => {
         clearAuth();
         router.push('/');
     };

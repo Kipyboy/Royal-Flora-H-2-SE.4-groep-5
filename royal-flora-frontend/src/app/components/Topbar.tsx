@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import '../../styles/Topbar.css';
 import Sidebar from './Sidebar';
 import { useRouter } from 'next/navigation';
-import { logout as clearAuth } from '../utils/auth';
+import { logout as clearAuth, getUser } from '../utils/auth';
 import AanvoerderSidebar from './AanvoerderSidebar';
 import KlantSidebar from './KlantSidebar';
 import VeilingmeesterSidebar from './VeilingmeesterSidebar';
@@ -35,10 +35,17 @@ interface TopbarProps {
     onInputChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
+interface User {
+    username: string;
+    email?: string;
+    role: string;
+    KVK?: string;
+}
+
 const Topbar: React.FC<TopbarProps> = ({
     useSideBar = false,
     currentPage,
-    user,
+    user: userProp,
     sidebarVisible,
     toggleSidebar,
     aankomendChecked,
@@ -57,6 +64,15 @@ const Topbar: React.FC<TopbarProps> = ({
 }) => {
     const [dropdownVisible, setDropdownVisible] = useState(false);
     const router = useRouter();
+    const [user, setUser] = useState<User | null>(userProp ?? null);
+
+    useEffect(() => {
+        if (!userProp) {
+            const fetched = getUser();
+            setUser(fetched);
+            console.log("Fetched user in Topbar:", fetched);
+        }
+    }, [userProp]);
 
     const toggleDropdown = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -74,7 +90,7 @@ const Topbar: React.FC<TopbarProps> = ({
         }
         clearAuth();
         setDropdownVisible(false);
-        router.push('/login');
+        router.push('/');
     };
 
     // Close dropdown when clicking outside
@@ -85,6 +101,8 @@ const Topbar: React.FC<TopbarProps> = ({
         document.addEventListener('click', handleClickOutside);
         return () => document.removeEventListener('click', handleClickOutside);
     }, [dropdownVisible]);
+
+    console.log("Topbar rendered with user:", user);
 
     return (
         <>
@@ -126,12 +144,7 @@ const Topbar: React.FC<TopbarProps> = ({
                             className="pfp-img"
                             aria-label="Account menu"
                         />
-                        {user && (
-                            <div className="user-info">
-                                <span className="username">{user.username}</span>
-                                <span className="role">{user.role}</span>
-                            </div>
-                        )}
+
                         {dropdownVisible && (
                             <div className="dropdown-menu" onClick={(e) => e.stopPropagation()}>
                                 <button

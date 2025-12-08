@@ -6,6 +6,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using RoyalFlora.AuthDTO;
+using Microsoft.AspNetCore.Authorization;
 
 namespace RoyalFlora.Controllers
 {
@@ -223,6 +224,116 @@ namespace RoyalFlora.Controllers
             {
                 await _context.SaveChangesAsync();
                 return Ok(new { message = "Account succesvol verwijderd" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Fout bij het opslaan", error = ex.Message });
+            }
+        }
+
+        [Authorize]
+        [HttpGet("allUserInfo")]
+        public async Task<ActionResult<Gebruiker>> GetUserInfo()
+        {
+            // Get user ID from JWT claims
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+            {
+                return Unauthorized(new { message = "Niet ingelogd" });
+            }
+
+            var gebruiker = await _context.Gebruikers
+                .Include(g => g.RolNavigation)
+                .FirstOrDefaultAsync(g => g.IdGebruiker == userId);
+
+            if (gebruiker == null)
+            {
+                return NotFound(new { message = "Gebruiker niet gevonden" });
+            }
+
+            return Ok(new Gebruiker
+            {
+                VoorNaam = gebruiker.VoorNaam,
+                AchterNaam = gebruiker.AchterNaam,
+                Email = gebruiker.Email,
+                Telefoonnummer = gebruiker.Telefoonnummer,
+                Adress = gebruiker.Adress,
+                Postcode = gebruiker.Postcode
+            });
+        }
+
+                [HttpPost("updateUserInfo")]
+
+
+        [Microsoft.AspNetCore.Authorization.Authorize]
+
+
+        public async Task<ActionResult> UpdateUserInfo([FromBody] UpdateUserInfoRequest request)
+        {
+            // Get user ID from JWT claims
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+
+            {
+                return Unauthorized(new { message = "Niet ingelogd" });
+            }
+
+            var gebruiker = await _context.Gebruikers.FindAsync(userId);
+
+            if (gebruiker == null)
+            {
+                return NotFound(new { message = "Gebruiker niet gevonden" });
+            }
+
+            // Update alleen het specifieke veld
+            switch (request.Field.ToLower())
+
+            {
+                case "voornaam":
+                    gebruiker.VoorNaam = request.NewValue;
+                    break;
+
+                case "achternaam":
+                    gebruiker.AchterNaam = request.NewValue;
+                    break;
+
+                case "email":
+                    gebruiker.Email = request.NewValue;
+                    break;
+
+                case "telefoonnummer":
+                    gebruiker.Telefoonnummer = request.NewValue;
+                    break;
+
+                case "adress":
+                    gebruiker.Adress = request.NewValue;
+                    break;
+
+                case "postcode":
+                    gebruiker.Postcode = request.NewValue;
+                    break;
+
+                case "wachtwoord":
+                    gebruiker.Wachtwoord = BCrypt.Net.BCrypt.HashPassword(request.NewValue);
+                    break;
+
+                default:
+                    return BadRequest(new { message = $"Ongeldig veld: {request.Field}" });
+            }
+
+
+            try
+            {
+                await _context.SaveChangesAsync();
+
+
+                return Ok(new { 
+                    message = "Veld succesvol bijgewerkt",
+                    field = request.Field,
+                    newValue = request.Field.ToLower() == "wachtwoord" ? "***" : request.NewValue
+                });
             }
             catch (Exception ex)
             {
