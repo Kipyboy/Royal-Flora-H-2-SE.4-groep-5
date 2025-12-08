@@ -1,13 +1,9 @@
-using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
+
 using RoyalFlora.Controllers;
-using Microsoft.Extensions.Configuration;
-using System;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http.HttpResults;
 using FluentAssertions;
 using RoyalFlora.Tests.Helpers;
-using Microsoft.AspNetCore.Identity.Data;
+
 
 
 namespace RoyalFlora.Tests.Tests.AuthControllerTests;
