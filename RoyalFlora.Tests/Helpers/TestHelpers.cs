@@ -63,10 +63,25 @@ namespace RoyalFlora.Tests.Helpers
 
             return gebruiker;
         }
-        public static void SeedRol (MyDbContext context)
+        public static void SeedRollen (MyDbContext context)
         {
             var role = new Rol { IdRollen = 2, RolNaam = "Inkoper" };
+            var role2 = new Rol {IdRollen = 1, RolNaam = "Aanvoerder"};
             context.Rollen.Add(role);
+            context.Rollen.Add(role2);
+            context.SaveChanges();
+        }
+        public static void SeedBedrijf (MyDbContext context)
+        {
+            var bedrijf = new Bedrijf
+            {
+                KVK = 87654321,
+                BedrijfNaam = "Testbedrijf",
+                Adress = "Testweg 125",
+                Postcode = "0505BC",
+                Oprichter = 1
+            };
+            context.Bedrijven.Add(bedrijf);
             context.SaveChanges();
         }
     }

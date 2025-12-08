@@ -22,7 +22,7 @@ namespace RoyalFlora.Tests.Tests.AuthControllerTests;
         var dbName = Guid.NewGuid().ToString();
         using var context = TestHelpers.CreateInMemoryContext(dbName);
 
-            TestHelpers.SeedRol(context);
+            TestHelpers.SeedRollen(context);
             TestHelpers.SeedUser(context, "test@gmail.com", "test123!");
 
             var configuration = TestHelpers.CreateTestConfiguration();
@@ -43,7 +43,7 @@ namespace RoyalFlora.Tests.Tests.AuthControllerTests;
         var dbName = Guid.NewGuid().ToString();
         using var context = TestHelpers.CreateInMemoryContext(dbName);
 
-        TestHelpers.SeedRol(context);
+        TestHelpers.SeedRollen(context);
         TestHelpers.SeedUser(context, "test@gmail.com", "test123!");
 
         var configuration = TestHelpers.CreateTestConfiguration();
@@ -63,7 +63,7 @@ namespace RoyalFlora.Tests.Tests.AuthControllerTests;
         var dbName = Guid.NewGuid().ToString();
         using var context = TestHelpers.CreateInMemoryContext(dbName);
 
-        TestHelpers.SeedRol(context);
+        TestHelpers.SeedRollen(context);
         TestHelpers.SeedUser(context, "test@gmail.com", "test123!");
 
         var configuration = TestHelpers.CreateTestConfiguration();
@@ -84,7 +84,7 @@ namespace RoyalFlora.Tests.Tests.AuthControllerTests;
         var dbName = Guid.NewGuid().ToString();
         using var context = TestHelpers.CreateInMemoryContext(dbName);
 
-        TestHelpers.SeedRol(context);
+        TestHelpers.SeedRollen(context);
         TestHelpers.SeedUser(context, "test@gmail.com", "test123!");
 
         var configuration = TestHelpers.CreateTestConfiguration();
@@ -105,7 +105,7 @@ namespace RoyalFlora.Tests.Tests.AuthControllerTests;
         var dbName = Guid.NewGuid().ToString();
         using var context = TestHelpers.CreateInMemoryContext(dbName);
 
-        TestHelpers.SeedRol(context);
+        TestHelpers.SeedRollen(context);
         TestHelpers.SeedUser(context, "test@gmail.com", "test123!");
 
         var configuration = TestHelpers.CreateTestConfiguration();
@@ -125,7 +125,7 @@ namespace RoyalFlora.Tests.Tests.AuthControllerTests;
         var dbName = Guid.NewGuid().ToString();
         using var context = TestHelpers.CreateInMemoryContext(dbName);
 
-        TestHelpers.SeedRol(context);
+        TestHelpers.SeedRollen(context);
         TestHelpers.SeedUser(context, "test@gmail.com", "test123!");
 
         var configuration = TestHelpers.CreateTestConfiguration();

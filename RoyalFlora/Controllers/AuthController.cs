@@ -50,7 +50,7 @@ namespace RoyalFlora.Controllers
             
             int kvkNummer = 0;
             
-                if (!int.TryParse(request.KvkNummer, out kvkNummer) || request.KvkNummer.Length != 8)
+                if (!int.TryParse(request.KvkNummer, out kvkNummer) || request.KvkNummer == null || request.KvkNummer.Length != 8)
                 {
                     return BadRequest(new RegisterResponse
                     {
