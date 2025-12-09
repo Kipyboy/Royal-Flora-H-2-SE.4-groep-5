@@ -198,6 +198,7 @@ namespace RoyalFlora.Controllers
             return product;
         }
 
+        //geen uses op het moment
         [HttpPut("{id:int}")]
         public async Task<IActionResult> PutProduct(int id, Product product)
         {

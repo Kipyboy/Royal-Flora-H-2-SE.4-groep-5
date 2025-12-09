@@ -10,6 +10,7 @@ using RoyalFlora.Tests.Helpers;
 using Microsoft.AspNetCore.Identity.Data;
 using Org.BouncyCastle.Ocsp;
 using Azure;
+using RoyalFlora.AuthDTO;
 
 namespace RoyalFlora.Tests.Tests.AuthControllerTests;
 
@@ -39,6 +40,9 @@ public class RegisterTests
         var actionResult = await controller.Register(request);
 
         actionResult.Result.Should().BeOfType<BadRequestObjectResult>();
+        var result = actionResult.Result as BadRequestObjectResult;
+        var response = result.Value as RegisterResponse;
+        response.Message.Should().BeSameAs("Alle velden zijn verplicht");
     }
     [Fact]
     public async Task Register_ReturnsBadRequest_WhenDuplicateEmail ()
@@ -71,6 +75,9 @@ public class RegisterTests
         var actionResult = await controller.Register(request);
         
         actionResult.Result.Should().BeOfType<BadRequestObjectResult>();
+        var result = actionResult.Result as BadRequestObjectResult;
+        var response = result.Value as RegisterResponse;
+        response.Message.Should().BeSameAs("Email adres is al in gebruik");
     }
 
     [Fact]
@@ -103,6 +110,9 @@ public class RegisterTests
         var actionResult = await controller.Register(request);
 
         actionResult.Result.Should().BeOfType<BadRequestObjectResult>();
+        var result = actionResult.Result as BadRequestObjectResult;
+        var response = result.Value as RegisterResponse;
+        response.Message.Should().BeSameAs("KvK-nummer moet 8 cijfers bevatten");
     }
     [Fact]
     public async Task Register_OprichterIsSetCorrectly_WhenNewBedrijfRegistered ()

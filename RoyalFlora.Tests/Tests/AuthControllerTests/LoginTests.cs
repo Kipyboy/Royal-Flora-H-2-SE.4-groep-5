@@ -1,13 +1,9 @@
-using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
+
 using RoyalFlora.Controllers;
-using Microsoft.Extensions.Configuration;
-using System;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http.HttpResults;
 using FluentAssertions;
 using RoyalFlora.Tests.Helpers;
-using Microsoft.AspNetCore.Identity.Data;
+
 
 
 namespace RoyalFlora.Tests.Tests.AuthControllerTests;
@@ -36,6 +32,9 @@ namespace RoyalFlora.Tests.Tests.AuthControllerTests;
         var actionResult = await controller.Login(request);
 
         actionResult.Result.Should().BeOfType<BadRequestObjectResult>();
+        var result = actionResult.Result as BadRequestObjectResult;
+        var response = result.Value as AuthDTO.LoginResponse;
+        response.Message.Should().BeSameAs("Email en wachtwoord zijn verplicht");
      }
      [Fact]
      public async Task Login_ReturnsUnauthorized_WhenIncorrectPassword ()
@@ -57,6 +56,9 @@ namespace RoyalFlora.Tests.Tests.AuthControllerTests;
             var actionResult = await controller.Login(request);
 
             actionResult.Result.Should().BeOfType<UnauthorizedObjectResult>();
+            var result = actionResult.Result as UnauthorizedObjectResult;
+            var response = result.Value as AuthDTO.LoginResponse;
+            response.Message.Should().BeSameAs("Ongeldige inloggegevens");
     }
     [Fact]
     public async Task Login_ReturnsUnauthorized_WhenIncorrectEmail () {
@@ -77,6 +79,9 @@ namespace RoyalFlora.Tests.Tests.AuthControllerTests;
         var actionResult = await controller.Login(request);
 
         actionResult.Result.Should().BeOfType<UnauthorizedObjectResult>();
+        var result = actionResult.Result as UnauthorizedObjectResult;
+        var response = result.Value as AuthDTO.LoginResponse;
+        response.Message.Should().BeSameAs("Ongeldige inloggegevens");
 
     }
     [Fact]
@@ -119,6 +124,9 @@ namespace RoyalFlora.Tests.Tests.AuthControllerTests;
         var actionResult = await controller.Login(request);
 
         actionResult.Result.Should().BeOfType<UnauthorizedObjectResult>();
+        var result = actionResult.Result as UnauthorizedObjectResult;
+        var response = result.Value as AuthDTO.LoginResponse;
+        response.Message.Should().BeSameAs("Ongeldige inloggegevens");
     }
     [Fact]
     public async Task Login_ReturnsOk_WhenCaseVariationInEmail () {
