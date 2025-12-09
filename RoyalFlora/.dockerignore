@@ -1,0 +1,56 @@
+# Docker ignore for ASP.NET Core 9 projects
+
+# Node/npm
+node_modules/
+npm-debug.log
+
+# Build artifacts
+bin/
+obj/
+**/bin/
+**/obj/
+
+# Publish output
+out/
+publish/
+
+# Visual Studio / IDE
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile
+.dockerignore
+
+# Environment / secrets
+.env
+secrets.json
+appsettings.Development.json
+Properties/launchSettings.json
+
+# Logs, OS files, and other temporary files
+*.log
+TestResults/
+coverage/
+.DS_Store
+Thumbs.db
+*.pid
+
+# NuGet / packages
+packages/
+*.nupkg
+.nuget/
+
+# Misc
+*.db
+*.db-shm
+*.db-wal
+

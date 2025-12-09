@@ -1,0 +1,79 @@
+# een service is een apparte docker dat je draait
+
+#zo je hebt db: dat is de naam van de service hier is het onze database
+#image is what je ophaalt van het internet voor een basis OS/image
+#dan heb je de naam dat je het geeft
+# env variables dat je mee geeft
+# de poorts dat je het mee geeft
+# volumes is voor data opslag en waar data staat
+# restart is well, wanneer het restart inplaats van perongeluk stoppen
+# healthcheck kijkt of het iets kan doen en dus of het werkt of niet
+# je kan de services apart draaien of tegerlijker tijd
+#specifieke waarders heb ik van meerdere tutorials opgehaald zo als je meer wilt weten er zijn heel veel tutorials en het is makelijk te begrijpen
+#bijna elk project of framwork dat je gebruikt heeft wel een docker tutorial
+
+
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: royal-flora-db
+    environment:
+      SA_PASSWORD: "RoyalFlora@2024!"
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: "Developer"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    restart: unless-stopped
+    healthcheck:
+      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "RoyalFlora@2024!" -C -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  backend:
+    build:
+      # Build context must point to the folder containing RoyalFlora.csproj and the Dockerfile
+      context: ./RoyalFlora
+      dockerfile: dockerfile
+    container_name: royal-flora-backend
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      DOTNET_USE_POLLING_FILE_WATCHER: "true"
+      ConnectionStrings__DefaultConnection: "Server=db;Database=RoyalFloraDB;User Id=sa;Password=RoyalFlora@2024!;TrustServerCertificate=true;MultipleActiveResultSets=true"
+    ports:
+      - "5156:8080"
+    volumes:
+      # Mount host project folder into /src so the running container sees the same files as built
+      - ./RoyalFlora:/RoyalFlora
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./royal-flora-frontend
+      dockerfile: dockerfile
+    container_name: royal-flora-frontend
+    environment:
+      NODE_ENV: development
+      CHOKIDAR_USEPOLLING: "true"
+      HOST: 0.0.0.0
+      PORT: 3000
+      NEXT_TELEMETRY_DISABLED: "1"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./royal-flora-frontend:/royal-flora-frontend
+      - node_modules:/royal-flora-frontend/node_modules
+    depends_on:
+      - backend
+    command: ["npm", "run", "dev", "--", "-H", "0.0.0.0", "-p", "3000"]
+    restart: unless-stopped
+
+volumes:
+  node_modules:
+  sqlserver_data:

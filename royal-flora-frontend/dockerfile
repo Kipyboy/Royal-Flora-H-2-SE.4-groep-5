@@ -1,0 +1,27 @@
+#Linux versie/basis
+FROM node:20-alpine
+
+# de folder waarin het project staat
+WORKDIR /royal-flora-frontend
+
+# env variables/settings
+ENV NODE_ENV=development
+ENV PORT=3000
+ENV HOST=0.0.0.0
+ENV CHOKIDAR_USEPOLLING=true
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# de packadge bestanden gebruiken
+COPY package*.json ./
+RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
+
+# alles overzetten
+COPY . .
+
+# dit is de poort dat open word gezet
+EXPOSE 3000
+
+# en natuurlijk de manier hoe het project start (cmd staat voor command)
+CMD ["npm", "run", "dev", "--", "-H", "0.0.0.0", "-p", "3000"]
+
+# ik hoop dat dit genoeg uitleg is?

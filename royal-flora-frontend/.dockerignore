@@ -1,0 +1,48 @@
+# Docker ignore for Next.js project
+# See: https://nextjs.org/docs/deployment
+
+# Node.js modules and package logs
+node_modules
+npm-debug.log
+yarn-error.log
+pnpm-debug.log
+
+# Docker and git metadata
+Dockerfile
+.dockerignore
+.git
+.gitignore
+
+# Environment variables and secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Next.js build and cache artifacts
+.next
+.next/cache
+out
+dist
+build
+coverage
+
+# IDE/editor and OS files
+.vscode
+.idea
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+
+# Logs and temporary files
+*.log
+tmp
+temp
+*.tmp
+
+# Do not ignore these (ensure lockfiles are available for deterministic installs):
+!package-lock.json
+!yarn.lock
+!pnpm-lock.yaml
+

@@ -58,6 +58,13 @@ namespace RoyalFlora
 
             var app = builder.Build();
 
+            // zorgen dat er automatisch gemigreerd wordt moest ik neerzetten voor de docker anders werkte het niet
+            using (var scope = app.Services.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<MyDbContext>();
+                dbContext.Database.Migrate();
+            }
+
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {

@@ -1,0 +1,23 @@
+# Dit is de base "build" oftewel een basis "OS" voor het project
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS dev
+WORKDIR /src
+
+# Dit is voor env variables enzo
+ENV ASPNETCORE_ENVIRONMENT=Development
+ENV DOTNET_USE_POLLING_FILE_WATCHER=true
+
+EXPOSE 8080
+EXPOSE 8081
+
+# zorgen dat de cdproj bestaad overgezetwordt
+COPY ["RoyalFlora.csproj", "./"]
+RUN dotnet restore "RoyalFlora.csproj"
+
+# en nu de rest over zetten
+COPY . .
+
+# het maken van een built in debug mode
+RUN dotnet build "RoyalFlora.csproj" -c Debug
+
+# Het starten van het project met vershillende waardes, zoals watch zodat we niet de heletijd de docker hoefen te restarted terwijl we aan het werken zijn
+ENTRYPOINT ["dotnet", "watch", "run", "--project", "RoyalFlora.csproj", "--urls", "http://0.0.0.0:8080"]
