@@ -92,10 +92,6 @@ export default function Sidebar({
 
       if (response.ok) {
         console.log("Product gekocht!");
-        await fetch(`/api/Products/Advance?locatie=${locationName}`, {
-          method: "POST",
-          ...getAuthHeaders()
-        });
         window.location.reload();
       } else {
         console.error("product niet gekocht:", response.status);

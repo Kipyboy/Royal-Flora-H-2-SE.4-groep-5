@@ -80,7 +80,16 @@ namespace RoyalFlora.Controllers
             product.Koper = koperId;
             product.verkoopPrijs = dto.verkoopPrijs;
 
-            _context.Entry(product).State = EntityState.Modified;
+            var next = await _context.Products
+            .Where(p => p.Status == 2 && (p.Locatie ?? "") == product.Locatie)
+            .OrderBy(p => p.IdProduct)
+            .FirstOrDefaultAsync();
+
+            if (next != null)
+            {
+                next.Status = 3;
+                _context.Entry(next).State = EntityState.Modified;
+            }
 
             try { await _context.SaveChangesAsync(); }
             catch (DbUpdateConcurrencyException)
