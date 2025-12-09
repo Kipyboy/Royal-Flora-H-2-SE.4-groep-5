@@ -15,12 +15,12 @@ public class KvkExistsTests
         using var context = TestHelpers.CreateInMemoryContext(dbName);
 
             TestHelpers.SeedRollen(context);
-            TestHelpers.SeedUser(context, "test@gmail.com", "test123!");
+            Gebruiker gebruiker = TestHelpers.SeedUser(context, "test@gmail.com", "test123!");
 
             var configuration = TestHelpers.CreateTestConfiguration();
             var controller = new AuthController(context, configuration);
 
-            TestHelpers.SeedBedrijf(context);
+            TestHelpers.SeedBedrijf(context, gebruiker);
 
             string kvk = "";
 
@@ -36,12 +36,12 @@ public class KvkExistsTests
         using var context = TestHelpers.CreateInMemoryContext(dbName);
 
             TestHelpers.SeedRollen(context);
-            TestHelpers.SeedUser(context, "test@gmail.com", "test123!");
+            Gebruiker gebruiker = TestHelpers.SeedUser(context, "test@gmail.com", "test123!");
 
             var configuration = TestHelpers.CreateTestConfiguration();
             var controller = new AuthController(context, configuration);
 
-            TestHelpers.SeedBedrijf(context);
+            TestHelpers.SeedBedrijf(context, gebruiker);
 
             string kvk = "123456789";
 
@@ -56,12 +56,12 @@ public class KvkExistsTests
         using var context = TestHelpers.CreateInMemoryContext(dbName);
 
             TestHelpers.SeedRollen(context);
-            TestHelpers.SeedUser(context, "test@gmail.com", "test123!");
+            Gebruiker gebruiker = TestHelpers.SeedUser(context, "test@gmail.com", "test123!");
 
             var configuration = TestHelpers.CreateTestConfiguration();
             var controller = new AuthController(context, configuration);
 
-            TestHelpers.SeedBedrijf(context); 
+            TestHelpers.SeedBedrijf(context, gebruiker);
 
             string kvk = "123456AB";
 
@@ -76,12 +76,12 @@ public class KvkExistsTests
         using var context = TestHelpers.CreateInMemoryContext(dbName);
 
             TestHelpers.SeedRollen(context);
-            TestHelpers.SeedUser(context, "test@gmail.com", "test123!");
+            Gebruiker gebruiker = TestHelpers.SeedUser(context, "test@gmail.com", "test123!");
 
             var configuration = TestHelpers.CreateTestConfiguration();
             var controller = new AuthController(context, configuration);
 
-            TestHelpers.SeedBedrijf(context);
+            TestHelpers.SeedBedrijf(context, gebruiker);
 
             string kvk = "87654321";
 
@@ -100,12 +100,12 @@ public class KvkExistsTests
         using var context = TestHelpers.CreateInMemoryContext(dbName);
 
             TestHelpers.SeedRollen(context);
-            TestHelpers.SeedUser(context, "test@gmail.com", "test123!");
+            Gebruiker gebruiker = TestHelpers.SeedUser(context, "test@gmail.com", "test123!");
 
             var configuration = TestHelpers.CreateTestConfiguration();
             var controller = new AuthController(context, configuration);
 
-            TestHelpers.SeedBedrijf(context);
+            TestHelpers.SeedBedrijf(context, gebruiker);
 
             string kvk = "87654331";
 
