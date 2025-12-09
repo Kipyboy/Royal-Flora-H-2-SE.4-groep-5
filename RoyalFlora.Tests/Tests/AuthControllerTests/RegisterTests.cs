@@ -167,8 +167,8 @@ public class RegisterTests
         using var context = TestHelpers.CreateInMemoryContext(dbName);
 
         TestHelpers.SeedRollen(context);
-        TestHelpers.SeedUser(context, "test@gmail.com", "test123!");
-        TestHelpers.SeedBedrijf(context);
+        Gebruiker gebruiker = TestHelpers.SeedUser(context, "test@gmail.com", "test123!");
+        TestHelpers.SeedBedrijf(context, gebruiker);
 
         var configuration = TestHelpers.CreateTestConfiguration();
         var controller = new AuthController(context, configuration);

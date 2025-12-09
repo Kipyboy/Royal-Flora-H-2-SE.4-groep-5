@@ -71,7 +71,7 @@ namespace RoyalFlora.Tests.Helpers
             context.Rollen.Add(role2);
             context.SaveChanges();
         }
-        public static void SeedBedrijf (MyDbContext context)
+        public static void SeedBedrijf (MyDbContext context, Gebruiker gebruiker)
         {
             var bedrijf = new Bedrijf
             {
@@ -82,6 +82,7 @@ namespace RoyalFlora.Tests.Helpers
                 Oprichter = 1
             };
             context.Bedrijven.Add(bedrijf);
+            bedrijf.Gebruikers.Add(gebruiker);
             context.SaveChanges();
         }
     }

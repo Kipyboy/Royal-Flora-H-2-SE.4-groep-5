@@ -21,14 +21,14 @@ namespace RoyalFlora.Tests.Tests.ProductControllerTests
             using var context = TestHelpers.CreateInMemoryContext(dbName);
 
             TestHelpers.SeedRollen(context);
-            TestHelpers.SeedUser(context, "test@gmail.com", "test123!");
+            Gebruiker gebruiker = TestHelpers.SeedUser(context, "test@gmail.com", "test123!");
 
             var configuration = TestHelpers.CreateTestConfiguration();
             var AuthController = new AuthController(context, configuration);
 
             var ProductController = new ProductsController(context);
 
-            TestHelpers.SeedBedrijf(context);
+            TestHelpers.SeedBedrijf(context, gebruiker);
             
 
 
