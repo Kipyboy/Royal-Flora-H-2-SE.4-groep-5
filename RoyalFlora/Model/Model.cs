@@ -147,7 +147,7 @@ public class Bedrijf
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
-    public int KVK { get; set; }
+    public int? KVK { get; set; }
     
     [StringLength(45)]
     public string? BedrijfNaam { get; set; }
@@ -201,7 +201,7 @@ public class Gebruiker
     public string? Telefoonnummer { get; set; }
     
     public int Rol { get; set; }
-    public int KVK { get; set; }
+    public int? KVK { get; set; }
 
     // Navigation properties
     [ForeignKey("Rol")]

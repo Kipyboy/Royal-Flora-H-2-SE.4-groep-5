@@ -101,7 +101,7 @@ export default function BedrijfRegistreren() {
                 wachtwoord: savedRegistration.password,
                 kvkNummer: savedRegistration.kvk,
                 postcode: savedRegistration.postcode,
-                adres: savedRegistration.adres,
+                adres: savedRegistration.adress,
                 accountType: savedRegistration.accountType,
                 bedrijfPostcode: formData.postcode,
                 bedrijfAdres: formData.adress,
