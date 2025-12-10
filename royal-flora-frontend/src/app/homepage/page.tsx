@@ -218,7 +218,7 @@ const HomePage: React.FC = () => {
             ].map(({ name, key }) => (
               <a key={name} href={`/veiling?loc=${key}`} className="card">
                 <p>Locatie {name}</p>
-                <img src={`http://localhost:5156/images/locatie-${key}.jpg`} alt="" />
+                <img className = 'veiling' src={`http://localhost:5156/images/locatie-${key}.jpg`} alt="" />
               </a>
             ))}
           </div>

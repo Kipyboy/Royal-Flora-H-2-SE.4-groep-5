@@ -109,6 +109,12 @@
     margin-bottom: 1rem;
 }
 
+.homepage-page .card .veiling{
+    width: 9rem;
+    height: 5rem;
+    margin: 0.5rem;
+}
+
 .homepage-page .card img {
     width: 9rem;
     height: auto;
