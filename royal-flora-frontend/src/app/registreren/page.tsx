@@ -413,7 +413,7 @@ export default function Registreren() {
                         onChange={handleChange}
                     >
                         <option value='klant'>Inkoper</option>
-                        <option value='bedrijf'>Aanvoerder</option>
+                        <option value='Aanvoerder'>Aanvoerder</option>
                     </select>
                 </div>
                 

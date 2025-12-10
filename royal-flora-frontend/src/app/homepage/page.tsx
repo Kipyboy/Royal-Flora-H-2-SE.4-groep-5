@@ -146,7 +146,7 @@ const HomePage: React.FC = () => {
       .filter((product) => {
         if (
           (!aankomendChecked && product.status === 'Aankomend') ||
-          (!eigenChecked && product.status === 'Eigen') ||
+          (!eigenChecked && product.type === 'Eigen') ||
           (!gekochtChecked && (product.status === 'Verkocht' || product.status === 'Gekocht')) ||
           (!inTePlannenChecked && product.status === 'In te plannen')
         ) {

@@ -91,7 +91,7 @@
 .homepage-page .card {
     display: flex;
     justify-content: center;
-    background-color: var(--button);
+    background-color: var(--homepage-cards);
     width: 20%;
     height: fit-content;
     border-radius: 0.75rem;
@@ -147,7 +147,7 @@
     width: 100%;
 }
 .homepage-page .aankomende-producten-voor-locatie {
-    background-color: var(--button);
+    background-color: var(--homepage-cards);
     color: var(--Text_on_button);
     border-radius: 0.75rem;
     max-width: 15rem;

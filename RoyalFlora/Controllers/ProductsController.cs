@@ -135,14 +135,17 @@ namespace RoyalFlora.Controllers
             }
 
             var productDTOs = new List<ProductDTO>();
+            var seenProductIds = new HashSet<int>();
             foreach (var product in products)
             {
+                if (seenProductIds.Contains(product.IdProduct)) continue;
+
                 var leverancierNaam = product.LeverancierNavigation?.BedrijfNaam ?? string.Empty;
                 var datum = product.Datum?.ToString("yyyy-MM-dd") ?? string.Empty;
                 var locatie = product.Locatie ?? string.Empty;
                 var status = product.StatusNavigation?.Beschrijving ?? string.Empty;
 
-                
+                // If the product belongs to the same company as the current user, mark it as "eigen"
                 if (leverancierNaam.Equals(bedrijf, StringComparison.OrdinalIgnoreCase))
                 {
                     var eigendto = new ProductDTO
@@ -160,7 +163,11 @@ namespace RoyalFlora.Controllers
                         type = "eigen"
                     };
                     productDTOs.Add(eigendto);
+                    seenProductIds.Add(product.IdProduct);
+                    continue;
                 }
+
+                // If the product is already bought, mark it as "gekocht"
                 if (status.Equals("gekocht", StringComparison.OrdinalIgnoreCase))
                 {
                     var gekochtdto = new ProductDTO
@@ -177,26 +184,27 @@ namespace RoyalFlora.Controllers
                         type = "gekocht"
                     };
                     productDTOs.Add(gekochtdto);
+                    seenProductIds.Add(product.IdProduct);
+                    continue;
                 }
-                else
+
+                // Default case: regular product listing
+                var dto = new ProductDTO
                 {
-                    var dto = new ProductDTO
-                    {
-                        id = product.IdProduct,
-                        naam = product.ProductNaam ?? string.Empty,
-                        merk = leverancierNaam,
-                        prijs = product.MinimumPrijs,
-                        datum = datum,
-                        locatie = locatie,
-                        status = status,
-                        aantal = product.Aantal,
-                        fotoPath = product.Fotos.FirstOrDefault()?.FotoPath ?? string.Empty
-                    };
-                    productDTOs.Add(dto);
-                }
+                    id = product.IdProduct,
+                    naam = product.ProductNaam ?? string.Empty,
+                    merk = leverancierNaam,
+                    prijs = product.MinimumPrijs,
+                    datum = datum,
+                    locatie = locatie,
+                    status = status,
+                    aantal = product.Aantal,
+                    fotoPath = product.Fotos.FirstOrDefault()?.FotoPath ?? string.Empty
+                };
+                productDTOs.Add(dto);
+                seenProductIds.Add(product.IdProduct);
             }
 
-        
             return productDTOs;
         }
 
@@ -304,8 +312,6 @@ namespace RoyalFlora.Controllers
 
                 _context.Products.Add(product);
                 await _context.SaveChangesAsync();
-
-                images = new List<IFormFile>();
 
                 var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
                 if (!Directory.Exists(uploadsFolder))
