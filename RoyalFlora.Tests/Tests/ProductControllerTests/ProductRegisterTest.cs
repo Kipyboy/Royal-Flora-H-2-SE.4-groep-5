@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using RoyalFlora.Controllers;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 
 namespace RoyalFlora.Tests.Tests.ProductControllerTests
 {
@@ -43,10 +44,72 @@ namespace RoyalFlora.Tests.Tests.ProductControllerTests
                 images: new List<IFormFile>()
             );
 
-            var createdAtResult = actionResult.Result as CreatedAtActionResult;
-            var response = createdAtResult.Value as ResponseDTO;
+            // The controller returns CreatedAtActionResult which wraps the value
+            // Check if result is successful (either CreatedAtAction or Ok)
+            actionResult.Result.Should().NotBeNull("PostProduct should return a result");
+            actionResult.Result.Should().BeOfType<CreatedAtActionResult>();
+            
+            // Verify the product was actually created in the database
+            var createdProduct = await context.Products
+                .FirstOrDefaultAsync(p => p.ProductNaam == "TestProduct");
+            
+            createdProduct.Should().NotBeNull("Product should be created in database");
+            createdProduct!.ProductNaam.Should().Be("TestProduct");
+            createdProduct.ProductBeschrijving.Should().Be("Test product beschrijving");
+            createdProduct.MinimumPrijs.Should().Be(5);
+            createdProduct.Locatie.Should().Be("Naaldwijk");
+            createdProduct.Aantal.Should().Be(1);
+            createdProduct.Leverancier.Should().Be(87654321);
+        }
 
-            response.naam.Should().BeSameAs("TestProduct");
+        [Fact]
+        public async Task PostProduct_ReturnsBadRequest_WhenMinimumPrijsInvalid()
+        {
+            var dbName = Guid.NewGuid().ToString();
+            using var context = TestHelpers.CreateInMemoryContext(dbName);
+
+            TestHelpers.SeedRollen(context);
+            var gebruiker = TestHelpers.SeedUser(context, "test2@gmail.com", "test123!");
+
+            var productController = new ProductsController(context);
+
+            var actionResult = await productController.PostProduct(
+                ProductNaam: "BadPriceProduct",
+                ProductBeschrijving: "Bad price",
+                MinimumPrijs: "not-a-number",
+                Locatie: "Loc",
+                Datum: "2025-12-20",
+                Aantal: "1",
+                Leverancier: "",
+                images: new List<IFormFile>()
+            );
+
+            actionResult.Result.Should().BeOfType<BadRequestObjectResult>();
+        }
+
+        [Fact]
+        public async Task PostProduct_ReturnsBadRequest_WhenDatumInvalid()
+        {
+            var dbName = Guid.NewGuid().ToString();
+            using var context = TestHelpers.CreateInMemoryContext(dbName);
+
+            TestHelpers.SeedRollen(context);
+            var gebruiker = TestHelpers.SeedUser(context, "test3@gmail.com", "test123!");
+
+            var productController = new ProductsController(context);
+
+            var actionResult = await productController.PostProduct(
+                ProductNaam: "BadDateProduct",
+                ProductBeschrijving: "Bad date",
+                MinimumPrijs: "5",
+                Locatie: "Loc",
+                Datum: "not-a-date",
+                Aantal: "1",
+                Leverancier: "",
+                images: new List<IFormFile>()
+            );
+
+            actionResult.Result.Should().BeOfType<BadRequestObjectResult>();
         }
     }
             
