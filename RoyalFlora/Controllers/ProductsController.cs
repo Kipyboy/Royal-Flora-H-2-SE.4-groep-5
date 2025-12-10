@@ -77,6 +77,10 @@ namespace RoyalFlora.Controllers
 
             product.Status = 4;
             if (!int.TryParse(userId, out int koperId)) return Unauthorized();
+
+            var koperGebruiker = await _context.Gebruikers.FindAsync(koperId);
+            if (koperGebruiker == null) return Unauthorized();
+
             product.Koper = koperId;
             product.verkoopPrijs = dto.verkoopPrijs;
 
@@ -138,24 +142,8 @@ namespace RoyalFlora.Controllers
                 var locatie = product.Locatie ?? string.Empty;
                 var status = product.StatusNavigation?.Beschrijving ?? string.Empty;
 
-                if (status.Equals("gekocht", StringComparison.OrdinalIgnoreCase))
-                {
-                    var gekochtdto = new ProductDTO
-                    {
-                        id = product.IdProduct,
-                        naam = product.ProductNaam ?? string.Empty,
-                        merk = leverancierNaam,
-                        verkoopPrijs = product.verkoopPrijs,
-                        datum = datum,
-                        locatie = locatie,
-                        status = status,
-                        aantal = product.Aantal,
-                        fotoPath = product.Fotos.FirstOrDefault()?.FotoPath ?? string.Empty,
-                        type = "gekocht"
-                    };
-                    productDTOs.Add(gekochtdto);
-                }
-                else if (leverancierNaam.Equals(bedrijf, StringComparison.OrdinalIgnoreCase))
+                
+                if (leverancierNaam.Equals(bedrijf, StringComparison.OrdinalIgnoreCase))
                 {
                     var eigendto = new ProductDTO
                     {
@@ -172,6 +160,23 @@ namespace RoyalFlora.Controllers
                         type = "eigen"
                     };
                     productDTOs.Add(eigendto);
+                }
+                if (status.Equals("gekocht", StringComparison.OrdinalIgnoreCase))
+                {
+                    var gekochtdto = new ProductDTO
+                    {
+                        id = product.IdProduct,
+                        naam = product.ProductNaam ?? string.Empty,
+                        merk = leverancierNaam,
+                        verkoopPrijs = product.verkoopPrijs,
+                        datum = datum,
+                        locatie = locatie,
+                        status = status,
+                        aantal = product.Aantal,
+                        fotoPath = product.Fotos.FirstOrDefault()?.FotoPath ?? string.Empty,
+                        type = "gekocht"
+                    };
+                    productDTOs.Add(gekochtdto);
                 }
                 else
                 {
@@ -191,11 +196,7 @@ namespace RoyalFlora.Controllers
                 }
             }
 
-            // Debug output
-            foreach (var dto in productDTOs)
-            {
-                Console.WriteLine($"ProductDTO - Id: {dto.id}, Naam: {dto.naam}, Merk: {dto.merk}, Prijs: {dto.prijs}, Datum: {dto.datum}, Locatie: {dto.locatie}, Status: {dto.status}");
-            }
+        
             return productDTOs;
         }
 
@@ -207,6 +208,7 @@ namespace RoyalFlora.Controllers
             return product;
         }
 
+        //geen uses op het moment
         [HttpPut("{id:int}")]
         public async Task<IActionResult> PutProduct(int id, Product product)
         {

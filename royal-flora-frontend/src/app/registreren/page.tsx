@@ -75,11 +75,20 @@ export default function Registreren() {
             newErrors.email = 'Email is verplicht';
             isValid = false;
         }
+        else if ((formData.email.length) > 45) {
+            newErrors.email = 'Email mag niet langer zijn dan 45 tekens'
+            isValid = false;
+        }
 
         if (!formData.password) {
             newErrors.password = 'Wachtwoord is verplicht';
             isValid = false;
-        } else {
+        } 
+        else if ((formData.password.length) > 60) {
+            newErrors.password = 'Wachtwoord mag niet langer zijn dan 60 tekens'
+            isValid = false;
+        }
+        else {
             // At least 8 characters, at least one digit and one special character
             const pwdRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
             if (!pwdRegex.test(formData.password)) {
@@ -122,6 +131,31 @@ export default function Registreren() {
         if (!validateForm()) {
             return;
         }
+        try {
+            const response = await fetch(`http://localhost:5156/api/auth/kvk-exists/${formData.kvk}`);
+            if (!response.ok) {
+                alert('Fout bij het controleren van het KvK-nummer');
+                return;
+            }
+            const exists = await response.json();
+
+            if (!exists) {
+                try {
+                    sessionStorage.setItem('registrationForm', JSON.stringify(formData));
+                } catch (e) {
+                    console.warn('Kon formData niet in sessionStorage zetten', e);
+                }
+
+                
+                router.push('/bedrijfRegistratie');
+                return;
+            }
+            // else KvK exists -> continue and call register endpoint below
+        } catch (err) {
+            console.error('Error checking KvK:', err);
+            alert('Kon KvK-nummer niet controleren. Probeer het later opnieuw.');
+            return;
+        }
 
         try {
             const response = await fetch('http://localhost:5156/api/auth/register', {
@@ -154,8 +188,8 @@ export default function Registreren() {
                     return;
                 }
 
-                const token = (data?.token || data?.Token) as string | undefined;
-                const user = (data?.user || data?.User) || null;
+                const token = (data?.token || data?.token) as string | undefined;
+                const user = (data?.user || data?.user) || null;
                 if (token) setToken(token);
                 if (user) {
                     localStorage.setItem('user', JSON.stringify({ id: user.id, username: user.username, email: user.email, role: user.role }));
