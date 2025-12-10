@@ -51,6 +51,7 @@ namespace RoyalFlora.Controllers
             
             int? kvkNummer = null;
             
+            
             int rolId = request.AccountType == "Aanvoerder" ? 1 : 2;
             string hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.Wachtwoord);
 
@@ -81,6 +82,20 @@ namespace RoyalFlora.Controllers
                     };
                     _context.Bedrijven.Add(bedrijf);
                     await _context.SaveChangesAsync();
+                }
+            }
+
+            // If no new company name was provided but the user supplied a KVK number,
+            // try to resolve it to an existing `Bedrijf` and use that KVK for the gebruiker.
+            if (string.IsNullOrWhiteSpace(request.BedrijfNaam) && !string.IsNullOrWhiteSpace(request.KvkNummer))
+            {
+                if (request.KvkNummer.Length == 8 && int.TryParse(request.KvkNummer, out int parsedKvkExisting))
+                {
+                    var existingCompany = await _context.Bedrijven.FindAsync(parsedKvkExisting);
+                    if (existingCompany != null)
+                    {
+                        kvkNummer = parsedKvkExisting;
+                    }
                 }
             }
 
@@ -217,11 +232,12 @@ namespace RoyalFlora.Controllers
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
+        [Authorize]
         [HttpDelete("deleteAccount")]
         public async Task<ActionResult> DeleteAccount()
         {
             // Get user ID from JWT claims
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
             if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
             {
                 return Unauthorized(new { message = "Ongeldige gebruiker" });

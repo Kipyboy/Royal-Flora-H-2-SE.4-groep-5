@@ -27,6 +27,7 @@ const EigenProductCard: React.FC<EigenProductCardProps> = ({
     fotoPath
 }) => {
     const defaultImg = "https://syria.adra.cloud/wp-content/uploads/2021/10/empty.jpg";
+    
     return (
     <div className="product-card">
         <div className="image">
@@ -36,8 +37,8 @@ const EigenProductCard: React.FC<EigenProductCardProps> = ({
             <p id="naam">Naam: {naam}</p>
             <p id="merk">Merk: {merk}</p>
             <p id="aantal">Aantal: {aantal}</p>
-            <p id="prijs">Prijs: {verkoopPrijs}</p>
-            <p id="koper">Koper: {koper}</p>
+            <p id="prijs">Prijs: {koper == "" || koper == null ? "Nog niet verkocht" : verkoopPrijs}</p>
+            <p id="koper">Koper: {koper == "" || koper == null ? "Nog niet verkocht" : koper}</p>
             <p id="datum">Datum: {datum}</p>
             <p id="locatie">Locatie: {locatie}</p>
             <p id="status">Status: {status}</p>

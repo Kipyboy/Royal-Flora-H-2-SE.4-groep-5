@@ -1,6 +1,6 @@
 .product-card {
     border-radius: 1.5rem;
-    background-color: var(--button);
+    background-color: var(--homepage-cards);
     min-width: 11rem;
     max-width: 15rem;
     height: fit-content;
@@ -15,6 +15,7 @@
 .image img {
     width: 9rem;
     height: auto;
+    max-height: 8rem;
     margin: 0.5rem;
 }
 .info {
