@@ -23,6 +23,7 @@ namespace RoyalFlora.Controllers
             _configuration = configuration;
         }
 
+
         [HttpPost("register")]
         public async Task<ActionResult<RegisterResponse>> Register([FromBody] RegisterRequest request)
         {
@@ -47,11 +48,10 @@ namespace RoyalFlora.Controllers
                 });
             }
 
-            // Only require KVK for bedrijf accounts
+            
             int kvkNummer = 0;
-            if (request.AccountType == "bedrijf")
-            {
-                if (!int.TryParse(request.KvkNummer, out kvkNummer) || request.KvkNummer.Length != 8)
+            
+                if (!int.TryParse(request.KvkNummer, out kvkNummer) || request.KvkNummer == null || request.KvkNummer.Length != 8)
                 {
                     return BadRequest(new RegisterResponse
                     {
@@ -59,32 +59,26 @@ namespace RoyalFlora.Controllers
                         Message = "KvK-nummer moet 8 cijfers bevatten"
                     });
                 }
-            }
-
-            int rolId = request.AccountType == "bedrijf" ? 1 : 2;
+            
+            int rolId = request.AccountType == "Aanvoerder" ? 1 : 2;
             string hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.Wachtwoord);
 
-            Bedrijf bedrijf = null;
-            if (request.AccountType == "bedrijf")
+            if (!string.IsNullOrWhiteSpace(request.BedrijfNaam))
             {
-                bedrijf = await _context.Bedrijven.FirstOrDefaultAsync(b => b.KVK == kvkNummer);
-                if (bedrijf != null)
+                var existing = await _context.Bedrijven.FindAsync(kvkNummer);
+                if (existing == null)
                 {
-                    return BadRequest(new RegisterResponse
+                    var bedrijf = new Bedrijf
                     {
-                        Success = false,
-                        Message = "KvK-nummer is al in gebruik"
-                    });
+                        KVK = kvkNummer,
+                        BedrijfNaam = request.BedrijfNaam,
+                        Adress = request.BedrijfAdres,
+                        Postcode = request.BedrijfPostcode,
+                        Oprichter = null
+                    };
+                    _context.Bedrijven.Add(bedrijf);
+                    await _context.SaveChangesAsync();
                 }
-
-                bedrijf = new Bedrijf
-                {
-                    KVK = kvkNummer,
-                    BedrijfNaam = $"Bedrijf {request.VoorNaam} {request.AchterNaam}",
-                    Oprichter = null
-                };
-                _context.Bedrijven.Add(bedrijf);
-                await _context.SaveChangesAsync();
             }
 
             var newGebruiker = new Gebruiker
@@ -97,16 +91,22 @@ namespace RoyalFlora.Controllers
                 Postcode = request.Postcode,
                 Adress = request.Adres,
                 Rol = rolId,
-                KVK = kvkNummer // Only set KVK if bedrijf account
+                KVK = kvkNummer
             };
 
             _context.Gebruikers.Add(newGebruiker);
             await _context.SaveChangesAsync();
 
-            if (request.AccountType == "bedrijf" && bedrijf != null)
+            
+            if (!string.IsNullOrWhiteSpace(request.BedrijfNaam))
             {
-                bedrijf.Oprichter = newGebruiker.IdGebruiker;
-                await _context.SaveChangesAsync();
+                var bedrijf = await _context.Bedrijven.FindAsync(kvkNummer);
+                if (bedrijf != null)
+                {
+                    bedrijf.Oprichter = newGebruiker.IdGebruiker;
+                    _context.Bedrijven.Update(bedrijf);
+                    await _context.SaveChangesAsync();
+                }
             }
 
             var userInfo = new UserInfo
@@ -114,7 +114,7 @@ namespace RoyalFlora.Controllers
                 Id = newGebruiker.IdGebruiker,
                 Username = $"{newGebruiker.VoorNaam} {newGebruiker.AchterNaam}",
                 Email = newGebruiker.Email,
-                Role = request.AccountType == "bedrijf" ? "Aanvoerder" : "Inkoper",
+                Role = request.AccountType,
                 KVK = newGebruiker.KVK.ToString() // ✅ include KVK
             };
 
@@ -172,6 +172,19 @@ namespace RoyalFlora.Controllers
                 Token = token,
                 User = userInfo
             });
+        }
+
+        [HttpGet("kvk-exists/{kvk}")]
+        public async Task<ActionResult<bool>> KvkExists(string kvk)
+        {
+            if (string.IsNullOrWhiteSpace(kvk) || kvk.Length != 8 || !int.TryParse(kvk, out int kvkNum))
+            {
+                return BadRequest(false);
+            }
+
+            bool existsInBedrijf = await _context.Bedrijven.AnyAsync(b => b.KVK == kvkNum);
+
+            return Ok(existsInBedrijf);
         }
 
         private string GenerateJwtToken(UserInfo user)
