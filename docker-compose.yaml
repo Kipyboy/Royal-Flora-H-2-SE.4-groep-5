@@ -46,8 +46,8 @@ services:
     ports:
       - "5156:8080"
     volumes:
-      # Mount host project folder into /src so the running container sees the same files as built
-      - ./RoyalFlora:/RoyalFlora
+      # Mount host project folder into the container WORKDIR (/src) so the running container sees the same files as built
+      - ./RoyalFlora:/src
     depends_on:
       db:
         condition: service_healthy
