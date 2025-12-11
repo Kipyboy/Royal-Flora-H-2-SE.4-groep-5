@@ -37,8 +37,8 @@ const EigenProductCard: React.FC<EigenProductCardProps> = ({
             <p id="naam">Naam: {naam}</p>
             <p id="merk">Merk: {merk}</p>
             <p id="aantal">Aantal: {aantal}</p>
-            <p id="prijs">Prijs: {koper == "" || koper == null ? "Nog niet verkocht" : verkoopPrijs}</p>
-            <p id="koper">Koper: {koper == "" || koper == null ? "Nog niet verkocht" : koper}</p>
+            <p id="prijs">Verkoopprijs: {koper.trim() == "" || koper == null ? "Nog niet verkocht" : verkoopPrijs}</p>
+            <p id="koper">Koper: {koper.trim() == "" || koper == null ? "Nog niet verkocht" : koper}</p>
             <p id="datum">Datum: {datum}</p>
             <p id="locatie">Locatie: {locatie}</p>
             <p id="status">Status: {status}</p>
