@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import '../../styles/Registreren.css';
 import { setToken } from '../utils/auth';
 import type { RegisterResponseDTO } from '../utils/dtos';
+import { API_BASE_URL } from '../config/api';
 
 
 export default function BedrijfRegistreren() {
@@ -108,7 +109,7 @@ export default function BedrijfRegistreren() {
                 bedrijfNaam: formData.naam
             };
 
-            const response = await fetch('http://localhost:5156/api/auth/register', {
+            const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

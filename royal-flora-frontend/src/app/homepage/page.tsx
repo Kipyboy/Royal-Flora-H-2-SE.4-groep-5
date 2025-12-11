@@ -9,6 +9,7 @@ import GekochtProductCard from '../components/gekocht-product-card';
 import EigenProductCard from '../components/eigen-product-card';
 import { authFetch } from '../utils/api';
 import { getUser } from '../utils/auth';
+import { API_BASE_URL } from '../config/api';
 
 interface User {
   username: string;
@@ -46,7 +47,7 @@ const HomePage: React.FC = () => {
       setUser(storedUser);
 
       try {
-        const response = await authFetch('http://localhost:5156/api/Products');
+        const response = await authFetch(`${API_BASE_URL}/api/Products`);
         if (!response || !response.ok) {
           const text = await response.text();
           console.error('Failed to fetch products', response?.status, text);
@@ -218,7 +219,7 @@ const HomePage: React.FC = () => {
             ].map(({ name, key }) => (
               <a key={name} href={`/veiling?loc=${key}`} className="card">
                 <p>Locatie {name}</p>
-                <img className = 'veiling' src={`http://localhost:5156/images/locatie-${key}.jpg`} alt="" />
+                <img className = 'veiling' src={`${API_BASE_URL}/images/locatie-${key}.jpg`} alt="" />
               </a>
             ))}
           </div>

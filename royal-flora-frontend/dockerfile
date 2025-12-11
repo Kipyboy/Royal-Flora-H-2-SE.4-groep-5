@@ -10,6 +10,8 @@ ENV PORT=3000
 ENV HOST=0.0.0.0
 ENV CHOKIDAR_USEPOLLING=true
 ENV NEXT_TELEMETRY_DISABLED=1
+# API URL - override this when running the container
+ENV NEXT_PUBLIC_API_URL=http://localhost:5156
 
 # de packadge bestanden gebruiken
 COPY package*.json ./

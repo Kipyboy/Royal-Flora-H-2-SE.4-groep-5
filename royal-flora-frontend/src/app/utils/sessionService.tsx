@@ -3,6 +3,7 @@
 // Exporteren we direct om een duidelijke named export te hebben voor Turbopack.
 import { getAuthHeaders, getToken } from './auth';
 import type { UserResponseDTO } from './dtos';
+import { API_BASE_URL } from '../config/api';
 
 // Returns current user info by calling the protected `/auth/user` endpoint
 // Uses the stored JWT in Authorization header. Returns `null` when no token
@@ -12,7 +13,7 @@ export async function getSessionData(): Promise<UserResponseDTO | null> {
         const token = getToken();
         if (!token) return null;
 
-        const response = await fetch('http://localhost:5156/api/auth/user', {
+        const response = await fetch(`${API_BASE_URL}/api/auth/user`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',

@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import "../../styles/veiling-sidebar.css";
 import { getSessionData } from "../utils/sessionService";
 import { getAuthHeaders } from "../utils/auth";
+import { API_BASE_URL } from "../config/api";
 
 interface SidebarProps {
   onReset: () => void;
@@ -28,7 +29,7 @@ export default function Sidebar({
   const [products, setProducts] = useState<VeilingDTO[]>([]);
 
   useEffect(() => {
-    const base = "http://localhost:5156/api/Products/Veiling";
+    const base = `${API_BASE_URL}/api/Products/Veiling`;
     if (!locationName) {
       setProducts([]);
       return;
@@ -76,7 +77,7 @@ export default function Sidebar({
 
     try {
       const response = await fetch(
-        `http://localhost:5156/api/Products/${product.id}/koop`,
+        `${API_BASE_URL}/api/Products/${product.id}/koop`,
         {
           method: "PATCH",
           headers: {

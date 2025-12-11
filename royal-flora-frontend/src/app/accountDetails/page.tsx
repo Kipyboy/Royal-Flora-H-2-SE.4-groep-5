@@ -5,6 +5,7 @@ import '../../styles/AccountDetails.css';
 import Topbar from '../components/Topbar';
 import { getSessionData } from '../utils/sessionService';
 import { logout as clearAuth, getAuthHeaders } from '../utils/auth';
+import { API_BASE_URL } from '../config/api';
 
 interface UserDetails {
     voornaam: string;
@@ -53,7 +54,7 @@ const AccountDetails: React.FC = () => {
                     return;
                 }
 
-                const response = await fetch('http://localhost:5156/api/auth/allUserInfo', {
+                const response = await fetch(`${API_BASE_URL}/api/auth/allUserInfo`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -127,7 +128,7 @@ const AccountDetails: React.FC = () => {
             }
             }
             // data opslag hier
-            const response = await fetch('http://localhost:5156/api/auth/updateUserInfo', {
+            const response = await fetch(`${API_BASE_URL}/api/auth/updateUserInfo`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -174,7 +175,7 @@ const AccountDetails: React.FC = () => {
         if (window.confirm('Weet je zeker dat je je account wilt verwijderen?')) {
             try{
                 const authHeaders = getAuthHeaders();
-                const response = await fetch('http://localhost:5156/api/auth/deleteAccount', {
+                const response = await fetch(`${API_BASE_URL}/api/auth/deleteAccount`, {
                         method: 'DELETE',
                         headers: {
                             'Content-Type': 'application/json',

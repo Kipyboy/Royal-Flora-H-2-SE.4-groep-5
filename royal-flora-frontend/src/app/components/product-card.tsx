@@ -1,5 +1,6 @@
 import React from "react";
 import '../../styles/ProductCard.css';
+import { API_BASE_URL } from '../config/api';
 
 
 
@@ -39,7 +40,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
     return (
     <div className="product-card">
         <div className="image">
-            <img src={fotoPath && fotoPath.trim() !== "" ? `http://localhost:5156/images/${fotoPath}` : defaultImg} alt="" id="product-foto"/>
+            <img src={fotoPath && fotoPath.trim() !== "" ? `${API_BASE_URL}/images/${fotoPath}` : defaultImg} alt="" id="product-foto"/>
         </div>
         <div className="info">
             <p id="naam">Naam: {naam}</p>

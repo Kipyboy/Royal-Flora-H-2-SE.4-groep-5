@@ -6,6 +6,7 @@ import '../../styles/ProductRegistratieAanvoerder.css';
 import Topbar from '../components/Topbar';
 import { authFetch } from '../utils/api';
 import { getUser } from '../utils/auth';
+import { API_BASE_URL } from '../config/api';
 
 interface ProductFormData {
   name: string;
@@ -166,7 +167,7 @@ export default function ProductRegistratieAanvoerderPage() {
 
       formData.images.forEach(img => submitData.append('images', img));
 
-      const response = await authFetch('http://localhost:5156/api/products', { method: 'POST', body: submitData });
+      const response = await authFetch(`${API_BASE_URL}/api/products`, { method: 'POST', body: submitData });
 
       if(!response.ok){
         const error = await response.json();

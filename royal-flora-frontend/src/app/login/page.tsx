@@ -6,6 +6,7 @@ import Link from 'next/link';
 import '../../styles/Login.css';
 import { setToken, setUser } from '../utils/auth';
 import type { LoginResponseDTO } from '../utils/dtos';
+import { API_BASE_URL } from '../config/api';
 
 export default function Login() {
   const router = useRouter();
@@ -45,7 +46,7 @@ export default function Login() {
     if (!validateForm()) return;
 
     try {
-      const response = await fetch('http://localhost:5156/api/auth/login', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: formData.email, password: formData.password }),

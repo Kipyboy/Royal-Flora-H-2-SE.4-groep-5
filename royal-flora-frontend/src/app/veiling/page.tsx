@@ -6,6 +6,7 @@ import Topbar from "../components/Topbar";
 import Clock from "../components/clock";
 import VeilingSidebar from "../components/veiling-sidebar";
 import { getUser } from "../utils/auth";
+import { API_BASE_URL } from "../config/api";
 
 const configs = {
   a: { locationName: "Naaldwijk", title: "Auction A" },
@@ -81,7 +82,7 @@ export default function VeilingPage({ searchParams }: { searchParams: Promise<{ 
   }
 
   const handleClockFinished = async () => {
-    const res = await fetch(`http://localhost:5156/api/Products/Advance?locatie=${config.locationName}`,  { method: "POST" });
+    const res = await fetch(`${API_BASE_URL}/api/Products/Advance?locatie=${config.locationName}`,  { method: "POST" });
     console.log("Advance response:", res.status);
     window.location.reload();
   };

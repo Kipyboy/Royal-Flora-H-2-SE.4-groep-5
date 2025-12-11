@@ -217,7 +217,7 @@ namespace RoyalFlora.Controllers
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
                 new Claim(ClaimTypes.Name, user.Username),
                 new Claim(ClaimTypes.Role, user.Role),
-                new Claim("KVK", user.KVK ?? ""), // ✅ add KVK here
+                new Claim("KVK", user.KVK ?? ""),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 

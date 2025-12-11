@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import '../../styles/Registreren.css';
 import { setToken } from '../utils/auth';
 import type { RegisterResponseDTO } from '../utils/dtos';
+import { API_BASE_URL } from '../config/api';
 
 
 export default function Registreren() {
@@ -203,7 +204,7 @@ export default function Registreren() {
             return;
         }
         try {
-            const response = await fetch(`http://localhost:5156/api/auth/kvk-exists/${formData.kvk}`);
+            const response = await fetch(`${API_BASE_URL}/api/auth/kvk-exists/${formData.kvk}`);
             if (!response.ok) {
                 alert('Fout bij het controleren van het KvK-nummer');
                 return;
@@ -229,7 +230,7 @@ export default function Registreren() {
         }
 
         try {
-            const response = await fetch('http://localhost:5156/api/auth/register', {
+            const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

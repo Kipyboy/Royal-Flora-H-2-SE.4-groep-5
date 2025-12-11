@@ -8,6 +8,7 @@ import { logout as clearAuth, getUser } from '../utils/auth';
 import AanvoerderSidebar from './AanvoerderSidebar';
 import KlantSidebar from './KlantSidebar';
 import VeilingmeesterSidebar from './VeilingmeesterSidebar';
+import { API_BASE_URL } from '../config/api';
 
 interface TopbarProps {
     useSideBar?: boolean;
@@ -81,7 +82,7 @@ const Topbar: React.FC<TopbarProps> = ({
 
     const handleLogout = async () => {
         try {
-            await fetch('http://localhost:5156/api/auth/logout', {
+            await fetch(`${API_BASE_URL}/api/auth/logout`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' }
             });

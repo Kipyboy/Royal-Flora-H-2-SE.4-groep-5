@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import "../../styles/clock.css";
+import { API_BASE_URL } from "../config/api";
 
 function formatMs(ms: number) {
   if (ms <= 0) return "00:00.000";
@@ -34,7 +35,7 @@ export default function Clock({endTs, durationMs, onPriceChange, locationName, o
     if (!locationName) return;
 
     fetch(
-      `http://localhost:5156/api/Products/Klok?locatie=${encodeURIComponent(
+      `${API_BASE_URL}/api/Products/Klok?locatie=${encodeURIComponent(
         locationName
       )}`
     )
