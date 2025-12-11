@@ -17,7 +17,7 @@ export default function Registreren() {
         password: '',
         confirmPassword: '',
         kvk: '',
-        accountType: 'klant',
+        accountType: 'Inkoper',
         postcode: '',
         adress: ''
     });
@@ -412,7 +412,7 @@ export default function Registreren() {
                         value={formData.accountType}
                         onChange={handleChange}
                     >
-                        <option value='klant'>Inkoper</option>
+                        <option value='Inkoper'>Inkoper</option>
                         <option value='Aanvoerder'>Aanvoerder</option>
                     </select>
                 </div>
