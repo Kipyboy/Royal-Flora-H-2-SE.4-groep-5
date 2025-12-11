@@ -46,6 +46,77 @@ export default function Registreren() {
         }));
     };
 
+    const validateField = (name: string, value: string) => {
+        let error = '';
+
+        switch (name) {
+            case 'voornaam':
+                if (!value.trim()) {
+                    error = 'Voornaam is verplicht';
+                }
+                break;
+            case 'achternaam':
+                if (!value.trim()) {
+                    error = 'Achternaam is verplicht';
+                }
+                break;
+            case 'email':
+                if (!value.trim()) {
+                    error = 'Email is verplicht';
+                } else if (value.length > 45) {
+                    error = 'Email mag niet langer zijn dan 45 tekens';
+                }
+                break;
+            case 'password':
+                if (!value) {
+                    error = 'Wachtwoord is verplicht';
+                } else if (value.length > 60) {
+                    error = 'Wachtwoord mag niet langer zijn dan 60 tekens';
+                } else {
+                    const pwdRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
+                    if (!pwdRegex.test(value)) {
+                        error = 'Wachtwoord moet minimaal 8 tekens bevatten, inclusief een cijfer en een speciaal teken';
+                    }
+                }
+                break;
+            case 'confirmPassword':
+                if (!value) {
+                    error = 'Herhaal wachtwoord is verplicht';
+                } else if (formData.password !== value) {
+                    error = 'Wachtwoorden komen niet overeen';
+                }
+                break;
+            case 'kvk':
+                if (!value.trim()) {
+                    error = 'KvK-nummer is verplicht';
+                } else if (!/^\d{8}$/.test(value)) {
+                    error = 'KvK-nummer moet 8 cijfers bevatten';
+                }
+                break;
+            case 'postcode':
+                if (!value.trim()) {
+                    error = 'Postcode is verplicht';
+                }
+                break;
+            case 'adress':
+                if (!value.trim()) {
+                    error = 'Adres is verplicht';
+                }
+                break;
+        }
+
+        return error;
+    };
+
+    const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        const error = validateField(name, value);
+        setErrors(prev => ({
+            ...prev,
+            [name]: error
+        }));
+    };
+
     const validateForm = () => {
         const newErrors = {
             voornaam: '',
@@ -240,6 +311,7 @@ export default function Registreren() {
                             autoComplete="given-name"
                             value={formData.voornaam}
                             onChange={handleChange}
+                            onBlur={handleBlur}
                         />
                         {errors.voornaam && (
                             <div id="voornaam-error" className="error-message" aria-live="polite">
@@ -259,6 +331,7 @@ export default function Registreren() {
                             autoComplete="family-name"
                             value={formData.achternaam}
                             onChange={handleChange}
+                            onBlur={handleBlur}
                         />
                         {errors.achternaam && (
                             <div id="achternaam-error" className="error-message" aria-live="polite">
@@ -278,6 +351,7 @@ export default function Registreren() {
                         autoComplete="tel"
                         value={formData.telefoon}
                         onChange={handleChange}
+                        onBlur={handleBlur}
                     />
                     {errors.telefoon && (
                         <div id="telefoon-error" className="error-message" aria-live="polite">
@@ -297,6 +371,7 @@ export default function Registreren() {
                         autoComplete="email"
                         value={formData.email}
                         onChange={handleChange}
+                        onBlur={handleBlur}
                     />
                     {errors.email && (
                         <div id="email-error" className="error-message" aria-live="polite">
@@ -316,6 +391,7 @@ export default function Registreren() {
                         autoComplete="off"
                         value={formData.kvk}
                         onChange={handleChange}
+                        onBlur={handleBlur}
                     />
                     {errors.kvk && (
                         <div id="kvk-error" className="error-message" aria-live="polite">
@@ -337,6 +413,7 @@ export default function Registreren() {
                             autoComplete="new-password"
                             value={formData.password}
                             onChange={handleChange}
+                            onBlur={handleBlur}
                         />
                         {errors.password && (
                             <div id="password-error" className="error-message" aria-live="polite">
@@ -356,6 +433,7 @@ export default function Registreren() {
                             autoComplete="new-password"
                             value={formData.confirmPassword}
                             onChange={handleChange}
+                            onBlur={handleBlur}
                         />
                         {errors.confirmPassword && (
                             <div id="confirm-password-error" className="error-message" aria-live="polite">
@@ -377,6 +455,7 @@ export default function Registreren() {
                             autoComplete="postal-code"
                             value={formData.postcode}
                             onChange={handleChange}
+                            onBlur={handleBlur}
                         />
                         
                     {errors.postcode && (
@@ -396,6 +475,7 @@ export default function Registreren() {
                             autoComplete="address-line1"
                             value={formData.adress}
                             onChange={handleChange}
+                            onBlur={handleBlur}
                         />
                         {errors.adress && (
                             <div id="adress-error" className="error-message" aria-live="polite">
