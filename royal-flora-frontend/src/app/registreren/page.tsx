@@ -204,6 +204,8 @@ export default function Registreren() {
             return;
         }
         try {
+            console.log('API_BASE_URL:', API_BASE_URL);
+            console.log('Full URL:', `${API_BASE_URL}/api/auth/kvk-exists/${formData.kvk}`);
             const response = await fetch(`${API_BASE_URL}/api/auth/kvk-exists/${formData.kvk}`);
             if (!response.ok) {
                 alert('Fout bij het controleren van het KvK-nummer');
