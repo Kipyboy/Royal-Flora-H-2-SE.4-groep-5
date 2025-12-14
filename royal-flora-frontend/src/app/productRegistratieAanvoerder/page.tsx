@@ -15,7 +15,7 @@ interface ProductFormData {
   amount: string;
   minimumPrice: string;
   description: string;
-  images: File[];
+  images: File | null;
 }
 
 interface FormErrors {
@@ -45,7 +45,7 @@ export default function ProductRegistratieAanvoerderPage() {
     amount: '',
     minimumPrice: '',
     description: '',
-    images: [],
+    images: null,
   });
   const [errors, setErrors] = useState<FormErrors>({
     name:'', clockLocation:'', auctionDate:'', amount:'', minimumPrice:'', description:'', image:''
@@ -89,32 +89,31 @@ export default function ProductRegistratieAanvoerderPage() {
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    const validFiles: File[] = [];
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    const file = files[0];
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
 
-    files.forEach(file => {
-      if (!validTypes.includes(file.type)) {
-        setErrors(prev => ({ ...prev, image: 'Alleen afbeeldingen (JPEG, PNG, GIF) zijn toegestaan' }));
-        return;
-      }
-      if (file.size > 5 * 1024 * 1024) {
-        setErrors(prev => ({ ...prev, image: 'Elk bestand mag maximaal 5MB zijn' }));
-        return;
-      }
-      validFiles.push(file);
-    });
-
-    if (validFiles.length > 0) {
-      setFormData(prev => ({ ...prev, images: [...prev.images, ...validFiles] }));
-      setErrors(prev => ({ ...prev, image: '' }));
+    if (!validTypes.includes(file.type)) {
+      setErrors(prev => ({ ...prev, image: 'Alleen afbeeldingen (JPEG, PNG, GIF) zijn toegestaan' }));
+      if (e.target) e.target.value = '';
+      return;
     }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setErrors(prev => ({ ...prev, image: 'Elk bestand mag maximaal 5MB zijn' }));
+      if (e.target) e.target.value = '';
+      return;
+    }
+
+    setFormData(prev => ({ ...prev, images: file }));
+    setErrors(prev => ({ ...prev, image: '' }));
 
     if (e.target) e.target.value = '';
   };
 
-  const removeImage = (index: number) => {
-    setFormData(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }));
+  const removeImage = () => {
+    setFormData(prev => ({ ...prev, images: null }));
   };
 
   const validateForm = (): boolean => {
@@ -137,7 +136,7 @@ export default function ProductRegistratieAanvoerderPage() {
     e.preventDefault();
     if(!validateForm()) return;
 
-    if(!user || !user.KVK){
+      if(!user || !user.KVK){
       alert("Kan leverancier niet bepalen. Log opnieuw in.");
       router.push('/login');
       return;
@@ -165,7 +164,7 @@ export default function ProductRegistratieAanvoerderPage() {
       submitData.append('Aantal', formData.amount);
       submitData.append('Leverancier', user.KVK);
 
-      formData.images.forEach(img => submitData.append('images', img));
+      if (formData.images) submitData.append('images', formData.images);
 
       const response = await authFetch(`${API_BASE_URL}/api/products`, { method: 'POST', body: submitData });
 
@@ -176,7 +175,7 @@ export default function ProductRegistratieAanvoerderPage() {
       }
 
       alert('Product succesvol geregistreerd!');
-      setFormData({ name:'', clockLocation:'', auctionDate:'', amount:'', minimumPrice:'', description:'', images:[] });
+      setFormData({ name:'', clockLocation:'', auctionDate:'', amount:'', minimumPrice:'', description:'', images:null });
 
       const fileInput = document.getElementById('image') as HTMLInputElement;
       if(fileInput) fileInput.value='';
@@ -288,26 +287,23 @@ export default function ProductRegistratieAanvoerderPage() {
           </div>
 
           <div className="groupContainer">
-            <label htmlFor="image">Upload afbeelding(en):</label>
+            <label htmlFor="image">Upload afbeelding:</label>
             <input
               id="image"
               name="image"
               type="file"
               accept="image/jpeg,image/jpg,image/png,image/gif"
               onChange={handleFileChange}
-              multiple
             />
-            {formData.images.length > 0 && (
+            {formData.images && (
               <div className="image-preview-container">
-                {formData.images.map((img, i) => (
-                  <div key={i} className="image-preview-item">
-                    <img src={URL.createObjectURL(img)} alt={`Preview ${i + 1}`} className="image-preview" />
-                    <div className="image-preview-info">
-                      <span className="image-name">{img.name}</span>
-                      <button type="button" className="remove-image-btn" onClick={() => removeImage(i)}>✕</button>
-                    </div>
+                <div className="image-preview-item">
+                  <img src={URL.createObjectURL(formData.images)} alt={`Preview`} className="image-preview" />
+                  <div className="image-preview-info">
+                    <span className="image-name">{formData.images.name}</span>
+                    <button type="button" className="remove-image-btn" onClick={() => removeImage()}>✕</button>
                   </div>
-                ))}
+                </div>
               </div>
             )}
             {errors.image && <div className="error-message">{errors.image}</div>}
