@@ -122,7 +122,7 @@ const KlantSidebar: React.FC<SidebarProps> = ({
                 />
             </fieldset>
             <button className='description-button' onClick={onButtonClick}>
-                <p>{toonBeschrijving ? 'Toon product beschrijvingen' : 'Toon product overzicht'}</p>
+                <p>{toonBeschrijving ? 'Toon product overzicht' : 'Toon product beschrijvingen'}</p>
             </button>
           </div>
         </div>
