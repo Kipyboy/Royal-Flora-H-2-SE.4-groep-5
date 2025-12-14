@@ -101,6 +101,9 @@
     min-width: 11rem;
     max-width: 15rem;
 }
+.homepage-page .card img {
+    border-radius: 12px;
+}
 
 .homepage-page .card p {
     padding-left: 0.625rem;

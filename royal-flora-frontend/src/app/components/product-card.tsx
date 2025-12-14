@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import '../../styles/ProductCard.css';
 import { API_BASE_URL } from '../config/api';
 
@@ -13,6 +13,8 @@ interface ProductCardProps {
     status: string;
     aantal: number;
     fotoPath: string;
+    beschrijving: string;
+    toonBeschrijving: boolean;
 }
 
 const formatPrice = (price: string | number): string => {
@@ -35,14 +37,17 @@ const ProductCard: React.FC<ProductCardProps> = ({
     status,
     aantal,
     fotoPath
+    , beschrijving,
+    toonBeschrijving
 }) => {
+    
     const defaultImg = "https://syria.adra.cloud/wp-content/uploads/2021/10/empty.jpg";
     return (
     <div className="product-card">
         <div className="image">
             <img src={fotoPath && fotoPath.trim() !== "" ? `${API_BASE_URL}/images/${fotoPath}` : defaultImg} alt="" id="product-foto"/>
         </div>
-        <div className="info">
+        <div className="info" style={{ display : toonBeschrijving ? 'none' : 'block'}}>
             <p id="naam">Naam: {naam}</p>
             <p id="merk">Merk: {merk}</p>
             <p id="aantal">Aantal: {aantal}</p>
@@ -50,6 +55,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
             <p id="datum">Datum: {datum}</p>
             <p id="locatie">Locatie: {locatie}</p>
             <p id="status">Status: {status}</p>
+        </div>
+        <div className="beschrijving" style={{ display: toonBeschrijving ? 'block' : 'none' }}>
+            {beschrijving}
         </div>
     </div>
     );

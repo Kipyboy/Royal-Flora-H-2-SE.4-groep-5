@@ -32,8 +32,10 @@ interface TopbarProps {
     dateFilter?: string;
     merkFilter?: string;
     naamFilter?: string;
+    toonBeschrijving?: boolean;
     onCheckboxChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onInputChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onButtonClick?: React.MouseEventHandler<HTMLButtonElement>;
 }
 
 interface User {
@@ -60,8 +62,10 @@ const Topbar: React.FC<TopbarProps> = ({
     dateFilter,
     merkFilter,
     naamFilter,
+    toonBeschrijving,
     onCheckboxChange,
-    onInputChange
+    onInputChange,
+    onButtonClick
 }) => {
     const [dropdownVisible, setDropdownVisible] = useState(false);
     const router = useRouter();
@@ -179,7 +183,8 @@ const Topbar: React.FC<TopbarProps> = ({
                         merkFilter={merkFilter || ''}
                         naamFilter={naamFilter || ''}
                         onCheckboxChange={onCheckboxChange}
-                        onInputChange={onInputChange}
+                            onInputChange={onInputChange}
+                            onButtonClick={onButtonClick}
                     />
                 )}
 
@@ -195,8 +200,10 @@ const Topbar: React.FC<TopbarProps> = ({
                     dateFilter={dateFilter || ''}
                     merkFilter={merkFilter || ''}
                     naamFilter={naamFilter || ''}
+                    toonBeschrijving={toonBeschrijving || false}
                     onCheckboxChange={onCheckboxChange ?? (() => {})}
                     onInputChange={onInputChange ?? (() => {})}
+                    onButtonClick={onButtonClick}
                 />
             )}
             {user?.role === 'Inkoper' && (
@@ -211,8 +218,10 @@ const Topbar: React.FC<TopbarProps> = ({
                     dateFilter={dateFilter || ''}
                     merkFilter={merkFilter || ''}
                     naamFilter={naamFilter || ''}
+                    toonBeschrijving={toonBeschrijving || false}
                     onCheckboxChange={onCheckboxChange ?? (() => {})}
                     onInputChange={onInputChange ?? (() => {})}
+                    onButtonClick={onButtonClick}
                 />
             )}
             {user?.role === 'Veilingmeester' && (
@@ -227,8 +236,10 @@ const Topbar: React.FC<TopbarProps> = ({
                     dateFilter={dateFilter || ''}
                     merkFilter={merkFilter || ''}
                     naamFilter={naamFilter || ''}
+                    toonBeschrijving={toonBeschrijving || false}
                     onCheckboxChange={onCheckboxChange ?? (() => {})}
                     onInputChange={onInputChange ?? (() => {})}
+                    onButtonClick={onButtonClick}
                 />
             )}
         </>

@@ -37,6 +37,8 @@ const HomePage: React.FC = () => {
   const [naamFilter, setNaamFilter] = useState('');
   const [sidebarVisible, setSidebarVisible] = useState(true);
 
+  const [toonBeschrijving, setToonBeschrijving] = useState(false);
+
   useEffect(() => {
     const fetchData = async () => {
       const storedUser = getUser();
@@ -89,6 +91,10 @@ const HomePage: React.FC = () => {
     if (id === 'naam-input') setNaamFilter(value);
   };
 
+    const handleButtonClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
+      setToonBeschrijving(!toonBeschrijving);
+    };
+
   const renderCard = (product: any) => {
     const typeStr = (product.type ?? product.status ?? '').toString().toLowerCase();
     const isGekocht = typeStr === 'gekocht' || typeStr === 'verkocht';
@@ -99,6 +105,7 @@ const HomePage: React.FC = () => {
         <GekochtProductCard
           key={product.id}
           naam={product.naam}
+          beschrijving={product.beschrijving}
           merk={product.merk}
           verkoopPrijs={(product.verkoopPrijs ?? product.prijs)?.toString()}
           datum={product.datum}
@@ -106,6 +113,7 @@ const HomePage: React.FC = () => {
           status={product.status}
           aantal={product.aantal}
           fotoPath={product.fotoPath}
+          toonBeschrijving={toonBeschrijving}
         />
       );
     }
@@ -115,6 +123,7 @@ const HomePage: React.FC = () => {
         <EigenProductCard
           key={product.id}
           naam={product.naam}
+          beschrijving={product.beschrijving}
           merk={product.merk}
           verkoopPrijs={(product.verkoopPrijs ?? product.prijs)?.toString()}
           koper={product.koper ?? ''}
@@ -123,6 +132,7 @@ const HomePage: React.FC = () => {
           status={product.status}
           aantal={product.aantal}
           fotoPath={product.fotoPath}
+          toonBeschrijving={toonBeschrijving}
         />
       );
     }
@@ -131,6 +141,7 @@ const HomePage: React.FC = () => {
       <ProductCard
         key={product.id}
         naam={product.naam}
+        beschrijving={product.beschrijving}
         merk={product.merk}
         prijs={product.prijs}
         datum={product.datum}
@@ -138,6 +149,7 @@ const HomePage: React.FC = () => {
         status={product.status}
         aantal={product.aantal}
         fotoPath={product.fotoPath}
+        toonBeschrijving={toonBeschrijving}
       />
     );
   };
@@ -203,8 +215,10 @@ const HomePage: React.FC = () => {
         dateFilter={dateFilter}
         merkFilter={merkFilter}
         naamFilter={naamFilter}
+        toonBeschrijving={toonBeschrijving}
         onCheckboxChange={handleCheckboxChange}
         onInputChange={handleInputChange}
+        onButtonClick={handleButtonClick}
         user={user}
       />
 

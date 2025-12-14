@@ -152,6 +152,7 @@ namespace RoyalFlora.Controllers
                     {
                         id = product.IdProduct,
                         naam = product.ProductNaam ?? string.Empty,
+                        beschrijving = product.ProductBeschrijving ?? string.Empty,
                         merk = leverancierNaam,
                         verkoopPrijs = product.verkoopPrijs,
                         koper = (product.KoperNavigation?.VoorNaam ?? string.Empty) + " " + (product.KoperNavigation?.AchterNaam ?? string.Empty),
@@ -174,6 +175,7 @@ namespace RoyalFlora.Controllers
                     {
                         id = product.IdProduct,
                         naam = product.ProductNaam ?? string.Empty,
+                        beschrijving = product.ProductBeschrijving ?? string.Empty,
                         merk = leverancierNaam,
                         verkoopPrijs = product.verkoopPrijs,
                         datum = datum,
@@ -193,6 +195,7 @@ namespace RoyalFlora.Controllers
                 {
                     id = product.IdProduct,
                     naam = product.ProductNaam ?? string.Empty,
+                    beschrijving = product.ProductBeschrijving ?? string.Empty,
                     merk = leverancierNaam,
                     prijs = product.MinimumPrijs,
                     datum = datum,

@@ -15,6 +15,7 @@ interface SidebarProps {
     naamFilter: string;
     onCheckboxChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onButtonClick?: React.MouseEventHandler<HTMLButtonElement>;
 }
 
 

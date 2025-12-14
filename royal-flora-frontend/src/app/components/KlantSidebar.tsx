@@ -12,8 +12,10 @@ interface SidebarProps {
     dateFilter: string;
     merkFilter: string;
     naamFilter: string;
+    toonBeschrijving: boolean;
     onCheckboxChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onButtonClick?: React.MouseEventHandler<HTMLButtonElement>;
 }
 
 
@@ -29,8 +31,10 @@ const KlantSidebar: React.FC<SidebarProps> = ({
     dateFilter,
     merkFilter,
     naamFilter,
+    toonBeschrijving,
     onCheckboxChange,
-    onInputChange
+    onInputChange,
+    onButtonClick
 }) => (
 
 <div
@@ -117,6 +121,9 @@ const KlantSidebar: React.FC<SidebarProps> = ({
                 onChange={onInputChange}
                 />
             </fieldset>
+            <button className='description-button' onClick={onButtonClick}>
+                <p>{toonBeschrijving ? 'Toon product overzicht' : 'Toon product beschrijvingen'}</p>
+            </button>
           </div>
         </div>
 );
