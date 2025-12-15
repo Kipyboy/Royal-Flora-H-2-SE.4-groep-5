@@ -127,7 +127,7 @@ const Topbar: React.FC<TopbarProps> = ({
                     <div className="nav-logo-container">
                         <a href="/homepage" className="nav-logo-link" aria-label="Ga naar homepagina" onClick={() => router.push('/homepage')}>
                             <img
-                                src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Royal_FloraHolland_Logo.svg/1200px-Royal_FloraHolland_Logo.svg.png"
+                                src=
                                 alt="Royal FloraHolland Logo"
                                 className="nav-logo"
                             />
@@ -145,7 +145,7 @@ const Topbar: React.FC<TopbarProps> = ({
                     <div className="pfp-container" onClick={toggleDropdown}>
                         <img
                             alt="Profiel"
-                            src="https://www.pikpng.com/pngl/m/80-805068_my-profile-icon-blank-profile-picture-circle-clipart.png"
+                            src={`${API_BASE_URL}/images/toppng.com-flower-png-tumblr-flowers-clear-background-flower-500x489.png`}
                             className="pfp-img"
                             aria-label="Account menu"
                         />
