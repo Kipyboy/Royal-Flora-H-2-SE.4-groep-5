@@ -310,7 +310,7 @@ namespace RoyalFlora.Controllers
                     Datum = datumValue,
                     Aantal = aantalValue,
                     Leverancier = leverancierValue,
-                    Status = null  // Status will be set later or is optional
+                    Status = 1
                 };
 
                 _context.Products.Add(product);
@@ -371,7 +371,7 @@ namespace RoyalFlora.Controllers
 
             if (current == null) return NotFound("No active product found");
 
-            current.Status = 5;
+            current.Status = 4;
             _context.Entry(current).State = EntityState.Modified;
 
             var next = await _context.Products

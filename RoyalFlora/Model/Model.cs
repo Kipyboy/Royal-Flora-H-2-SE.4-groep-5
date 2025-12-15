@@ -36,6 +36,12 @@ public class MyDbContext : DbContext
             new Rol { IdRollen = 1, RolNaam = "Aanvoerder" },
             new Rol { IdRollen = 2, RolNaam = "Inkoper" }
         );
+        modelBuilder.Entity<Status>().HasData(
+            new Status {IdStatus = 1, Beschrijving = "In te plannen"},
+            new Status {IdStatus = 2, Beschrijving = "Aankomend"},
+            new Status {IdStatus = 3, Beschrijving = "Actief"},
+            new Status {IdStatus = 4, Beschrijving = "Gekocht"}
+        );
 
         // Bedrijf - Oprichter (Gebruiker)
         modelBuilder.Entity<Bedrijf>()
