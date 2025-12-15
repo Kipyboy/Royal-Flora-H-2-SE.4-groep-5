@@ -62,7 +62,7 @@ namespace RoyalFlora
             var app = builder.Build();
 
             // zorgen dat er automatisch gemigreerd wordt moest ik neerzetten voor de docker anders werkte het niet
-            // Retry logic voor Docker: wacht tot de database klaar is
+            // Retry logika voor Docker: wacht tot de database klaar is
             using (var scope = app.Services.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<MyDbContext>();
@@ -77,7 +77,6 @@ namespace RoyalFlora
                     {
                         logger.LogInformation("Attempting to connect to database (attempt {Attempt}/{MaxRetries})...", i + 1, maxRetries);
                         
-                        // Eerst checken of we kunnen connecten
                         if (dbContext.Database.CanConnect())
                         {
                             logger.LogInformation("Database connection successful. Running migrations...");
@@ -87,7 +86,6 @@ namespace RoyalFlora
                         }
                         else
                         {
-                            // Als we niet kunnen connecten, probeer EnsureCreated of wacht
                             logger.LogWarning("Cannot connect to database yet, waiting...");
                         }
                     }
