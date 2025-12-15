@@ -6,7 +6,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: [self-hosted, linux, x64]
+    runs-on: self-hosted
 
     steps:
       - name: Checkout repository
@@ -17,9 +17,7 @@ jobs:
       - name: Ensure latest master and rebuild docker-compose
         run: |
           set -e
-          # Zorg dat we exact de nieuwste master hebben
           git fetch --all
           git reset --hard origin/master
-          # Pull optionele images en (her)build de compose services
           docker compose pull || true
           docker compose up -d --build --remove-orphans
