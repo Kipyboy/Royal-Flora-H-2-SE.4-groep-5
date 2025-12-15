@@ -109,7 +109,6 @@ const AccountDetails: React.FC = () => {
 
     const handleSave = async (field: keyof UserDetails) => {
         try {
-            console.log(`Saving field ${field} with value ${userDetails[field]}`);
             const authHeaders = getAuthHeaders();
             
             if (!authHeaders.Authorization) {
@@ -183,7 +182,6 @@ const AccountDetails: React.FC = () => {
                         }
                     })
             clearAuth();
-            console.log(response)
                 router.push('/');
             } catch (error) {
                 setErrors({ general: 'Kon account niet verwijderen' });

@@ -211,6 +211,46 @@ namespace RoyalFlora.Controllers
             return productDTOs;
         }
 
+        [HttpGet("Status1")]
+        public async Task<ActionResult<IEnumerable<ProductDTO>>> GetStatus1Products()
+        {
+            var products = await _context.Products
+                .Include(p => p.LeverancierNavigation)
+                .Include(p => p.StatusNavigation)
+                .Include(p => p.Fotos)
+                .Include(p => p.KoperNavigation)
+                .Where(p => p.Status == 1)
+                .ToListAsync();
+
+            var productDTOs = new List<ProductDTO>();
+            foreach (var product in products)
+            {
+                var leverancierNaam = product.LeverancierNavigation?.BedrijfNaam ?? string.Empty;
+                var datum = product.Datum?.ToString("yyyy-MM-dd") ?? string.Empty;
+                var locatie = product.Locatie ?? string.Empty;
+                var status = product.StatusNavigation?.Beschrijving ?? string.Empty;
+
+                var dto = new ProductDTO
+                {
+                    id = product.IdProduct,
+                    naam = product.ProductNaam ?? string.Empty,
+                    beschrijving = product.ProductBeschrijving ?? string.Empty,
+                    merk = leverancierNaam,
+                    prijs = product.MinimumPrijs,
+                    verkoopPrijs = product.verkoopPrijs,
+                    koper = (product.KoperNavigation?.VoorNaam ?? string.Empty) + " " + (product.KoperNavigation?.AchterNaam ?? string.Empty),
+                    datum = datum,
+                    locatie = locatie,
+                    status = status,
+                    aantal = product.Aantal,
+                    fotoPath = product.Fotos.FirstOrDefault()?.FotoPath ?? string.Empty
+                };
+                productDTOs.Add(dto);
+            }
+
+            return productDTOs;
+        }
+
         [HttpGet("{id:int}")]
         public async Task<ActionResult<Product>> GetProduct(int id)
         {

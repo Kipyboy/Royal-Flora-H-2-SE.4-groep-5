@@ -74,9 +74,7 @@ const Topbar: React.FC<TopbarProps> = ({
     useEffect(() => {
         if (!userProp) {
             const fetched = getUser();
-            setUser(fetched);
-            console.log("Fetched user in Topbar:", fetched);
-        }
+            setUser(fetched);        }
     }, [userProp]);
 
     const toggleDropdown = (e: React.MouseEvent) => {
@@ -107,8 +105,6 @@ const Topbar: React.FC<TopbarProps> = ({
         return () => document.removeEventListener('click', handleClickOutside);
     }, [dropdownVisible]);
 
-    console.log("Topbar rendered with user:", user);
-
     return (
         <>
             <div className="topbar">
@@ -138,6 +134,11 @@ const Topbar: React.FC<TopbarProps> = ({
                         {user?.role === 'Aanvoerder' && (
                             <a onClick={() => { setDropdownVisible(false); router.push('/productRegistratieAanvoerder'); }}>
                                 Product registreren
+                            </a>
+                        )}
+                        {user?.role === 'Veilingmeester' && (
+                            <a onClick={() => { setDropdownVisible(false); router.push('/veilingMeesterProduct'); }}>
+                                Product inplannen
                             </a>
                         )}
                     </div>
