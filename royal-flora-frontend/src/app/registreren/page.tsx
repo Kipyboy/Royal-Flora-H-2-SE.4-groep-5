@@ -362,7 +362,7 @@ export default function Registreren() {
                 </div>
                 
                 <div className="form-group">
-                    <label htmlFor="email">Email adres</label>
+                    <label htmlFor="email">Email-adres</label>
                     <input 
                         type="email" 
                         id="email" 
