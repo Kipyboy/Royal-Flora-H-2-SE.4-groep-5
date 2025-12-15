@@ -7,6 +7,7 @@ using System.Security.Claims;
 using System.Text;
 using RoyalFlora.AuthDTO;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Cryptography.X509Certificates;
 
 namespace RoyalFlora.Controllers
 {
@@ -372,5 +373,28 @@ namespace RoyalFlora.Controllers
                 return StatusCode(500, new { message = "Fout bij het opslaan", error = ex.Message });
             }
         }
+            public async Task<ActionResult<GetBedrijfInfoResponse>> GetBedrijfInfo ()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+            {
+                return Unauthorized(new { message = "Niet ingelogd" });
+            }
+
+            var gebruiker = await _context.Gebruikers
+                .Include(g => g.BedrijfNavigation)
+                .FirstOrDefaultAsync(g => g.IdGebruiker == userId);
+
+            var bedrijf = gebruiker.BedrijfNavigation;
+
+            var response = new GetBedrijfInfoResponse
+            {
+                BedrijfNaam = bedrijf.BedrijfNaam,
+                Postcode = bedrijf.Postcode,
+                Adres = bedrijf.Adress
+            };
+            return Ok(response);
+        }
+        }
     }
-}
