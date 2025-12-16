@@ -5,6 +5,13 @@ namespace RoyalFlora.AuthDTO
         public string BedrijfNaam {get; set;} = string.Empty;
         public string Postcode {get;set;} = string.Empty;
         public string Adres {get;set;} = string.Empty;
+        public string Oprichter {get;set;} = string.Empty;
+        public bool IsOprichter{get;set;}
+    }
+    public class UpdateBedrijfInfoRequest
+    {
+        public string Field {get;set;} = string.Empty;
+        public string NewValue {get;set;} = string.Empty;
     }
     public class UpdateUserInfoRequest
     {
