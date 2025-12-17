@@ -7,6 +7,7 @@ using System.Security.Claims;
 using System.Text;
 using RoyalFlora.AuthDTO;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Cryptography.X509Certificates;
 
 namespace RoyalFlora.Controllers
 {
@@ -372,5 +373,101 @@ namespace RoyalFlora.Controllers
                 return StatusCode(500, new { message = "Fout bij het opslaan", error = ex.Message });
             }
         }
+            [Authorize]
+            [HttpGet("GetBedrijfInfo")]
+            public async Task<ActionResult<GetBedrijfInfoResponse>> GetBedrijfInfo ()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+            {
+                return Unauthorized(new { message = "Niet ingelogd" });
+            }
+
+            var gebruiker = await _context.Gebruikers
+                .Include(g => g.BedrijfNavigation)
+                    .ThenInclude(b => b.OprichterNavigation)
+                .FirstOrDefaultAsync(g => g.IdGebruiker == userId);
+
+            if (gebruiker == null)
+            {
+                return NotFound(new { message = "Gebruiker niet gevonden" });
+            }
+
+            var bedrijf = gebruiker.BedrijfNavigation;
+
+            if (bedrijf == null)
+            {
+                return NotFound(new { message = "Gebonden bedrijf niet gevonden" });
+            }
+
+            // Safely get oprichter name (may be null if not set)
+            var oprichterNaam = bedrijf.OprichterNavigation?.VoorNaam ?? string.Empty;
+
+            var response = new GetBedrijfInfoResponse
+            {
+                BedrijfNaam = bedrijf.BedrijfNaam ?? string.Empty,
+                Postcode = bedrijf.Postcode ?? string.Empty,
+                Adres = bedrijf.Adress ?? string.Empty,
+                Oprichter = oprichterNaam,
+                IsOprichter = !string.IsNullOrEmpty(oprichterNaam) && oprichterNaam.Equals(gebruiker.VoorNaam)
+            };
+
+            return Ok(response);
+        }
+        [HttpPost("UpdateBedrijfInfo")]
+        public async Task<ActionResult> UpdateBedrijfInfo ([FromBody] UpdateBedrijfInfoRequest request)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+            {
+                return Unauthorized(new { message = "Niet ingelogd" });
+            }
+
+            var gebruiker = await _context.Gebruikers
+                .Include(g => g.BedrijfNavigation)
+                .FirstOrDefaultAsync(g => g.IdGebruiker == userId);
+
+            if (gebruiker == null)
+            {
+                return NotFound(new { message = "Gebruiker niet gevonden" });
+            }
+
+            Bedrijf bedrijf = gebruiker.BedrijfNavigation;
+
+            switch(request.Field.ToLower())
+            {
+                case "bedrijfnaam":
+                bedrijf.BedrijfNaam = request.NewValue;
+                break;
+
+                case "postcode":
+                bedrijf.Postcode = request.NewValue;
+                break;
+
+                case "adress":
+                bedrijf.Adress = request.NewValue;
+                break;
+
+                default:
+                    return BadRequest(new { message = $"Ongeldig veld: {request.Field}" });
+            }
+            try
+            {
+                await _context.SaveChangesAsync();
+
+
+                return Ok(new { 
+                    message = "Veld succesvol bijgewerkt",
+                    field = request.Field,
+                    newValue = request.NewValue
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Fout bij het opslaan", error = ex.Message });
+            }
+        }        
     }
-}
+    }

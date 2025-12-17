@@ -160,6 +160,14 @@ const Topbar: React.FC<TopbarProps> = ({
                                 >
                                     Account Details
                                 </button>
+                                <button
+                                    onClick={() => {
+                                        setDropdownVisible(false);
+                                        router.push('/bedrijfDetails');
+                                    }}
+                                >
+                                    Bedrijf Details
+                                </button>
 
                                 <button className='logoutButton' onClick={handleLogout}>
                                     Uitloggen
