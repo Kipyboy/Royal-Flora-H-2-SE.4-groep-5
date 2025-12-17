@@ -296,12 +296,8 @@ namespace RoyalFlora.Controllers
             });
         }
 
-                [HttpPost("updateUserInfo")]
-
-
+        [HttpPost("updateUserInfo")]
         [Microsoft.AspNetCore.Authorization.Authorize]
-
-
         public async Task<ActionResult> UpdateUserInfo([FromBody] UpdateUserInfoRequest request)
         {
             // Get user ID from JWT claims
