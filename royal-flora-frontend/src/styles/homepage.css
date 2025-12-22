@@ -10,10 +10,7 @@
     justify-content: center;
     align-items: center;
 }
-.homepage-page .nav-logo {
-    height: 100px;
-    width: auto;
-}
+
 .homepage-page .pfp-container {
     display: flex;
     align-items: center;
@@ -169,10 +166,7 @@
 }
 
 @media (max-width: 500px) {
-    .homepage-page .nav-logo-container img {
-        width: 150px;
-        height: auto;
-    }
+
     .homepage-page .nav-text {
         font-size: 1.5rem;
     }

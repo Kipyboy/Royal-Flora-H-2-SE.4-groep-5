@@ -11,7 +11,7 @@
     align-items: center;
 }
 .topbar .nav-logo {
-    height: 100px;
+    height: clamp(5rem, 12vw, 100px);
     width: auto;
     border-radius: 0;
     justify-content: center;
@@ -73,7 +73,6 @@
     flex-direction: column;
     justify-content: center;
     cursor: pointer;
-    padding: 2.5rem;
     min-width: 2rem;
     min-height: 0.100rem;
     position: left;
@@ -118,7 +117,7 @@
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 1rem;
+    gap: 1.25rem;
     flex: 1;
 }
 
@@ -131,8 +130,19 @@
     left: 75%;
     transform: translateX(-75%);
     font-weight: bold;
-    font-size: larger;
-    color: var(--Text_on_secondair);
+    font-size: clamp(0.9rem, 1.5vw, 1.25rem);
+    color: var(--Text_on_button);
+    background-color: var(--button);
+    height: 4rem;
+    text-align: center;
+    border-radius: 12px;
+    position: absolute;
+    width: clamp(6rem, 10vw, 12rem);
+
+}
+.topbar .role-specific-nav-text a {
+    text-align: center;
+    margin: 0.25rem;
 }
 
 body:has(.topbar) {
