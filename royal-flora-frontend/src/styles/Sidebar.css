@@ -18,10 +18,16 @@
 }
 .sidebar fieldset {
     margin: 1rem;
+    border-radius: 12px;
 }
 .sidebar fieldset input {
     margin: 0.25rem;
+    margin: .25rem;
+    border-radius: 12px;
+    padding: .25rem;
+    background-color: lightgray;
 }
+
 .description-button {
     background-color: var(--button);
     height: 4rem;
