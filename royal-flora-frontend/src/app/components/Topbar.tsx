@@ -134,13 +134,15 @@ const Topbar: React.FC<TopbarProps> = ({
                         </a>
                     </div>
 
-                    <div className="role-specific-nav-text">
+                    
                         {user?.role === 'Aanvoerder' && (
+                            <div className="role-specific-nav-text">
                             <a onClick={() => { setDropdownVisible(false); router.push('/productRegistratieAanvoerder'); }}>
                                 <p>Product registreren</p>
                             </a>
+                            </div>
                         )}
-                    </div>
+                    
 
                     <div className="pfp-container" onClick={toggleDropdown}>
                         <img
