@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import "../../styles/clock.css";
 import { API_BASE_URL } from "../config/api";
+import { start } from "repl";
 
 function formatMs(ms: number) {
   if (ms <= 0) return "00:00.000";
@@ -22,6 +23,7 @@ interface ClockProps {
 
 interface KlokDTO {
   minimumPrijs: number;
+  startPrijs: number;
   locatie?: string;
   status?: number;
 }
@@ -29,6 +31,7 @@ interface KlokDTO {
 export default function Clock({endTs, durationMs, onPriceChange, locationName, onFinished}: ClockProps) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [minPrice, setMinPrice] = useState<number | null>(null);
+  const [startPrijs, setStartPrijs] = useState<number | null>(null);
   const finishedRef = useRef(false); 
 
   useEffect(() => {
@@ -54,10 +57,14 @@ export default function Clock({endTs, durationMs, onPriceChange, locationName, o
       })
       .then((text) => {
         if (!text) return;
+
         try {
           const data: KlokDTO = JSON.parse(text);
           const price = Number(data.minimumPrijs);
           setMinPrice(Number.isFinite(price) ? price : 0);
+          const startprice = Number(data.startPrijs);
+          setStartPrijs(Number.isFinite(startprice) ? startprice : 0);
+          
         } catch (parseErr) {
           console.error("Failed to parse klok JSON:", parseErr, "Response text:", text);
           setMinPrice(-1);
@@ -70,7 +77,7 @@ export default function Clock({endTs, durationMs, onPriceChange, locationName, o
   }, [locationName]);
 
   useEffect(() => {
-    if (!svgRef.current || endTs === null || minPrice === null || minPrice === -1)
+    if (!svgRef.current || endTs === null || minPrice === null || minPrice === -1 || startPrijs === null)
       return;
 
     const svg = svgRef.current;
@@ -79,7 +86,6 @@ export default function Clock({endTs, durationMs, onPriceChange, locationName, o
 
     const radius = 200;
     const center = radius + 50;
-    const startingPrice = minPrice * 10;
 
     const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
     circle.setAttribute("cx", center.toString());
@@ -136,7 +142,7 @@ export default function Clock({endTs, durationMs, onPriceChange, locationName, o
       });
 
       percentText.textContent = `${Math.floor(ratio * 100)}%`;
-      const currentPrice = minPrice + (startingPrice - minPrice) * ratio;
+      const currentPrice = minPrice + (startPrijs - minPrice) * ratio;
       priceText.textContent = "€" + currentPrice.toFixed(2);
 
       if (onPriceChange) {

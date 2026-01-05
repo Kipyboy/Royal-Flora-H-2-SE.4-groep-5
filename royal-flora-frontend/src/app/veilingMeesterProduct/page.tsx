@@ -8,13 +8,13 @@ import { getUser, getAuthHeaders} from '../utils/auth';
 import { API_BASE_URL } from '../config/api';
 
 interface ProductFormData {
-  name: string;
+  auctionDate: string;
   auctionTime: string;
   startPrice: string;
 }
 
 interface FormErrors {
-  name: string;
+  auctionDate: string;
   auctionTime: string;
   startPrice: string;
 }
@@ -46,12 +46,12 @@ export default function ProductRegistratieAanvoerderPage() {
   const [currentProduct, setCurrentProduct] = useState<ProductDTO | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [formData, setFormData] = useState<ProductFormData>({
-    name: '',
+    auctionDate: '',
     auctionTime: '',
     startPrice: '',
   });
   const [errors, setErrors] = useState<FormErrors>({
-    name:'', auctionTime:'', startPrice:''
+    auctionDate:'', auctionTime:'', startPrice:''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -93,12 +93,11 @@ export default function ProductRegistratieAanvoerderPage() {
   };
 
   const validateForm = (): boolean => {
-    const newErrors: FormErrors = { name:'', auctionTime:'', startPrice:'' };
+    const newErrors: FormErrors = { auctionDate:'', auctionTime:'', startPrice:'' };
     let isValid = true;
 
-    if (!formData.name.trim()) { newErrors.name='Product naam is verplicht'; isValid=false; }
-    if (!formData.auctionTime) { newErrors.auctionTime='Veilingtijd is verplicht'; isValid=false; }
-    else if(new Date(formData.auctionTime) < new Date(new Date().toDateString())){ newErrors.auctionTime='Veilingtijd moet in de toekomst liggen'; isValid=false; }
+    if (!formData.auctionDate) { newErrors.auctionDate='Veilingdatum is verplicht'; isValid=false; }
+    else if(new Date(formData.auctionDate) < new Date(new Date().toDateString())){ newErrors.auctionDate='Veilingdatum moet in de toekomst liggen'; isValid=false; }
     if(!formData.startPrice || parseFloat(formData.startPrice)<0){ newErrors.startPrice='Startprijs moet positief zijn'; isValid=false; }
     setErrors(newErrors);
     return isValid;
@@ -175,13 +174,13 @@ export default function ProductRegistratieAanvoerderPage() {
       const submitData = new FormData();
       
       submitData.append('Id', currentProduct.id.toString());
-      submitData.append('Datum', currentProduct.datum);
+      submitData.append('Datum', formData.auctionDate);
       submitData.append('Tijd', formData.auctionTime);
       submitData.append('StartPrijs', priceValue.toString());
 
 
       //MAAK ENDPOINT VOOR AAN
-      const response = await authFetch(`${API_BASE_URL}/api/productInplannen`, { method: 'POST', body: submitData });
+      const response = await authFetch(`${API_BASE_URL}/api/Products/productInplannen`, { method: 'POST', body: submitData });
 
       if(!response.ok){
         const error = await response.json();
@@ -190,7 +189,7 @@ export default function ProductRegistratieAanvoerderPage() {
       }
 
       alert('Product succesvol geregistreerd!');
-      setFormData({ name:'', auctionTime:'', startPrice:''});
+      setFormData({auctionDate:'', auctionTime:'', startPrice:''});
 
     } catch(err){
       console.error(err);
@@ -207,6 +206,21 @@ export default function ProductRegistratieAanvoerderPage() {
 
       <div className="content">
         <form className="formContainerRight" onSubmit={handleSubmit}>
+
+          <div className="inlineGroup">
+            <div className="groupContainer">
+              <label htmlFor="auctionDate">Veiling Datum:</label>
+              <input
+                id="auctionDate"
+                name="auctionDate"
+                type="date"
+                value={formData.auctionDate}
+                onChange={handleInputChange}
+                required
+              />
+              {errors.auctionDate && <div className="error-message">{errors.auctionDate}</div>}
+            </div>
+          </div>
 
           <div className="inlineGroup">
             <div className="groupContainer">
@@ -257,7 +271,7 @@ export default function ProductRegistratieAanvoerderPage() {
                 <div> Product: {p.naam}</div>
                 <div>{p.merk}</div>
                 <div>Locatie: {p.locatie}</div>
-                <div>Datum: {p.datum}</div>
+                <div>Gewenste datum: {p.datum}</div>
                 <div>Minimum prijs: €{p.prijs}</div>
                 {p.fotoPath && p.fotoPath.trim() !== "" && (
                   <img src={`${API_BASE_URL}/images/${p.fotoPath}`} alt={p.naam} id="product-foto"/>

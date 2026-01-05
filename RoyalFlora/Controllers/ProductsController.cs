@@ -48,6 +48,7 @@ namespace RoyalFlora.Controllers
             return new ClockDTO
             {
                 minimumPrijs = product.MinimumPrijs,
+                startPrijs = product.StartPrijs,
                 locatie = product.Locatie ?? string.Empty,
                 status = product.Status
             };
@@ -430,6 +431,35 @@ namespace RoyalFlora.Controllers
 
             await _context.SaveChangesAsync();
             return Ok(new { nextId = next.IdProduct });
+        }
+
+
+        [HttpPost("productInplannen")]
+        public async Task<IActionResult> productInplannen(
+            [FromForm] int? id, 
+            [FromForm] string? Datum,
+            [FromForm] string? Tijd,
+            [FromForm] string? StartPrijs)
+        {
+            var current = await _context.Products
+                .Where(p => p.IdProduct == id && p.Status == 1)
+                .FirstOrDefaultAsync();
+
+            if (current == null) return NotFound("No valid product found");
+
+            if (!decimal.TryParse(StartPrijs, NumberStyles.Any, CultureInfo.InvariantCulture, out var startPrijsValue))
+                return BadRequest("Ongeldige startprijs");
+
+            if (!DateTime.TryParseExact($"{Datum} {Tijd}", "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var geplandeMoment))
+                return BadRequest("Ongeldige datum/tijd");
+
+            current.StartPrijs = startPrijsValue;
+            current.Datum = geplandeMoment;
+            current.Status = 2;
+            _context.Entry(current).State = EntityState.Modified;
+
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "Product ingepland" });
         }
 
         private bool ProductExists(int id) => _context.Products.Any(e => e.IdProduct == id);
