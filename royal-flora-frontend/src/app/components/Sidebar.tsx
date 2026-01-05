@@ -128,6 +128,12 @@ const Sidebar: React.FC<SidebarProps> = ({
                 />
             </fieldset>
           </div>
+
+          {/* Actions (not filters) - visible for all users */}
+          <div className="sidebar-actions">
+            <a className="description-button" href="/status4products">Verkochte producten (Status 4)</a>
+          </div>
+
         </div>
 );
 

@@ -462,6 +462,37 @@ namespace RoyalFlora.Controllers
             return Ok(new { message = "Product ingepland" });
         }
 
+        // Get all products with status 4, returning naam and verkoopprijs
+        // Supports optional case-insensitive filter by product name using raw SQL
+        [HttpGet("Status4Products")]
+        public async Task<ActionResult<IEnumerable<Status4ProductDTO>>> GetStatus4Products([FromQuery] string? naamFilter = null)
+        {
+            try
+            {
+                IEnumerable<Status4ProductDTO> products;
+
+                if (string.IsNullOrEmpty(naamFilter))
+                {
+                    // No filter: select all products with status 4
+                    string sql = "SELECT IdProduct, ProductNaam, verkoopPrijs FROM Products WHERE Status = 4";
+                    products = await _context.Database.SqlQueryRaw<Status4ProductDTO>(sql).ToListAsync();
+                }
+                else
+                {
+                    // With filter: case-insensitive LIKE search using SQL parameters
+                    string sql = "SELECT IdProduct, ProductNaam, verkoopPrijs FROM Products WHERE Status = 4 AND ProductNaam COLLATE SQL_Latin1_General_CP1_CI_AS LIKE '%' + @naamFilter + '%'";
+                    var param = new Microsoft.Data.SqlClient.SqlParameter("@naamFilter", naamFilter);
+                    products = await _context.Database.SqlQueryRaw<Status4ProductDTO>(sql, param).ToListAsync();
+                }
+
+                return Ok(products);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error retrieving products", details = ex.Message });
+            }
+        }
+
         private bool ProductExists(int id) => _context.Products.Any(e => e.IdProduct == id);
     }
 }

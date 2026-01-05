@@ -30,6 +30,30 @@
     margin-left: 1rem;
     color: var(--Text_on_button);
 }
+
+.sidebar-links {
+    margin-top: auto;
+    padding: 1rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-links a {
+    display: block;
+    padding: 0.75rem;
+    background-color: var(--button);
+    color: var(--Text_on_button);
+    text-decoration: none;
+    border-radius: 8px;
+    text-align: center;
+    transition: background-color 0.3s;
+    font-weight: 500;
+}
+
+.sidebar-links a:hover {
+    background-color: var(--button);
+    opacity: 0.8;
+}
+
 @media (max-width: 900px) {
     .sidebar {
         width: 100vw;
