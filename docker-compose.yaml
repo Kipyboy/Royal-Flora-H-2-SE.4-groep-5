@@ -11,6 +11,7 @@
 # je kan de services apart draaien of tegerlijker tijd
 #specifieke waarders heb ik van meerdere tutorials opgehaald zo als je meer wilt weten er zijn heel veel tutorials en het is makelijk te begrijpen
 #bijna elk project of framwork dat je gebruikt heeft wel een docker tutorial
+# Caddy kijkt naar wat er binnenkomt en stuurt het door naar de juiste service
 
 
 services:
@@ -35,7 +36,6 @@ services:
 
   backend:
     build:
-      # Build context must point to the folder containing RoyalFlora.csproj and the Dockerfile
       context: ./RoyalFlora
       dockerfile: dockerfile
     container_name: royal-flora-backend
@@ -43,10 +43,12 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       DOTNET_USE_POLLING_FILE_WATCHER: "true"
       ConnectionStrings__DefaultConnection: "Server=db;Database=RoyalFloraDB;User Id=sa;Password=RoyalFlora@2024!;TrustServerCertificate=true;MultipleActiveResultSets=true"
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+    expose:
+      - "8080"
     ports:
       - "5156:8080"
     volumes:
-      # Mount host project folder into the container WORKDIR (/src) so the running container sees the same files as built
       - ./RoyalFlora:/src
     depends_on:
       db:
@@ -64,9 +66,9 @@ services:
       HOST: 0.0.0.0
       PORT: 3000
       NEXT_TELEMETRY_DISABLED: "1"
-      # API URL for the frontend - this is the URL the browser uses to reach the backend
-      # Change this to your server's external IP or domain when deploying (e.g., http://192.168.1.100:5156)
-      NEXT_PUBLIC_API_URL: "http://80.56.53.41:5156"
+      NEXT_PUBLIC_API_URL: "https://chicken.servegame.com/"
+    expose:
+      - "3000"
     ports:
       - "3000:3000"
     volumes:
@@ -77,6 +79,23 @@ services:
     command: ["npm", "run", "dev", "--", "-H", "0.0.0.0", "-p", "3000"]
     restart: unless-stopped
 
+  caddy:
+    image: caddy:2-alpine
+    container_name: royal-flora-caddy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - frontend
+      - backend
+    restart: unless-stopped
+
 volumes:
   node_modules:
   sqlserver_data:
+  caddy_data:
+  caddy_config:

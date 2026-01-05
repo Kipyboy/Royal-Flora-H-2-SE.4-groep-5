@@ -1,0 +1,11 @@
+chicken.servegame.com {
+    # Backend API requests - moet VOOR de frontend handle staan
+    handle /api/* {
+        reverse_proxy backend:8080
+    }
+
+    # Frontend (alle andere requests)
+    handle {
+        reverse_proxy frontend:3000
+    }
+}
