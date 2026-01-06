@@ -1,5 +1,6 @@
 chicken.servegame.com {
-    # Backend API requests - moet VOOR de frontend handle staan
+    # dit is een soort if statement situatie ze de meest specefieke eerst neerzetten anders pakt die iets die je niet wilt want het stuurt je naar de eerste die waar is
+    # Backend API requests
     handle /api/* {
         reverse_proxy backend:8080
     }
