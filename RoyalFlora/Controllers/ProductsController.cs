@@ -474,15 +474,17 @@ namespace RoyalFlora.Controllers
                 if (string.IsNullOrEmpty(naamFilter))
                 {
                     // No filter: select all products with status 4
-                    string sql = "SELECT IdProduct, ProductNaam, verkoopPrijs FROM Products WHERE Status = 4";
-                    products = await _context.Database.SqlQueryRaw<Status4ProductDTO>(sql).ToListAsync();
+                    string sqlWithIndex = "SELECT IdProduct, ProductNaam, verkoopPrijs FROM Products WITH (INDEX(IX_Products_Status_ProductNaam)) WHERE Status = 4";
+                    string sqlNoIndex = "SELECT IdProduct, ProductNaam, verkoopPrijs FROM Products WHERE Status = 4";
+                    products = await SqlQueryWithIndexFallback<Status4ProductDTO>(sqlWithIndex, sqlNoIndex);
                 }
                 else
                 {
                     // With filter: case-insensitive LIKE search using SQL parameters
-                    string sql = "SELECT IdProduct, ProductNaam, verkoopPrijs FROM Products WHERE Status = 4 AND ProductNaam COLLATE SQL_Latin1_General_CP1_CI_AS LIKE '%' + @naamFilter + '%'";
+                    string sqlWithIndex = "SELECT IdProduct, ProductNaam, verkoopPrijs FROM Products WITH (INDEX(IX_Products_Status_ProductNaam)) WHERE Status = 4 AND ProductNaam COLLATE SQL_Latin1_General_CP1_CI_AS LIKE '%' + @naamFilter + '%'";
+                    string sqlNoIndex = "SELECT IdProduct, ProductNaam, verkoopPrijs FROM Products WHERE Status = 4 AND ProductNaam COLLATE SQL_Latin1_General_CP1_CI_AS LIKE '%' + @naamFilter + '%'";
                     var param = new Microsoft.Data.SqlClient.SqlParameter("@naamFilter", naamFilter);
-                    products = await _context.Database.SqlQueryRaw<Status4ProductDTO>(sql, param).ToListAsync();
+                    products = await SqlQueryWithIndexFallback<Status4ProductDTO>(sqlWithIndex, sqlNoIndex, param);
                 }
 
                 return Ok(products);
@@ -493,6 +495,94 @@ namespace RoyalFlora.Controllers
             }
         }
 
+        [HttpGet("VeilingSoldMatches")]
+        public async Task<ActionResult<VeilingSoldMatchesDTO>> GetVeilingSoldMatches([FromQuery] string locatie)
+        {
+            if (string.IsNullOrWhiteSpace(locatie)) return BadRequest("Missing locatie");
+
+            var active = await _context.Products
+                .Where(p => p.Status == 3 && (p.Locatie ?? "").ToLower() == locatie.ToLower())
+                .FirstOrDefaultAsync();
+
+            if (active == null) return NotFound("No active veiling for locatie");
+
+            var naam = active.ProductNaam ?? string.Empty;
+
+            string sqlWithIndex = "SELECT IdProduct, ProductNaam, verkoopPrijs, Aantal FROM Products WITH (INDEX(IX_Products_Status_ProductNaam)) WHERE Status = 4 AND ProductNaam COLLATE SQL_Latin1_General_CP1_CI_AS = @naam";
+            string sqlNoIndex = "SELECT IdProduct, ProductNaam, verkoopPrijs, Aantal FROM Products WHERE Status = 4 AND ProductNaam COLLATE SQL_Latin1_General_CP1_CI_AS = @naam";
+            var param = new Microsoft.Data.SqlClient.SqlParameter("@naam", naam);
+
+            var sold = await SqlQueryWithIndexFallback<SoldItemDTO>(sqlWithIndex, sqlNoIndex, param);
+
+            var result = new VeilingSoldMatchesDTO
+            {
+                ActiveProductId = active.IdProduct,
+                ActiveProductNaam = naam,
+                SoldProducts = sold
+            };
+
+            return Ok(result);
+        }
+
         private bool ProductExists(int id) => _context.Products.Any(e => e.IdProduct == id);
+        
+        private async Task<List<T>> SqlQueryWithIndexFallback<T>(string sqlWithIndex, string sqlWithoutIndex, params object[] parameters)
+        {
+            try
+            {
+                return await _context.Database.SqlQueryRaw<T>(sqlWithIndex, parameters).ToListAsync();
+            }
+            catch (Microsoft.Data.SqlClient.SqlException ex) when (ex.Number == 308)
+            {
+                // Index specified in hint does not exist; retry without index hint
+                return await _context.Database.SqlQueryRaw<T>(sqlWithoutIndex, parameters).ToListAsync();
+            }
+        }
+
+        [HttpGet("CheckIndex")]
+        public async Task<ActionResult<bool>> CheckIndex()
+        {
+            try
+            {
+                var rows = await _context.Database.SqlQueryRaw<int>("SELECT 1 FROM sys.indexes WHERE name='IX_Products_Status_ProductNaam' AND object_id = OBJECT_ID('Products')").ToListAsync();
+                return Ok(rows.Any());
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error checking index", details = ex.Message });
+            }
+        }
+
+        [HttpGet("ListProductIndexes")]
+        public async Task<ActionResult<IEnumerable<string>>> ListProductIndexes()
+        {
+            try
+            {
+                var rows = await _context.Database.SqlQueryRaw<string>("SELECT name FROM sys.indexes WHERE object_id = OBJECT_ID('Products')").ToListAsync();
+                return Ok(rows);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error listing indexes", details = ex.Message });
+            }
+        }
+
+        [HttpPost("EnsureIndex")]
+        public async Task<IActionResult> EnsureIndex()
+        {
+            try
+            {
+                var sql = @"IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_Products_Status_ProductNaam' AND object_id = OBJECT_ID('Products'))
+                            BEGIN
+                                CREATE NONCLUSTERED INDEX IX_Products_Status_ProductNaam ON Products (Status, ProductNaam)
+                            END";
+                await _context.Database.ExecuteSqlRawAsync(sql);
+                return Ok(new { message = "Index ensured" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Failed to create index", details = ex.Message });
+            }
+        }
     }
 }
