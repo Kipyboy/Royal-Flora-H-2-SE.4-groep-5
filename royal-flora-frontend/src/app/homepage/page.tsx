@@ -7,6 +7,7 @@ import Topbar from '../components/Topbar';
 import ProductCard from '../components/product-card';
 import GekochtProductCard from '../components/gekocht-product-card';
 import EigenProductCard from '../components/eigen-product-card';
+import VeilingmeesterProductCard from '../components/veilingmeester-product-card';
 import { authFetch } from '../utils/api';
 import { getUser } from '../utils/auth';
 import { API_BASE_URL } from '../config/api';
@@ -127,6 +128,25 @@ const HomePage: React.FC = () => {
           merk={product.merk}
           verkoopPrijs={(product.verkoopPrijs ?? product.prijs)?.toString()}
           koper={product.koper ?? ''}
+          datum={product.datum}
+          locatie={product.locatie}
+          status={product.status}
+          aantal={product.aantal}
+          fotoPath={product.fotoPath}
+          toonBeschrijving={toonBeschrijving}
+        />
+      );
+    }
+
+    if(user?.role === 'Veilingmeester') {
+      return (
+        <VeilingmeesterProductCard
+          id={product.id}
+          key={product.id}
+          naam={product.naam}
+          beschrijving={product.beschrijving}
+          merk={product.merk}
+          prijs={product.prijs}
           datum={product.datum}
           locatie={product.locatie}
           status={product.status}

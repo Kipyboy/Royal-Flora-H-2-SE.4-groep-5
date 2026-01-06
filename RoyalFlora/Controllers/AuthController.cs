@@ -52,7 +52,27 @@ namespace RoyalFlora.Controllers
             int? kvkNummer = null;
             
             
-            int rolId = request.AccountType == "Aanvoerder" ? 1 : 2;
+            int rolId;
+            if (request.AccountType == "Inkoper")
+            {
+                rolId = 1;
+            }
+            else if (request.AccountType == "Aanvoerder")
+            {
+                rolId = 2;
+            }
+            else if (request.AccountType == "Veilingmeester")
+            {
+                rolId = 3;
+            }
+            else
+            {
+                return BadRequest(new RegisterResponse
+                {
+                    Success = false,
+                    Message = "Ongeldig account type"
+                });
+            }
             string hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.Wachtwoord);
 
             if (!string.IsNullOrWhiteSpace(request.BedrijfNaam))

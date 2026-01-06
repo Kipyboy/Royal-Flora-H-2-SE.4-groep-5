@@ -33,3 +33,13 @@
     height: 50%;
     color: var(--Text_on_button);
 }
+.delete-button {
+    background-color: var(--button);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    display: block;
+    margin: 1rem auto;
+}
