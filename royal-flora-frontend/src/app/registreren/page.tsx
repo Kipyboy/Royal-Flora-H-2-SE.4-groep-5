@@ -495,6 +495,7 @@ export default function Registreren() {
                     >
                         <option value='Inkoper'>Inkoper</option>
                         <option value='Aanvoerder'>Aanvoerder</option>
+                        <option value='Veilingmeester'>Veilingmeester</option>
                     </select>
                 </div>
                 
