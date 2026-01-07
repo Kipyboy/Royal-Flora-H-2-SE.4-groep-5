@@ -41,7 +41,7 @@ interface ProductDTO {
   fotoPath: string;
 }
 
-export default function ProductRegistratieAanvoerderPage() {
+export default function VeilingMeesterProductPage() {
   const router = useRouter();
   const [currentProduct, setCurrentProduct] = useState<ProductDTO | null>(null);
   const [user, setUser] = useState<User | null>(null);

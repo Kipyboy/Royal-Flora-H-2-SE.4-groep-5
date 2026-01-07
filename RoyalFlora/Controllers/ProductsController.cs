@@ -351,7 +351,7 @@ namespace RoyalFlora.Controllers
                     Datum = datumValue,
                     Aantal = aantalValue,
                     Leverancier = leverancierValue,
-                    Status = null  // Status will be set later or is optional
+                    Status = 1
                 };
 
                 _context.Products.Add(product);
@@ -412,18 +412,21 @@ namespace RoyalFlora.Controllers
 
             if (current == null) return NotFound("No active product found");
 
-            current.Status = 5;
+            current.Status = 4;
             _context.Entry(current).State = EntityState.Modified;
 
             var next = await _context.Products
-                .Where(p => p.Status == 2 && (p.Locatie ?? "") == locatie)
-                .OrderBy(p => p.IdProduct)
+                .Where(p => p.Status == 2 || p.Status == 5 && (p.Locatie ?? "") == locatie && p.Datum.Value.Date == DateTime.Today)
+                .OrderBy(p => p.Datum)
                 .FirstOrDefaultAsync();
 
             if (next == null)
             {
                 await _context.SaveChangesAsync();
                 return NotFound("No next product available");
+            }
+            if (next.Status == 5) {
+                return NotFound("Next product was paused");
             }
 
             next.Status = 3;
@@ -583,6 +586,113 @@ namespace RoyalFlora.Controllers
             {
                 return BadRequest(new { error = "Failed to create index", details = ex.Message });
             }
+        }
+        [Authorize(Roles = "Veilingmeester")]
+        [HttpPost("StartAuctions")]
+        public async Task<ActionResult> StartAuctions ()
+        {
+            var today = DateTime.Today;
+            var now = DateTime.Now;
+
+            var scheduledToday = await _context.Products
+                .Where(p => p.Status == 2 && p.Datum.HasValue && p.Datum.Value.Date == today)
+                .ToListAsync();
+
+            if (!scheduledToday.Any())
+                return NotFound("No auctions scheduled for today");
+
+            var activated = new List<object>();
+
+            var byLocation = scheduledToday.GroupBy(p => (p.Locatie ?? string.Empty));
+
+            foreach (var group in byLocation)
+            {
+                var due = group.Where(p => p.Datum.HasValue && p.Datum.Value <= now)
+                               .OrderBy(p => p.Datum)
+                               .FirstOrDefault();
+
+                var toActivate = due ?? group.OrderBy(p => p.Datum).FirstOrDefault();
+
+                if (toActivate != null)
+                {
+                    toActivate.Status = 3;
+                    _context.Entry(toActivate).State = EntityState.Modified;
+                    activated.Add(new { locatie = group.Key, id = toActivate.IdProduct, startTime = toActivate.Datum });
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok(activated);
+        }
+        
+        [Authorize(Roles = "Veilingmeester")]
+        [HttpPost("PauseAuctions")]
+        public async Task<ActionResult> PauseAuctions ()
+        {
+            var now = DateTime.Now;
+            var today = DateTime.Today;
+
+            var toPause = await _context.Products
+                .Where(p => p.Status == 2 && p.Datum.HasValue && p.Datum.Value.Date == today)
+                .ToListAsync();
+
+            var paused = new List<object>();
+
+            var byLocation = toPause.GroupBy(p => (p.Locatie ?? string.Empty));
+
+            foreach (var group in byLocation)
+            {
+                var due = group.Where(p => p.Datum.HasValue && p.Datum.Value <= now)
+                               .OrderBy(p => p.Datum)
+                               .FirstOrDefault();
+
+                var toBePaused = due ?? group.OrderBy(p => p.Datum).FirstOrDefault();
+
+                if (toBePaused != null)
+                {
+                    toBePaused.Status = 5;
+                    _context.Entry(toBePaused).State = EntityState.Modified;
+                    paused.Add(new { locatie = group.Key, id = toBePaused.IdProduct, startTime = toBePaused.Datum });
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok(paused);
+        }
+
+        [HttpGet("HasPausedAuctions")]
+        public async Task<ActionResult<bool>> HasPausedAuctions()
+        {
+            try
+            {
+                var any = await _context.Products.AnyAsync(p => p.Status == 5);
+                return Ok(any);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error checking paused auctions", details = ex.Message });
+            }
+        }
+
+        [Authorize(Roles = "Veilingmeester")]
+        [HttpPost("ResumeAuctions")]
+        public async Task<IActionResult> ResumeAuctions()
+        {
+            var paused = await _context.Products
+                .Where(p => p.Status == 5)
+                .ToListAsync();
+
+            if (!paused.Any()) return NotFound(new { message = "No paused auctions found" });
+
+            foreach (var p in paused)
+            {
+                
+                p.Status = 3;
+                _context.Entry(p).State = EntityState.Modified;
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok(new { resumedCount = paused.Count, ids = paused.Select(p => p.IdProduct) });
         }
     }
 }
