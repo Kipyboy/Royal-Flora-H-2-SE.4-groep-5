@@ -351,7 +351,7 @@ namespace RoyalFlora.Controllers
                     Datum = datumValue,
                     Aantal = aantalValue,
                     Leverancier = leverancierValue,
-                    Status = null  // Status will be set later or is optional
+                    Status = 1
                 };
 
                 _context.Products.Add(product);
@@ -412,18 +412,22 @@ namespace RoyalFlora.Controllers
 
             if (current == null) return NotFound("No active product found");
 
-            current.Status = 5;
+            current.Status = 4;
             _context.Entry(current).State = EntityState.Modified;
 
             var next = await _context.Products
-                .Where(p => p.Status == 2 && (p.Locatie ?? "") == locatie)
-                .OrderBy(p => p.IdProduct)
+                .Where(p => p.Status == 2 || p.Status == 5 && (p.Locatie ?? "") == locatie && p.Datum.Value.Date == DateTime.Today)
+                .OrderBy(p => p.Datum)
                 .FirstOrDefaultAsync();
 
             if (next == null)
             {
                 await _context.SaveChangesAsync();
                 return NotFound("No next product available");
+            }
+            if (next.Status == 5) {
+                await _context.SaveChangesAsync();
+                return NotFound("Next product was paused");
             }
 
             next.Status = 3;
@@ -462,6 +466,234 @@ namespace RoyalFlora.Controllers
             return Ok(new { message = "Product ingepland" });
         }
 
+        // Get all products with status 4, returning naam and verkoopprijs
+        // Supports optional case-insensitive filter by product name using raw SQL
+        [HttpGet("Status4Products")]
+        public async Task<ActionResult<IEnumerable<Status4ProductDTO>>> GetStatus4Products([FromQuery] string? naamFilter = null)
+        {
+            try
+            {
+                IEnumerable<Status4ProductDTO> products;
+
+                if (string.IsNullOrEmpty(naamFilter))
+                {
+                    // No filter: select all products with status 4
+                    string sqlWithIndex = "SELECT IdProduct, ProductNaam, verkoopPrijs FROM Products WITH (INDEX(IX_Products_Status_ProductNaam)) WHERE Status = 4";
+                    string sqlNoIndex = "SELECT IdProduct, ProductNaam, verkoopPrijs FROM Products WHERE Status = 4";
+                    products = await SqlQueryWithIndexFallback<Status4ProductDTO>(sqlWithIndex, sqlNoIndex);
+                }
+                else
+                {
+                    // With filter: case-insensitive LIKE search using SQL parameters
+                    string sqlWithIndex = "SELECT IdProduct, ProductNaam, verkoopPrijs FROM Products WITH (INDEX(IX_Products_Status_ProductNaam)) WHERE Status = 4 AND ProductNaam COLLATE SQL_Latin1_General_CP1_CI_AS LIKE '%' + @naamFilter + '%'";
+                    string sqlNoIndex = "SELECT IdProduct, ProductNaam, verkoopPrijs FROM Products WHERE Status = 4 AND ProductNaam COLLATE SQL_Latin1_General_CP1_CI_AS LIKE '%' + @naamFilter + '%'";
+                    var param = new Microsoft.Data.SqlClient.SqlParameter("@naamFilter", naamFilter);
+                    products = await SqlQueryWithIndexFallback<Status4ProductDTO>(sqlWithIndex, sqlNoIndex, param);
+                }
+
+                return Ok(products);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error retrieving products", details = ex.Message });
+            }
+        }
+
+        [HttpGet("VeilingSoldMatches")]
+        public async Task<ActionResult<VeilingSoldMatchesDTO>> GetVeilingSoldMatches([FromQuery] string locatie)
+        {
+            if (string.IsNullOrWhiteSpace(locatie)) return BadRequest("Missing locatie");
+
+            var active = await _context.Products
+                .Where(p => p.Status == 3 && (p.Locatie ?? "").ToLower() == locatie.ToLower())
+                .FirstOrDefaultAsync();
+
+            if (active == null) return NotFound("No active veiling for locatie");
+
+            var naam = active.ProductNaam ?? string.Empty;
+
+            string sqlWithIndex = "SELECT IdProduct, ProductNaam, verkoopPrijs, Aantal FROM Products WITH (INDEX(IX_Products_Status_ProductNaam)) WHERE Status = 4 AND ProductNaam COLLATE SQL_Latin1_General_CP1_CI_AS = @naam";
+            string sqlNoIndex = "SELECT IdProduct, ProductNaam, verkoopPrijs, Aantal FROM Products WHERE Status = 4 AND ProductNaam COLLATE SQL_Latin1_General_CP1_CI_AS = @naam";
+            var param = new Microsoft.Data.SqlClient.SqlParameter("@naam", naam);
+
+            var sold = await SqlQueryWithIndexFallback<SoldItemDTO>(sqlWithIndex, sqlNoIndex, param);
+
+            var result = new VeilingSoldMatchesDTO
+            {
+                ActiveProductId = active.IdProduct,
+                ActiveProductNaam = naam,
+                SoldProducts = sold
+            };
+
+            return Ok(result);
+        }
+
         private bool ProductExists(int id) => _context.Products.Any(e => e.IdProduct == id);
+        
+        private async Task<List<T>> SqlQueryWithIndexFallback<T>(string sqlWithIndex, string sqlWithoutIndex, params object[] parameters)
+        {
+            try
+            {
+                return await _context.Database.SqlQueryRaw<T>(sqlWithIndex, parameters).ToListAsync();
+            }
+            catch (Microsoft.Data.SqlClient.SqlException ex) when (ex.Number == 308)
+            {
+                // Index specified in hint does not exist; retry without index hint
+                return await _context.Database.SqlQueryRaw<T>(sqlWithoutIndex, parameters).ToListAsync();
+            }
+        }
+
+        [HttpGet("CheckIndex")]
+        public async Task<ActionResult<bool>> CheckIndex()
+        {
+            try
+            {
+                var rows = await _context.Database.SqlQueryRaw<int>("SELECT 1 FROM sys.indexes WHERE name='IX_Products_Status_ProductNaam' AND object_id = OBJECT_ID('Products')").ToListAsync();
+                return Ok(rows.Any());
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error checking index", details = ex.Message });
+            }
+        }
+
+        [HttpGet("ListProductIndexes")]
+        public async Task<ActionResult<IEnumerable<string>>> ListProductIndexes()
+        {
+            try
+            {
+                var rows = await _context.Database.SqlQueryRaw<string>("SELECT name FROM sys.indexes WHERE object_id = OBJECT_ID('Products')").ToListAsync();
+                return Ok(rows);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error listing indexes", details = ex.Message });
+            }
+        }
+
+        [HttpPost("EnsureIndex")]
+        public async Task<IActionResult> EnsureIndex()
+        {
+            try
+            {
+                var sql = @"IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_Products_Status_ProductNaam' AND object_id = OBJECT_ID('Products'))
+                            BEGIN
+                                CREATE NONCLUSTERED INDEX IX_Products_Status_ProductNaam ON Products (Status, ProductNaam)
+                            END";
+                await _context.Database.ExecuteSqlRawAsync(sql);
+                return Ok(new { message = "Index ensured" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Failed to create index", details = ex.Message });
+            }
+        }
+        [Authorize(Roles = "Veilingmeester")]
+        [HttpPost("StartAuctions")]
+        public async Task<ActionResult> StartAuctions ()
+        {
+            var today = DateTime.Today;
+            var now = DateTime.Now;
+
+            var scheduledToday = await _context.Products
+                .Where(p => p.Status == 2 && p.Datum.HasValue && p.Datum.Value.Date == today)
+                .ToListAsync();
+
+            if (!scheduledToday.Any())
+                return NotFound("No auctions scheduled for today");
+
+            var activated = new List<object>();
+
+            var byLocation = scheduledToday.GroupBy(p => (p.Locatie ?? string.Empty));
+
+            foreach (var group in byLocation)
+            {
+                var due = group.Where(p => p.Datum.HasValue && p.Datum.Value <= now)
+                               .OrderBy(p => p.Datum)
+                               .FirstOrDefault();
+
+                var toActivate = due ?? group.OrderBy(p => p.Datum).FirstOrDefault();
+
+                if (toActivate != null)
+                {
+                    toActivate.Status = 3;
+                    _context.Entry(toActivate).State = EntityState.Modified;
+                    activated.Add(new { locatie = group.Key, id = toActivate.IdProduct, startTime = toActivate.Datum });
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok(activated);
+        }
+        
+        [Authorize(Roles = "Veilingmeester")]
+        [HttpPost("PauseAuctions")]
+        public async Task<ActionResult> PauseAuctions ()
+        {
+            var now = DateTime.Now;
+            var today = DateTime.Today;
+
+            var toPause = await _context.Products
+                .Where(p => p.Status == 2 && p.Datum.HasValue && p.Datum.Value.Date == today)
+                .ToListAsync();
+
+            var paused = new List<object>();
+
+            var byLocation = toPause.GroupBy(p => (p.Locatie ?? string.Empty));
+
+            foreach (var group in byLocation)
+            {
+                var due = group.Where(p => p.Datum.HasValue && p.Datum.Value <= now)
+                               .OrderBy(p => p.Datum)
+                               .FirstOrDefault();
+
+                var toBePaused = due ?? group.OrderBy(p => p.Datum).FirstOrDefault();
+
+                if (toBePaused != null)
+                {
+                    toBePaused.Status = 5;
+                    _context.Entry(toBePaused).State = EntityState.Modified;
+                    paused.Add(new { locatie = group.Key, id = toBePaused.IdProduct, startTime = toBePaused.Datum });
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok(paused);
+        }
+
+        [HttpGet("HasPausedAuctions")]
+        public async Task<ActionResult<bool>> HasPausedAuctions()
+        {
+            try
+            {
+                var any = await _context.Products.AnyAsync(p => p.Status == 5);
+                return Ok(any);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = "Error checking paused auctions", details = ex.Message });
+            }
+        }
+
+        [Authorize(Roles = "Veilingmeester")]
+        [HttpPost("ResumeAuctions")]
+        public async Task<IActionResult> ResumeAuctions()
+        {
+            var paused = await _context.Products
+                .Where(p => p.Status == 5)
+                .ToListAsync();
+
+            if (!paused.Any()) return NotFound(new { message = "No paused auctions found" });
+
+            foreach (var p in paused)
+            {
+                
+                p.Status = 3;
+                _context.Entry(p).State = EntityState.Modified;
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok(new { resumedCount = paused.Count, ids = paused.Select(p => p.IdProduct) });
+        }
     }
 }

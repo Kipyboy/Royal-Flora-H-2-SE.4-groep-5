@@ -7,6 +7,7 @@ import Topbar from '../components/Topbar';
 import ProductCard from '../components/product-card';
 import GekochtProductCard from '../components/gekocht-product-card';
 import EigenProductCard from '../components/eigen-product-card';
+import VeilingmeesterProductCard from '../components/veilingmeester-product-card';
 import { authFetch } from '../utils/api';
 import { getUser } from '../utils/auth';
 import { API_BASE_URL } from '../config/api';
@@ -38,38 +39,57 @@ const HomePage: React.FC = () => {
   const [sidebarVisible, setSidebarVisible] = useState(true);
 
   const [toonBeschrijving, setToonBeschrijving] = useState(false);
+  const [auctionsPaused, setAuctionsPaused] = useState(false);
+
+  // Fetch products and user info
+  const reloadProducts = async () => {
+    setLoading(true);
+    const storedUser = getUser();
+    if (!storedUser) {
+      setLoading(false);
+      setUser(null);
+      return;
+    }
+    setUser(storedUser);
+
+    try {
+      const response = await authFetch(`${API_BASE_URL}/api/Products`);
+      if (!response || !response.ok) {
+        const text = await response.text();
+        console.error('Failed to fetch products', response?.status, text);
+      } else {
+        try {
+          const data = await response.json();
+          setProducts(Array.isArray(data) ? data : []);
+        } catch (parseErr) {
+          const text = await response.text();
+          console.error('Failed to parse products JSON:', parseErr, 'Response text:', text);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching products', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      const storedUser = getUser();
-      if (!storedUser) {
-        setLoading(false);
-        return;
-      }
-      setUser(storedUser);
+    reloadProducts();
 
+    // Check if any auctions are paused to set initial button state
+    const checkPaused = async () => {
       try {
-        const response = await authFetch(`${API_BASE_URL}/api/Products`);
-        if (!response || !response.ok) {
-          const text = await response.text();
-          console.error('Failed to fetch products', response?.status, text);
-        } else {
-          try {
-            const data = await response.json();
-            setProducts(Array.isArray(data) ? data : []);
-          } catch (parseErr) {
-            const text = await response.text();
-            console.error('Failed to parse products JSON:', parseErr, 'Response text:', text);
-          }
+        const resp = await authFetch(`${API_BASE_URL}/api/Products/HasPausedAuctions`);
+        if (resp && resp.ok) {
+          const json = await resp.json();
+          setAuctionsPaused(!!json);
         }
-      } catch (err) {
-        console.error('Error fetching products', err);
-      } finally {
-        setLoading(false);
+      } catch (e) {
+        console.error('Failed to check paused auctions', e);
       }
     };
 
-    fetchData();
+    checkPaused();
   }, []);
 
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -137,6 +157,25 @@ const HomePage: React.FC = () => {
       );
     }
 
+    if(user?.role === 'Veilingmeester') {
+      return (
+        <VeilingmeesterProductCard
+          id={product.id}
+          key={product.id}
+          naam={product.naam}
+          beschrijving={product.beschrijving}
+          merk={product.merk}
+          prijs={product.prijs}
+          datum={product.datum}
+          locatie={product.locatie}
+          status={product.status}
+          aantal={product.aantal}
+          fotoPath={product.fotoPath}
+          toonBeschrijving={toonBeschrijving}
+        />
+      );
+    }
+
     return (
       <ProductCard
         key={product.id}
@@ -158,10 +197,10 @@ const HomePage: React.FC = () => {
     products
       .filter((product) => {
         if (
-          (!aankomendChecked && product.status === 'Aankomend') ||
+          (!aankomendChecked && product.status === 'Ingepland') ||
           (!eigenChecked && product.type === 'Eigen') ||
-          (!gekochtChecked && (product.status === 'Verkocht' || product.status === 'Gekocht')) ||
-          (!inTePlannenChecked && product.status === 'In te plannen')
+          (!gekochtChecked && product.status === 'Verkocht') ||
+          (!inTePlannenChecked && product.status === 'Geregistreerd')
         ) {
           return false;
         }
@@ -187,6 +226,32 @@ const HomePage: React.FC = () => {
       .map((product) => renderCard(product));
 
   const toggleSidebar = () => setSidebarVisible(!sidebarVisible);
+
+  const startDay = async () => {
+      const response = await authFetch(`${API_BASE_URL}/api/Products/StartAuctions`, {method: 'POST'});
+      if (!response || !response.ok) {
+        console.error("Failed to start auctions", response?.status)
+      }
+  }
+  const pauseAuctions = async () => {
+    const response = await authFetch(`${API_BASE_URL}/api/Products/PauseAuctions`, { method: 'POST' });
+    if (!response || !response.ok) {
+      console.error('Failed to pause auctions', response?.status);
+      return;
+    }
+    setAuctionsPaused(true);
+    await reloadProducts();
+  };
+
+  const resumeAuctions = async () => {
+    const response = await authFetch(`${API_BASE_URL}/api/Products/ResumeAuctions`, { method: 'POST' });
+    if (!response || !response.ok) {
+      console.error('Failed to resume auctions', response?.status);
+      return;
+    }
+    setAuctionsPaused(false);
+    await reloadProducts();
+  };
 
   if (loading) return <p>Loading...</p>;
   if (!user) return <p>Niet ingelogd. Log in om verder te gaan.</p>;
@@ -236,6 +301,16 @@ const HomePage: React.FC = () => {
                 <img className = 'veiling' src={`${API_BASE_URL}/images/locatie-${key}.jpg`} alt="" />
               </a>
             ))}
+            {user?.role === 'Veilingmeester' && (
+            <>
+              <button className='veiling-controls' onClick={startDay}>
+                Dag openen
+              </button>
+              <button className='veiling-controls' onClick={auctionsPaused ? resumeAuctions : pauseAuctions}>
+                {auctionsPaused ? 'Hervatten' : 'Veilingen pauzeren'}
+              </button>
+            </>
+            )}
           </div>
 
           <div className="producten">{productenInladen()}</div>

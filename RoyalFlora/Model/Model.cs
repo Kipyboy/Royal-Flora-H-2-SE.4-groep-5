@@ -43,7 +43,8 @@ public class MyDbContext : DbContext
             new Status { IdStatus = 1, Beschrijving = "Geregistreerd" },
             new Status { IdStatus = 2, Beschrijving = "Ingepland" },
             new Status { IdStatus = 3, Beschrijving = "Geveild" },
-            new Status { IdStatus = 4, Beschrijving = "Verkocht" }
+            new Status { IdStatus = 4, Beschrijving = "Verkocht" },
+            new Status { IdStatus = 5, Beschrijving = "Gepauzeerd" }
         );
 
         // Bedrijf - Oprichter (Gebruiker)

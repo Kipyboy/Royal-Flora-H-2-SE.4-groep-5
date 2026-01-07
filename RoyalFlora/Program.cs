@@ -51,6 +51,9 @@ namespace RoyalFlora
                 {
                     policy.WithOrigins(
                               "http://localhost:3000",
+                              "https://localhost:3000",
+                              "http://127.0.0.1:3000",
+                              "https://127.0.0.1:3000",
                               "http://80.56.53.41:3000"
                           )
                           .AllowAnyHeader()
@@ -61,11 +64,19 @@ namespace RoyalFlora
 
             var app = builder.Build();
 
-            // zorgen dat er automatisch gemigreerd wordt moest ik neerzetten voor de docker anders werkte het niet
+            // Attempt automatic migrations on startup; don't crash the app if a migration step fails
             using (var scope = app.Services.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<MyDbContext>();
-                dbContext.Database.Migrate();
+                try
+                {
+                    dbContext.Database.Migrate();
+                }
+                catch (Exception ex)
+                {
+                    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+                    logger.LogError(ex, "Database migration failed on startup. Continuing without applying migrations.");
+                }
             }
 
             // Configure the HTTP request pipeline.
@@ -76,6 +87,9 @@ namespace RoyalFlora
 
             // Disabled for development to allow SameSite=Lax cookies over HTTP
             // app.UseHttpsRedirection();
+
+            // Ensure routing is enabled before applying endpoint CORS
+            app.UseRouting();
 
             // Use CORS
             app.UseCors("AllowFrontend");
