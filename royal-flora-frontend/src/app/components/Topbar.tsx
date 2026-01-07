@@ -75,11 +75,10 @@ const Topbar: React.FC<TopbarProps> = ({
         if (!userProp) {
             const fetched = getUser();
             setUser(fetched);
-            console.log('Topbar: fetched user from getUser()', fetched);
         }
     }, [userProp]);
 
-    console.log('Topbar render - userProp:', userProp, 'user state:', user);
+    
 
     const toggleDropdown = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -143,11 +142,13 @@ const Topbar: React.FC<TopbarProps> = ({
                             </div>
                         )}
                         {user?.role === 'Veilingmeester' && (
+                            <div className='role-specific-nav-text'>
                             <a onClick={() => { setDropdownVisible(false); router.push('/veilingMeesterProduct'); }}>
                                 Product inplannen
                             </a>
+                            </div>
                         )}
-                    </div>
+
 
                     <div className="pfp-container" onClick={toggleDropdown}>
                         <img
