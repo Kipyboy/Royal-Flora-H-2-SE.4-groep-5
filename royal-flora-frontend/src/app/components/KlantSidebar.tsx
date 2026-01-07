@@ -125,6 +125,9 @@ const KlantSidebar: React.FC<SidebarProps> = ({
                 <p>{toonBeschrijving ? 'Toon product overzicht' : 'Toon product beschrijvingen'}</p>
             </button>
           </div>
+          <div className="sidebar-links">
+            <a href="/status4products">Sold Products</a>
+          </div>
         </div>
 );
 

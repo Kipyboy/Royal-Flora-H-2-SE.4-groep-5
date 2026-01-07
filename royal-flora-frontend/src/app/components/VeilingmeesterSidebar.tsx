@@ -62,8 +62,8 @@ const VeilingmeesterSidebar: React.FC<SidebarProps> = ({
             checked={inTePlannenChecked}
             onChange={onCheckboxChange}
             />
-            <label htmlFor="Eigen producten">Eigen producten</label>
-          </div>    
+            <label htmlFor="In te plannen producten">In te plannen producten</label>
+          </div>
                 </div>
             </fieldset>
             <fieldset>

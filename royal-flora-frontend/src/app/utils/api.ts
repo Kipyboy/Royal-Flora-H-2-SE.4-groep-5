@@ -6,12 +6,12 @@ import { getToken } from "./auth";
  */
 export function authFetch(input: RequestInfo, init?: RequestInit) {
   const token = getToken();
-  const headers = token
+  const headers: HeadersInit = token
     ? {
         ...init?.headers,
         Authorization: `Bearer ${token}`,
       }
-    : init?.headers;
+    : init?.headers || {};
 
   return fetch(input, { ...init, headers });
 }

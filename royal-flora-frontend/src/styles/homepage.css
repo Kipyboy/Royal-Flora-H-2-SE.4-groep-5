@@ -164,6 +164,14 @@
     box-sizing: border-box;
     overflow: hidden;
 }
+.homepage-page .veiling-controls {
+    background-color: var(--button);
+    height: 4rem;
+    width: 9rem;
+    border-radius: 12px;
+    margin-left: 1rem;
+    color: var(--Text_on_button);
+}
 
 @media (max-width: 500px) {
 

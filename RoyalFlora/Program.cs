@@ -51,6 +51,9 @@ namespace RoyalFlora
                 {
                     policy.WithOrigins(
                               "http://localhost:3000",
+                              "https://localhost:3000",
+                              "http://127.0.0.1:3000",
+                              "https://127.0.0.1:3000",
                               "http://80.56.53.41:3000"
                           )
                           .AllowAnyHeader()
@@ -61,46 +64,18 @@ namespace RoyalFlora
 
             var app = builder.Build();
 
-            // zorgen dat er automatisch gemigreerd wordt moest ik neerzetten voor de docker anders werkte het niet
-            // Retry logika voor Docker: wacht tot de database klaar is
+            // Attempt automatic migrations on startup; don't crash the app if a migration step fails
             using (var scope = app.Services.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<MyDbContext>();
-                var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-                
-                var maxRetries = 30;
-                var delay = TimeSpan.FromSeconds(5);
-                
-                for (int i = 0; i < maxRetries; i++)
+                try
                 {
-                    try
-                    {
-                        logger.LogInformation("Attempting to connect to database (attempt {Attempt}/{MaxRetries})...", i + 1, maxRetries);
-                        
-                        if (dbContext.Database.CanConnect())
-                        {
-                            logger.LogInformation("Database connection successful. Running migrations...");
-                            dbContext.Database.Migrate();
-                            logger.LogInformation("Migrations completed successfully.");
-                            break;
-                        }
-                        else
-                        {
-                            logger.LogWarning("Cannot connect to database yet, waiting...");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.LogWarning(ex, "Database connection/migration attempt {Attempt} failed: {Message}", i + 1, ex.Message);
-                        
-                        if (i == maxRetries - 1)
-                        {
-                            logger.LogError("Max retries reached. Could not connect to database.");
-                            throw;
-                        }
-                    }
-                    
-                    Thread.Sleep(delay);
+                    dbContext.Database.Migrate();
+                }
+                catch (Exception ex)
+                {
+                    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+                    logger.LogError(ex, "Database migration failed on startup. Continuing without applying migrations.");
                 }
             }
 
@@ -112,6 +87,9 @@ namespace RoyalFlora
 
             // Disabled for development to allow SameSite=Lax cookies over HTTP
             // app.UseHttpsRedirection();
+
+            // Ensure routing is enabled before applying endpoint CORS
+            app.UseRouting();
 
             // Use CORS
             app.UseCors("AllowFrontend");

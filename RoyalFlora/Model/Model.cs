@@ -34,7 +34,17 @@ public class MyDbContext : DbContext
         // Seed data - Rollen
         modelBuilder.Entity<Rol>().HasData(
             new Rol { IdRollen = 1, RolNaam = "Aanvoerder" },
-            new Rol { IdRollen = 2, RolNaam = "Inkoper" }
+            new Rol { IdRollen = 2, RolNaam = "Inkoper" },
+            new Rol { IdRollen = 3, RolNaam = "Veilingmeester" }
+        );
+
+        // Seed data - Statusen
+        modelBuilder.Entity<Status>().HasData(
+            new Status { IdStatus = 1, Beschrijving = "Geregistreerd" },
+            new Status { IdStatus = 2, Beschrijving = "Ingepland" },
+            new Status { IdStatus = 3, Beschrijving = "Geveild" },
+            new Status { IdStatus = 4, Beschrijving = "Verkocht" },
+            new Status { IdStatus = 5, Beschrijving = "Gepauzeerd" }
         );
 
         // Bedrijf - Oprichter (Gebruiker)
@@ -240,6 +250,8 @@ public class Product
     [Column(TypeName = "decimal(10, 2)")]
     public decimal verkoopPrijs { get; set; }
     public int? Status { get; set; }
+    [Column(TypeName = "decimal(10, 2)")]
+    public decimal? StartPrijs { get; set; }
 
     // Navigation properties
     [ForeignKey("Leverancier")]
