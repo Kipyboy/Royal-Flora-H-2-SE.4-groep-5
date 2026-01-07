@@ -426,6 +426,7 @@ namespace RoyalFlora.Controllers
                 return NotFound("No next product available");
             }
             if (next.Status == 5) {
+                await _context.SaveChangesAsync();
                 return NotFound("Next product was paused");
             }
 

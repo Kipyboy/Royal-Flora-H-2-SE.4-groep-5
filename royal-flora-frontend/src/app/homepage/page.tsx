@@ -197,10 +197,10 @@ const HomePage: React.FC = () => {
     products
       .filter((product) => {
         if (
-          (!aankomendChecked && product.status === 'Aankomend') ||
+          (!aankomendChecked && product.status === 'Ingepland') ||
           (!eigenChecked && product.type === 'Eigen') ||
-          (!gekochtChecked && (product.status === 'Verkocht' || product.status === 'Gekocht')) ||
-          (!inTePlannenChecked && product.status === 'In te plannen')
+          (!gekochtChecked && product.status === 'Verkocht') ||
+          (!inTePlannenChecked && product.status === 'Geregistreerd')
         ) {
           return false;
         }
@@ -228,7 +228,7 @@ const HomePage: React.FC = () => {
   const toggleSidebar = () => setSidebarVisible(!sidebarVisible);
 
   const startDay = async () => {
-      const response = await authFetch(`${API_BASE_URL}/api/Products/StartAuctions`);
+      const response = await authFetch(`${API_BASE_URL}/api/Products/StartAuctions`, {method: 'POST'});
       if (!response || !response.ok) {
         console.error("Failed to start auctions", response?.status)
       }

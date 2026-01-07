@@ -74,8 +74,12 @@ const Topbar: React.FC<TopbarProps> = ({
     useEffect(() => {
         if (!userProp) {
             const fetched = getUser();
-            setUser(fetched);        }
+            setUser(fetched);
+            console.log('Topbar: fetched user from getUser()', fetched);
+        }
     }, [userProp]);
+
+    console.log('Topbar render - userProp:', userProp, 'user state:', user);
 
     const toggleDropdown = (e: React.MouseEvent) => {
         e.stopPropagation();

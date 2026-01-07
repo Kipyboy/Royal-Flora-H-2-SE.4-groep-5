@@ -44,10 +44,6 @@ export default function VeilingPage({ searchParams }: { searchParams: Promise<{ 
       router.push('/login');
       return;
     }
-    if (currentUser.role !== 'Inkoper') {
-      router.push('/homepage');
-      return;
-    }
     setLoading(false);
   }, [router]);
 
