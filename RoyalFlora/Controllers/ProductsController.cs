@@ -417,7 +417,7 @@ namespace RoyalFlora.Controllers
 
             var next = await _context.Products
                 .Where(p => p.Status == 2 || p.Status == 5 && (p.Locatie ?? "") == locatie && p.Datum.Value.Date == DateTime.Today)
-                .OrderBy(p => p.Datum)
+                .OrderBy(p => p.IdProduct)
                 .FirstOrDefaultAsync();
 
             if (next == null)
@@ -442,7 +442,6 @@ namespace RoyalFlora.Controllers
         public async Task<IActionResult> productInplannen(
             [FromForm] int? id, 
             [FromForm] string? Datum,
-            [FromForm] string? Tijd,
             [FromForm] string? StartPrijs)
         {
             var current = await _context.Products
@@ -454,7 +453,7 @@ namespace RoyalFlora.Controllers
             if (!decimal.TryParse(StartPrijs, NumberStyles.Any, CultureInfo.InvariantCulture, out var startPrijsValue))
                 return BadRequest("Ongeldige startprijs");
 
-            if (!DateTime.TryParseExact($"{Datum} {Tijd}", "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var geplandeMoment))
+            if (!DateTime.TryParseExact($"{Datum}", "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var geplandeMoment))
                 return BadRequest("Ongeldige datum/tijd");
 
             current.StartPrijs = startPrijsValue;
@@ -593,7 +592,6 @@ namespace RoyalFlora.Controllers
         public async Task<ActionResult> StartAuctions ()
         {
             var today = DateTime.Today;
-            var now = DateTime.Now;
 
             var scheduledToday = await _context.Products
                 .Where(p => p.Status == 2 && p.Datum.HasValue && p.Datum.Value.Date == today)
@@ -608,17 +606,17 @@ namespace RoyalFlora.Controllers
 
             foreach (var group in byLocation)
             {
-                var due = group.Where(p => p.Datum.HasValue && p.Datum.Value <= now)
-                               .OrderBy(p => p.Datum)
+                var due = group.Where(p => p.Datum.HasValue)
+                               .OrderBy(p => p.IdProduct)
                                .FirstOrDefault();
 
-                var toActivate = due ?? group.OrderBy(p => p.Datum).FirstOrDefault();
+                var toActivate = due ?? group.OrderBy(p => p.IdProduct).FirstOrDefault();
 
                 if (toActivate != null)
                 {
                     toActivate.Status = 3;
                     _context.Entry(toActivate).State = EntityState.Modified;
-                    activated.Add(new { locatie = group.Key, id = toActivate.IdProduct, startTime = toActivate.Datum });
+                    activated.Add(new { locatie = group.Key, id = toActivate.IdProduct, startDay = toActivate.Datum });
                 }
             }
 
@@ -630,7 +628,6 @@ namespace RoyalFlora.Controllers
         [HttpPost("PauseAuctions")]
         public async Task<ActionResult> PauseAuctions ()
         {
-            var now = DateTime.Now;
             var today = DateTime.Today;
 
             var toPause = await _context.Products
@@ -643,17 +640,17 @@ namespace RoyalFlora.Controllers
 
             foreach (var group in byLocation)
             {
-                var due = group.Where(p => p.Datum.HasValue && p.Datum.Value <= now)
-                               .OrderBy(p => p.Datum)
+                var due = group.Where(p => p.Datum.HasValue)
+                               .OrderBy(p => p.IdProduct)
                                .FirstOrDefault();
 
-                var toBePaused = due ?? group.OrderBy(p => p.Datum).FirstOrDefault();
+                var toBePaused = due ?? group.OrderBy(p => p.IdProduct).FirstOrDefault();
 
                 if (toBePaused != null)
                 {
                     toBePaused.Status = 5;
                     _context.Entry(toBePaused).State = EntityState.Modified;
-                    paused.Add(new { locatie = group.Key, id = toBePaused.IdProduct, startTime = toBePaused.Datum });
+                    paused.Add(new { locatie = group.Key, id = toBePaused.IdProduct, startDay = toBePaused.Datum });
                 }
             }
 
