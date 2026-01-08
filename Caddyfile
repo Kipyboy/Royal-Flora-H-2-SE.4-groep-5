@@ -1,0 +1,17 @@
+chicken.servegame.com {
+    # dit is een soort if statement situatie ze de meest specefieke eerst neerzetten anders pakt die iets die je niet wilt want het stuurt je naar de eerste die waar is
+    # Backend API requests
+    handle /api/* {
+        reverse_proxy backend:8080
+    }
+
+    # Static files (images) from backend
+    handle /images/* {
+        reverse_proxy backend:8080
+    }
+
+    # Frontend (alle andere requests)
+    handle {
+        reverse_proxy frontend:3000
+    }
+}

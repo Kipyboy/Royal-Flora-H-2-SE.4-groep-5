@@ -155,7 +155,7 @@ namespace RoyalFlora.Controllers
                         naam = product.ProductNaam ?? string.Empty,
                         beschrijving = product.ProductBeschrijving ?? string.Empty,
                         merk = leverancierNaam,
-                        verkoopPrijs = product.verkoopPrijs,
+                        verkoopPrijs = product.verkoopPrijs ?? 0,
                         koper = (product.KoperNavigation?.VoorNaam ?? string.Empty) + " " + (product.KoperNavigation?.AchterNaam ?? string.Empty),
                         datum = datum,
                         locatie = locatie,
@@ -178,7 +178,7 @@ namespace RoyalFlora.Controllers
                         naam = product.ProductNaam ?? string.Empty,
                         beschrijving = product.ProductBeschrijving ?? string.Empty,
                         merk = leverancierNaam,
-                        verkoopPrijs = product.verkoopPrijs,
+                        verkoopPrijs = product.verkoopPrijs ?? 0,
                         datum = datum,
                         locatie = locatie,
                         status = status,
@@ -238,7 +238,7 @@ namespace RoyalFlora.Controllers
                     beschrijving = product.ProductBeschrijving ?? string.Empty,
                     merk = leverancierNaam,
                     prijs = product.MinimumPrijs,
-                    verkoopPrijs = product.verkoopPrijs,
+                    verkoopPrijs = product.verkoopPrijs ?? 0,
                     koper = (product.KoperNavigation?.VoorNaam ?? string.Empty) + " " + (product.KoperNavigation?.AchterNaam ?? string.Empty),
                     datum = datum,
                     locatie = locatie,
@@ -536,9 +536,9 @@ namespace RoyalFlora.Controllers
             {
                 return await _context.Database.SqlQueryRaw<T>(sqlWithIndex, parameters).ToListAsync();
             }
-            catch (Microsoft.Data.SqlClient.SqlException ex) when (ex.Number == 308)
+            catch (Microsoft.Data.SqlClient.SqlException)
             {
-                // Index specified in hint does not exist; retry without index hint
+                // Index hint failed (missing index, permissions, different SQL version, etc.); retry without index hint
                 return await _context.Database.SqlQueryRaw<T>(sqlWithoutIndex, parameters).ToListAsync();
             }
         }

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.HttpOverrides;
 using System.Text;
 
 namespace RoyalFlora
@@ -10,6 +11,14 @@ namespace RoyalFlora
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            // Configure Forwarded Headers voor Caddy reverse proxy
+            builder.Services.Configure<ForwardedHeadersOptions>(options =>
+            {
+                options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+                options.KnownNetworks.Clear();
+                options.KnownProxies.Clear();
+            });
 
             // Add services to the container.
             builder.Services.AddDbContext<MyDbContext>(options =>
@@ -51,10 +60,13 @@ namespace RoyalFlora
                 {
                     policy.WithOrigins(
                               "http://localhost:3000",
+                              "http://80.56.53.41:3000",
+                              "https://chicken.servegame.com/",  // Vervang met je No-IP domein
                               "https://localhost:3000",
                               "http://127.0.0.1:3000",
                               "https://127.0.0.1:3000",
-                              "http://80.56.53.41:3000"
+                              "http://80.56.53.41:3000",
+                              "https://chicken.servegame.com/"  // Vervang met je No-IP domein
                           )
                           .AllowAnyHeader()
                           .AllowAnyMethod()
@@ -80,6 +92,10 @@ namespace RoyalFlora
             }
 
             // Configure the HTTP request pipeline.
+            
+            // Forwarded Headers moet als eerste middleware staan voor correcte HTTPS detectie
+            app.UseForwardedHeaders();
+            
             if (app.Environment.IsDevelopment())
             {
                 app.MapOpenApi();
