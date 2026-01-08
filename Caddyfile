@@ -1,3 +1,4 @@
+#zet hier je domein of ip adres neer voor de server om https te gebruiken
 chicken.servegame.com {
     # dit is een soort if statement situatie ze de meest specefieke eerst neerzetten anders pakt die iets die je niet wilt want het stuurt je naar de eerste die waar is
     # Backend API requests
@@ -5,7 +6,7 @@ chicken.servegame.com {
         reverse_proxy backend:8080
     }
 
-    # Static files (images) from backend
+    # afbeeldingen
     handle /images/* {
         reverse_proxy backend:8080
     }

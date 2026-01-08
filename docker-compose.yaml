@@ -79,23 +79,23 @@ services:
     command: ["npm", "run", "dev", "--", "-H", "0.0.0.0", "-p", "3000"]
     restart: unless-stopped
 
-  caddy:
-    image: caddy:2-alpine
-    container_name: royal-flora-caddy
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    depends_on:
-      - frontend
-      - backend
-    restart: unless-stopped
+  # caddy:
+  #   image: caddy:2-alpine
+  #   container_name: royal-flora-caddy
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./Caddyfile:/etc/caddy/Caddyfile:ro
+  #     - caddy_data:/data
+  #     - caddy_config:/config
+  #   depends_on:
+  #     - frontend
+  #     - backend
+  #   restart: unless-stopped
 
 volumes:
   node_modules:
   sqlserver_data:
-  caddy_data:
-  caddy_config:
+  # caddy_data:
+  # caddy_config:
