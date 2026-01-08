@@ -536,9 +536,9 @@ namespace RoyalFlora.Controllers
             {
                 return await _context.Database.SqlQueryRaw<T>(sqlWithIndex, parameters).ToListAsync();
             }
-            catch (Microsoft.Data.SqlClient.SqlException ex) when (ex.Number == 308)
+            catch (Microsoft.Data.SqlClient.SqlException)
             {
-                // Index specified in hint does not exist; retry without index hint
+                // Index hint failed (missing index, permissions, different SQL version, etc.); retry without index hint
                 return await _context.Database.SqlQueryRaw<T>(sqlWithoutIndex, parameters).ToListAsync();
             }
         }
