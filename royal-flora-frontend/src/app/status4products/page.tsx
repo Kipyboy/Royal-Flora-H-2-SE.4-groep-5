@@ -164,7 +164,7 @@ export default function Status4ProductsPage() {
         )}
 
         {/* Back Link */}
-        <Link href="/" className="mt-6 inline-block text-blue-500 hover:text-blue-700 underline">
+        <Link href="/homepage" className="mt-6 inline-block text-blue-500 hover:text-blue-700 underline">
           ← Back to Home
         </Link>
       </div>
