@@ -248,7 +248,7 @@ public class Product
     public int? Leverancier { get; set; }
     public int? Koper { get; set; }
     [Column(TypeName = "decimal(10, 2)")]
-    public decimal verkoopPrijs { get; set; }
+    public decimal? verkoopPrijs { get; set; }
     public int? Status { get; set; }
     [Column(TypeName = "decimal(10, 2)")]
     public decimal? StartPrijs { get; set; }
