@@ -9,13 +9,11 @@ import { API_BASE_URL } from '../config/api';
 
 interface ProductFormData {
   auctionDate: string;
-  auctionTime: string;
   startPrice: string;
 }
 
 interface FormErrors {
   auctionDate: string;
-  auctionTime: string;
   startPrice: string;
 }
 
@@ -47,11 +45,10 @@ export default function VeilingMeesterProductPage() {
   const [user, setUser] = useState<User | null>(null);
   const [formData, setFormData] = useState<ProductFormData>({
     auctionDate: '',
-    auctionTime: '',
     startPrice: '',
   });
   const [errors, setErrors] = useState<FormErrors>({
-    auctionDate:'', auctionTime:'', startPrice:''
+    auctionDate:'', startPrice:''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -93,7 +90,7 @@ export default function VeilingMeesterProductPage() {
   };
 
   const validateForm = (): boolean => {
-    const newErrors: FormErrors = { auctionDate:'', auctionTime:'', startPrice:'' };
+    const newErrors: FormErrors = { auctionDate:'', startPrice:'' };
     let isValid = true;
 
     if (!formData.auctionDate) { newErrors.auctionDate='Veilingdatum is verplicht'; isValid=false; }
@@ -175,7 +172,6 @@ export default function VeilingMeesterProductPage() {
       
       submitData.append('Id', currentProduct.id.toString());
       submitData.append('Datum', formData.auctionDate);
-      submitData.append('Tijd', formData.auctionTime);
       submitData.append('StartPrijs', priceValue.toString());
 
 
@@ -189,7 +185,7 @@ export default function VeilingMeesterProductPage() {
       }
 
       alert('Product succesvol geregistreerd!');
-      setFormData({auctionDate:'', auctionTime:'', startPrice:''});
+      setFormData({auctionDate:'', startPrice:''});
 
     } catch(err){
       console.error(err);
@@ -219,21 +215,6 @@ export default function VeilingMeesterProductPage() {
                 required
               />
               {errors.auctionDate && <div className="error-message">{errors.auctionDate}</div>}
-            </div>
-          </div>
-
-          <div className="inlineGroup">
-            <div className="groupContainer">
-              <label htmlFor="auctionTime">Veiling Tijd:</label>
-              <input
-                id="auctionTime"
-                name="auctionTime"
-                type="time"
-                value={formData.auctionTime}
-                onChange={handleInputChange}
-                required
-              />
-              {errors.auctionTime && <div className="error-message">{errors.auctionTime}</div>}
             </div>
           </div>
 
