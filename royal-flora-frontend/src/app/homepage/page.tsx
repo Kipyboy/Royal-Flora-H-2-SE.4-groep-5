@@ -39,7 +39,7 @@ const HomePage: React.FC = () => {
   const [sidebarVisible, setSidebarVisible] = useState(true);
 
   const [toonBeschrijving, setToonBeschrijving] = useState(false);
-  const [auctionsPaused, setAuctionsPaused] = useState(false);
+  const [auctionsInactive, setAuctionsInactive] = useState(true);
 
   // Fetch products and user info
   const reloadProducts = async () => {
@@ -82,7 +82,7 @@ const HomePage: React.FC = () => {
         const resp = await authFetch(`${API_BASE_URL}/api/Products/HasPausedAuctions`);
         if (resp && resp.ok) {
           const json = await resp.json();
-          setAuctionsPaused(!!json);
+          setAuctionsInactive(!!json);
         }
       } catch (e) {
         console.error('Failed to check paused auctions', e);
@@ -232,6 +232,7 @@ const HomePage: React.FC = () => {
       if (!response || !response.ok) {
         console.error("Failed to start auctions", response?.status)
       }
+      setAuctionsInactive(false);
   }
   const pauseAuctions = async () => {
     const response = await authFetch(`${API_BASE_URL}/api/Products/PauseAuctions`, { method: 'POST' });
@@ -239,19 +240,11 @@ const HomePage: React.FC = () => {
       console.error('Failed to pause auctions', response?.status);
       return;
     }
-    setAuctionsPaused(true);
+    setAuctionsInactive(true);
     await reloadProducts();
   };
 
-  const resumeAuctions = async () => {
-    const response = await authFetch(`${API_BASE_URL}/api/Products/ResumeAuctions`, { method: 'POST' });
-    if (!response || !response.ok) {
-      console.error('Failed to resume auctions', response?.status);
-      return;
-    }
-    setAuctionsPaused(false);
-    await reloadProducts();
-  };
+  
 
   if (loading) return <p>Loading...</p>;
   if (!user) return <p>Niet ingelogd. Log in om verder te gaan.</p>;
@@ -303,11 +296,8 @@ const HomePage: React.FC = () => {
             ))}
             {user?.role === 'Veilingmeester' && (
             <>
-              <button className='veiling-controls' onClick={startDay}>
-                Dag openen
-              </button>
-              <button className='veiling-controls' onClick={auctionsPaused ? resumeAuctions : pauseAuctions}>
-                {auctionsPaused ? 'Hervatten' : 'Veilingen pauzeren'}
+              <button className='veiling-controls' onClick={auctionsInactive ? startDay : pauseAuctions}>
+                {auctionsInactive ? 'Veilingen starten' : 'Veilingen pauzeren'}
               </button>
             </>
             )}
