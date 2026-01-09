@@ -252,30 +252,9 @@ namespace RoyalFlora.Controllers
             return productDTOs;
         }
 
-        [HttpGet("{id:int}")]
-        public async Task<ActionResult<Product>> GetProduct(int id)
-        {
-            var product = await _context.Products.FindAsync(id);
-            if (product == null) return NotFound();
-            return product;
-        }
+        // Removed: GetProduct - unused in frontend/backend
 
-        //geen uses op het moment
-        [HttpPut("{id:int}")]
-        public async Task<IActionResult> PutProduct(int id, Product product)
-        {
-            if (id != product.IdProduct) return BadRequest();
-
-            _context.Entry(product).State = EntityState.Modified;
-            try { await _context.SaveChangesAsync(); }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ProductExists(id)) return NotFound();
-                throw;
-            }
-
-            return NoContent();
-        }
+        // Removed: PutProduct - unused in frontend/backend
 
         [HttpPost]
         public async Task<ActionResult<ProductDTO>> PostProduct([FromForm] string? ProductNaam, 
@@ -381,7 +360,7 @@ namespace RoyalFlora.Controllers
                 }
 
                 await _context.SaveChangesAsync();
-                return CreatedAtAction(nameof(GetProduct), new { id = product.IdProduct }, new ResponseDTO { naam = product.ProductNaam ?? string.Empty, bericht = "Product succesvol geregistreerd!" });
+                return CreatedAtAction(nameof(GetProducts), new { }, new ResponseDTO { naam = product.ProductNaam ?? string.Empty, bericht = "Product succesvol geregistreerd!" });
             
             }
             catch (Exception ex)
@@ -497,7 +476,8 @@ namespace RoyalFlora.Controllers
                 return BadRequest(new { error = "Error retrieving products", details = ex.Message });
             }
         }
-
+        
+        //op het moment geen uses
         [HttpGet("VeilingSoldMatches")]
         public async Task<ActionResult<VeilingSoldMatchesDTO>> GetVeilingSoldMatches([FromQuery] string locatie)
         {
@@ -542,51 +522,6 @@ namespace RoyalFlora.Controllers
             }
         }
 
-        [HttpGet("CheckIndex")]
-        public async Task<ActionResult<bool>> CheckIndex()
-        {
-            try
-            {
-                var rows = await _context.Database.SqlQueryRaw<int>("SELECT 1 FROM sys.indexes WHERE name='IX_Products_Status_ProductNaam' AND object_id = OBJECT_ID('Products')").ToListAsync();
-                return Ok(rows.Any());
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = "Error checking index", details = ex.Message });
-            }
-        }
-
-        [HttpGet("ListProductIndexes")]
-        public async Task<ActionResult<IEnumerable<string>>> ListProductIndexes()
-        {
-            try
-            {
-                var rows = await _context.Database.SqlQueryRaw<string>("SELECT name FROM sys.indexes WHERE object_id = OBJECT_ID('Products')").ToListAsync();
-                return Ok(rows);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = "Error listing indexes", details = ex.Message });
-            }
-        }
-
-        [HttpPost("EnsureIndex")]
-        public async Task<IActionResult> EnsureIndex()
-        {
-            try
-            {
-                var sql = @"IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_Products_Status_ProductNaam' AND object_id = OBJECT_ID('Products'))
-                            BEGIN
-                                CREATE NONCLUSTERED INDEX IX_Products_Status_ProductNaam ON Products (Status, ProductNaam)
-                            END";
-                await _context.Database.ExecuteSqlRawAsync(sql);
-                return Ok(new { message = "Index ensured" });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = "Failed to create index", details = ex.Message });
-            }
-        }
         [Authorize(Roles = "Veilingmeester")]
         [HttpPost("StartAuctions")]
         public async Task<ActionResult> StartAuctions ()
@@ -594,7 +529,7 @@ namespace RoyalFlora.Controllers
             var today = DateTime.Today;
 
             var scheduledToday = await _context.Products
-                .Where(p => p.Status == 2 && p.Datum.HasValue && p.Datum.Value.Date == today)
+                .Where(p => (p.Status == 2 || p.Status == 5) && p.Datum.HasValue && p.Datum.Value.Date == today)
                 .ToListAsync();
 
             if (!scheduledToday.Any())
@@ -670,27 +605,6 @@ namespace RoyalFlora.Controllers
             {
                 return BadRequest(new { error = "Error checking paused auctions", details = ex.Message });
             }
-        }
-
-        [Authorize(Roles = "Veilingmeester")]
-        [HttpPost("ResumeAuctions")]
-        public async Task<IActionResult> ResumeAuctions()
-        {
-            var paused = await _context.Products
-                .Where(p => p.Status == 5)
-                .ToListAsync();
-
-            if (!paused.Any()) return NotFound(new { message = "No paused auctions found" });
-
-            foreach (var p in paused)
-            {
-                
-                p.Status = 3;
-                _context.Entry(p).State = EntityState.Modified;
-            }
-
-            await _context.SaveChangesAsync();
-            return Ok(new { resumedCount = paused.Count, ids = paused.Select(p => p.IdProduct) });
         }
     }
 }
