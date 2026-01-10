@@ -82,7 +82,7 @@ const HomePage: React.FC = () => {
         const resp = await authFetch(`${API_BASE_URL}/api/Products/HasPausedAuctions`);
         if (resp && resp.ok) {
           const json = await resp.json();
-          setAuctionsInactive(!!json);
+          setAuctionsInactive(!json);
         }
       } catch (e) {
         console.error('Failed to check paused auctions', e);

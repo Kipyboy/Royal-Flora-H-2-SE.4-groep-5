@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
@@ -125,7 +126,8 @@ namespace RoyalFlora.Controllers
 
             if (gebruiker == null) return Unauthorized();
 
-            var bedrijf = gebruiker.BedrijfNavigation.BedrijfNaam;
+            // BedrijfNavigation may be null in some DB states; guard against it
+            var bedrijf = gebruiker.BedrijfNavigation?.BedrijfNaam ?? string.Empty;
 
             if (!string.IsNullOrWhiteSpace(location))
             {
@@ -161,7 +163,7 @@ namespace RoyalFlora.Controllers
                         locatie = locatie,
                         status = status,
                         aantal = product.Aantal,
-                        fotoPath = product.Foto.FotoPath ?? string.Empty,
+                        fotoPath = product.Foto?.FotoPath ?? string.Empty,
                         type = "eigen"
                     };
                     productDTOs.Add(eigendto);
@@ -183,7 +185,7 @@ namespace RoyalFlora.Controllers
                         locatie = locatie,
                         status = status,
                         aantal = product.Aantal,
-                        fotoPath = product.Foto.FotoPath ?? string.Empty,
+                        fotoPath = product.Foto?.FotoPath ?? string.Empty,
                         type = "gekocht"
                     };
                     productDTOs.Add(gekochtdto);
@@ -203,7 +205,7 @@ namespace RoyalFlora.Controllers
                     locatie = locatie,
                     status = status,
                     aantal = product.Aantal,
-                    fotoPath = product.Foto.FotoPath ?? string.Empty
+                    fotoPath = product.Foto?.FotoPath ?? string.Empty
                 };
                 productDTOs.Add(dto);
                 seenProductIds.Add(product.IdProduct);
@@ -244,7 +246,7 @@ namespace RoyalFlora.Controllers
                     locatie = locatie,
                     status = status,
                     aantal = product.Aantal,
-                    fotoPath = product.Foto.FotoPath ?? string.Empty
+                    fotoPath = product.Foto?.FotoPath ?? string.Empty
                 };
                 productDTOs.Add(dto);
             }
@@ -252,9 +254,6 @@ namespace RoyalFlora.Controllers
             return productDTOs;
         }
 
-        // Removed: GetProduct - unused in frontend/backend
-
-        // Removed: PutProduct - unused in frontend/backend
 
         [HttpPost]
         public async Task<ActionResult<ProductDTO>> PostProduct([FromForm] string? ProductNaam, 
@@ -334,32 +333,58 @@ namespace RoyalFlora.Controllers
                 };
 
                 _context.Products.Add(product);
-                await _context.SaveChangesAsync();
+                try
+                {
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateException dbEx)
+                {
+                    Console.WriteLine("ERROR saving product: " + dbEx.GetBaseException().Message);
+                    return BadRequest(new { message = "Registratie mislukt", details = dbEx.GetBaseException().Message });
+                }
 
                 var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
                 if (!Directory.Exists(uploadsFolder))
                 {
                     Directory.CreateDirectory(uploadsFolder);
                 }
-                
-                
-                foreach (var image in images)
+
+                // The DB was changed to allow only one Foto per Product. Add or update a single Foto record.
+                if (images != null && images.Count > 0)
                 {
-                    
+                    var image = images.First();
                     string filePath = Path.Combine(uploadsFolder, image.FileName);
-                    _context.Fotos.Add(new Foto
+
+                    var existingFoto = await _context.Fotos.FirstOrDefaultAsync(f => f.IdProduct == product.IdProduct);
+                    if (existingFoto != null)
                     {
-                        IdProduct = product.IdProduct,
-                        FotoPath = image.FileName
-                    });
+                        existingFoto.FotoPath = image.FileName;
+                        _context.Entry(existingFoto).State = EntityState.Modified;
+                    }
+                    else
+                    {
+                        _context.Fotos.Add(new Foto
+                        {
+                            IdProduct = product.IdProduct,
+                            FotoPath = image.FileName
+                        });
+                    }
+
                     using (var stream = new FileStream(filePath, FileMode.Create))
                     {
                         await image.CopyToAsync(stream);
                     }
-
                 }
 
-                await _context.SaveChangesAsync();
+                try
+                {
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateException dbEx)
+                {
+                    Console.WriteLine("ERROR saving foto: " + dbEx.GetBaseException().Message);
+                    return BadRequest(new { message = "Registratie mislukt", details = dbEx.GetBaseException().Message });
+                }
                 return CreatedAtAction(nameof(GetProducts), new { }, new ResponseDTO { naam = product.ProductNaam ?? string.Empty, bericht = "Product succesvol geregistreerd!" });
             
             }
@@ -437,7 +462,7 @@ namespace RoyalFlora.Controllers
             if (!decimal.TryParse(StartPrijs, NumberStyles.Any, CultureInfo.InvariantCulture, out var startPrijsValue))
                 return BadRequest("Ongeldige startprijs");
 
-            if (!DateTime.TryParseExact($"{Datum}", "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var geplandeMoment))
+            if (!DateTime.TryParseExact($"{Datum}", "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var geplandeMoment))
                 return BadRequest("Ongeldige datum/tijd");
 
             current.StartPrijs = startPrijsValue;
