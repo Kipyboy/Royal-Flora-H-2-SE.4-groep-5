@@ -112,7 +112,7 @@ namespace RoyalFlora.Controllers
             var products = await _context.Products
                 .Include(p => p.LeverancierNavigation)
                 .Include(p => p.StatusNavigation)
-                .Include(p => p.Fotos)
+                .Include(p => p.Foto)
                 .Include(p => p.KoperNavigation)
                 .ToListAsync();
 
@@ -161,7 +161,7 @@ namespace RoyalFlora.Controllers
                         locatie = locatie,
                         status = status,
                         aantal = product.Aantal,
-                        fotoPath = product.Fotos.FirstOrDefault()?.FotoPath ?? string.Empty,
+                        fotoPath = product.Foto.FotoPath ?? string.Empty,
                         type = "eigen"
                     };
                     productDTOs.Add(eigendto);
@@ -183,7 +183,7 @@ namespace RoyalFlora.Controllers
                         locatie = locatie,
                         status = status,
                         aantal = product.Aantal,
-                        fotoPath = product.Fotos.FirstOrDefault()?.FotoPath ?? string.Empty,
+                        fotoPath = product.Foto.FotoPath ?? string.Empty,
                         type = "gekocht"
                     };
                     productDTOs.Add(gekochtdto);
@@ -203,7 +203,7 @@ namespace RoyalFlora.Controllers
                     locatie = locatie,
                     status = status,
                     aantal = product.Aantal,
-                    fotoPath = product.Fotos.FirstOrDefault()?.FotoPath ?? string.Empty
+                    fotoPath = product.Foto.FotoPath ?? string.Empty
                 };
                 productDTOs.Add(dto);
                 seenProductIds.Add(product.IdProduct);
@@ -218,7 +218,7 @@ namespace RoyalFlora.Controllers
             var products = await _context.Products
                 .Include(p => p.LeverancierNavigation)
                 .Include(p => p.StatusNavigation)
-                .Include(p => p.Fotos)
+                .Include(p => p.Foto)
                 .Include(p => p.KoperNavigation)
                 .Where(p => p.Status == 1)
                 .ToListAsync();
@@ -244,7 +244,7 @@ namespace RoyalFlora.Controllers
                     locatie = locatie,
                     status = status,
                     aantal = product.Aantal,
-                    fotoPath = product.Fotos.FirstOrDefault()?.FotoPath ?? string.Empty
+                    fotoPath = product.Foto.FotoPath ?? string.Empty
                 };
                 productDTOs.Add(dto);
             }
@@ -375,8 +375,13 @@ namespace RoyalFlora.Controllers
         public async Task<IActionResult> DeleteProduct(int id)
         {
             var product = await _context.Products.FindAsync(id);
+            var foto = await _context.Fotos.Where(f => f.IdProduct == id).FirstOrDefaultAsync();
             if (product == null) return NotFound();
 
+
+            if (foto != null) {
+            _context.Fotos.Remove(foto);
+            }
             _context.Products.Remove(product);
             await _context.SaveChangesAsync();
             return NoContent();

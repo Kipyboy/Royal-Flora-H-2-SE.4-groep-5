@@ -297,7 +297,7 @@ const HomePage: React.FC = () => {
             {user?.role === 'Veilingmeester' && (
             <>
               <button className='veiling-controls' onClick={auctionsInactive ? startDay : pauseAuctions}>
-                {auctionsInactive ? 'Veilingen starten' : 'Veilingen pauzeren'}
+                {auctionsInactive ? 'Veilingen starten/hervatten' : 'Veilingen pauzeren'}
               </button>
             </>
             )}

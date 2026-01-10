@@ -92,8 +92,8 @@ public class MyDbContext : DbContext
         // Foto - Product
         modelBuilder.Entity<Foto>()
             .HasOne(f => f.ProductNavigation)
-            .WithMany(p => p.Fotos)
-            .HasForeignKey(f => f.IdProduct)
+            .WithOne(p => p.Foto)
+            .HasForeignKey<Foto>("IdProduct")
             .OnDelete(DeleteBehavior.NoAction);
 
         // Veiling - Locatie
@@ -251,7 +251,7 @@ public class Product
     public decimal? verkoopPrijs { get; set; }
     public int? Status { get; set; }
     [Column(TypeName = "decimal(10, 2)")]
-    public decimal? StartPrijs { get; set; }
+    public decimal? StartPrijs { get; set; } 
 
     // Navigation properties
     [ForeignKey("Leverancier")]
@@ -263,7 +263,7 @@ public class Product
     [ForeignKey("Status")]
     public virtual Status? StatusNavigation { get; set; }
     
-    public virtual ICollection<Foto> Fotos { get; set; } = new List<Foto>();
+    public virtual Foto? Foto { get; set; }
     public virtual ICollection<Veiling> Veilingen { get; set; } = new List<Veiling>();
 }
 
