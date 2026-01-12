@@ -89,6 +89,23 @@ namespace RoyalFlora
                     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
                     logger.LogError(ex, "Database migration failed on startup. Continuing without applying migrations.");
                 }
+                // Ensure a covering index for price-history queries exists (non-fatal)
+                try
+                {
+                    var createIndexSql = @"
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_Products_ProductNaam_Leverancier_IdProduct')
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Products_ProductNaam_Leverancier_IdProduct
+    ON Products (ProductNaam, Leverancier, IdProduct)
+    INCLUDE (verkoopPrijs, Datum)
+END";
+                    dbContext.Database.ExecuteSqlRaw(createIndexSql);
+                }
+                catch (Exception ex)
+                {
+                    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+                    logger.LogWarning(ex, "Failed to ensure Products price-history index (non-fatal).");
+                }
             }
 
             // Configure the HTTP request pipeline.

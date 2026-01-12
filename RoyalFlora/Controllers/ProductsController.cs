@@ -520,18 +520,70 @@ namespace RoyalFlora.Controllers
             if (active == null) return NotFound("No active veiling for locatie");
 
             var naam = active.ProductNaam ?? string.Empty;
+            var leverancierId = active.Leverancier;
 
-            string sqlWithIndex = "SELECT IdProduct, ProductNaam, verkoopPrijs, Aantal FROM Products WITH (INDEX(IX_Products_Status_ProductNaam)) WHERE Status = 4 AND ProductNaam COLLATE SQL_Latin1_General_CP1_CI_AS = @naam";
-            string sqlNoIndex = "SELECT IdProduct, ProductNaam, verkoopPrijs, Aantal FROM Products WHERE Status = 4 AND ProductNaam COLLATE SQL_Latin1_General_CP1_CI_AS = @naam";
-            var param = new Microsoft.Data.SqlClient.SqlParameter("@naam", naam);
+            var sold = await _context.Products
+                .Where(p => p.Status == 4
+                            && p.ProductNaam == naam
+                            && p.Leverancier == leverancierId
+                            && p.verkoopPrijs != null)
+                .OrderByDescending(p => p.IdProduct)
+                .Take(10)
+                .Select(p => new SoldItemDTO
+                {
+                    IdProduct = p.IdProduct,
+                    ProductNaam = p.ProductNaam,
+                    VerkoopPrijs = p.verkoopPrijs,
+                    Aantal = p.Aantal,
+                    SoldDate = p.Datum.HasValue ? p.Datum.Value.ToString("dd-MM-yyyy") : null,
+                    AanvoerderNaam = p.LeverancierNavigation != null ? p.LeverancierNavigation.BedrijfNaam : null
+                })
+                .ToListAsync();
 
-            var sold = await SqlQueryWithIndexFallback<SoldItemDTO>(sqlWithIndex, sqlNoIndex, param);
+            decimal? avg = null;
+            var prices = sold.Where(s => s.VerkoopPrijs.HasValue).Select(s => s.VerkoopPrijs!.Value).ToList();
+            if (prices.Any()) avg = Math.Round(prices.Average(), 2);
 
             var result = new VeilingSoldMatchesDTO
             {
                 ActiveProductId = active.IdProduct,
                 ActiveProductNaam = naam,
-                SoldProducts = sold
+                SoldProducts = sold,
+                AverageVerkoopPrijs = avg
+            };
+
+            return Ok(result);
+        }
+
+        // Price history endpoint: filter by product name (partial match), return 10 most recent sold items and average price
+        [HttpGet("PriceHistory")]
+        public async Task<ActionResult<PriceHistoryResultDTO>> GetPriceHistory([FromQuery] string naam)
+        {
+            if (string.IsNullOrWhiteSpace(naam)) return BadRequest("Missing naam parameter");
+
+            var lowerName = naam.ToLower();
+            var query = _context.Products
+                .Where(p => p.Status == 4 && p.ProductNaam != null && (p.ProductNaam ?? "").ToLower() == lowerName && p.verkoopPrijs != null)
+                .OrderByDescending(p => p.IdProduct)
+                .Take(10)
+                .Select(p => new PriceHistoryItemDTO
+                {
+                    IdProduct = p.IdProduct,
+                    ProductNaam = p.ProductNaam,
+                    VerkoopPrijs = p.verkoopPrijs,
+                    SoldDate = p.Datum.HasValue ? p.Datum.Value.ToString("dd-MM-yyyy") : null,
+                    AanvoerderNaam = p.LeverancierNavigation != null ? p.LeverancierNavigation.BedrijfNaam : null
+                });
+
+            var items = await query.ToListAsync();
+            decimal? avg = null;
+            var prices = items.Where(i => i.VerkoopPrijs.HasValue).Select(i => i.VerkoopPrijs!.Value).ToList();
+            if (prices.Any()) avg = Math.Round(prices.Average(), 2);
+
+            var result = new PriceHistoryResultDTO
+            {
+                Items = items,
+                AverageVerkoopPrijs = avg
             };
 
             return Ok(result);

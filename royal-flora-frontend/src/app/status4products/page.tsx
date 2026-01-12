@@ -11,22 +11,15 @@ interface Status4Product {
 
 export default function Status4ProductsPage() {
   const [products, setProducts] = useState<Status4Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [priceHistory, setPriceHistory] = useState<any | null>(null);
+  // start not loading so the search bar is visible immediately
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [naamFilter, setNaamFilter] = useState('');
   const [filteredProducts, setFilteredProducts] = useState<Status4Product[]>([]);
+  const [searched, setSearched] = useState(false);
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  useEffect(() => {
-    // Filter products based on the input (front-end filtering for responsiveness)
-    const filtered = products.filter((product) =>
-      product.productNaam.toLowerCase().includes(naamFilter.toLowerCase())
-    );
-    setFilteredProducts(filtered);
-  }, [naamFilter, products]);
+  // No automatic fetch on mount. Wait for user to submit a product name.
 
   const fetchProducts = async (filter?: string) => {
     try {
@@ -34,21 +27,25 @@ export default function Status4ProductsPage() {
       setError(null);
 
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5156';
-      const url = new URL(`${apiUrl}/api/products/Status4Products`);
-
       if (filter) {
-        url.searchParams.append('naamFilter', filter);
+        // Call new PriceHistory endpoint when user searches by name
+        const url = new URL(`${apiUrl}/api/products/PriceHistory`);
+        url.searchParams.append('naam', filter);
+        const response = await fetch(url.toString());
+        if (!response.ok) throw new Error(`Failed to fetch price history: ${response.status}`);
+        const data = await response.json();
+        setPriceHistory(data);
+        setProducts([]);
+        setFilteredProducts([]);
+      } else {
+        const url = new URL(`${apiUrl}/api/products/Status4Products`);
+        const response = await fetch(url.toString());
+        if (!response.ok) throw new Error(`Failed to fetch products: ${response.status}`);
+        const data = await response.json();
+        setProducts(data);
+        setFilteredProducts(data);
+        setPriceHistory(null);
       }
-
-      const response = await fetch(url.toString());
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch products: ${response.status}`);
-      }
-
-      const data = await response.json();
-      setProducts(data);
-      setFilteredProducts(data);
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       setError(`Error loading products: ${errorMessage}`);
@@ -60,14 +57,22 @@ export default function Status4ProductsPage() {
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNaamFilter(e.target.value);
+    // mark that the current input hasn't been submitted yet
+    setSearched(false);
   };
 
   const handleSearchWithAPI = async () => {
     // Optional: fetch from backend with filter (for server-side filtering)
     if (naamFilter.trim()) {
+      setSearched(true);
       await fetchProducts(naamFilter);
     } else {
-      await fetchProducts();
+      setSearched(false);
+      // If empty, clear any previous results and do nothing
+      setPriceHistory(null);
+      setProducts([]);
+      setFilteredProducts([]);
+      setError(null);
     }
   };
 
@@ -123,13 +128,39 @@ export default function Status4ProductsPage() {
           </div>
         </div>
 
-        {/* Results Count */}
-        <p className="text-gray-600 mb-4">
-          {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''} found
-        </p>
+        {/* Results Count / Prompt */}
+        {!naamFilter.trim() ? (
+          <div className="bg-white p-6 rounded shadow text-center mb-4">
+            <p className="text-gray-600">submit product name</p>
+          </div>
+        ) : searched ? (
+          <p className="text-gray-600 mb-4">
+            {priceHistory ? (priceHistory.items ?? priceHistory.Items ?? []).length : filteredProducts.length} product{(priceHistory ? (priceHistory.items ?? priceHistory.Items ?? []).length : filteredProducts.length) !== 1 ? 's' : ''} found
+          </p>
+        ) : null}
 
         {/* Products Table */}
-        {filteredProducts.length > 0 ? (
+        {priceHistory ? (
+          <div className="bg-white rounded shadow p-4">
+            <h2 className="text-lg font-semibold mb-2">Prijsgeschiedenis (top 10 meest recente)</h2>
+            <ul>
+              {(priceHistory.items ?? priceHistory.Items ?? []).map((it: any) => (
+                <li key={it.idProduct ?? it.IdProduct} className="py-2 border-b last:border-b-0">
+                  <div className="flex justify-between">
+                    <div>
+                      <strong>{it.productNaam ?? it.ProductNaam}</strong>
+                      <div className="text-sm text-gray-600">Aanvoerder: {it.aanvoerderNaam ?? it.AanvoerderNaam ?? '-'}</div>
+                      <div className="text-sm text-gray-600">Datum: {it.soldDate ?? it.SoldDate ?? '-'}</div>
+                    </div>
+                    <div className="text-right">€{((it.verkoopPrijs ?? it.VerkoopPrijs) ?? 0).toFixed(2)}</div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-4 text-sm text-gray-700">Gemiddelde prijs: €{(priceHistory.averageVerkoopPrijs ?? priceHistory.AverageVerkoopPrijs ?? 0).toFixed(2)}</div>
+          </div>
+        ) : searched ? (
+          filteredProducts.length > 0 ? (
           <div className="bg-white rounded shadow overflow-hidden">
             <table className="w-full">
               <thead className="bg-gray-200">
@@ -155,13 +186,12 @@ export default function Status4ProductsPage() {
               </tbody>
             </table>
           </div>
-        ) : (
-          <div className="bg-white p-6 rounded shadow text-center">
-            <p className="text-gray-600">
-              {naamFilter ? 'No products found matching your filter.' : 'No sold products available.'}
-            </p>
-          </div>
-        )}
+          ) : (
+            <div className="bg-white p-6 rounded shadow text-center">
+              <p className="text-gray-600">No products found matching your filter.</p>
+            </div>
+          )
+        ) : null}
 
         {/* Back Link */}
         <Link href="/homepage" className="mt-6 inline-block text-blue-500 hover:text-blue-700 underline">
