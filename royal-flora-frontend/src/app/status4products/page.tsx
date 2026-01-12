@@ -157,7 +157,8 @@ export default function Status4ProductsPage() {
                 </li>
               ))}
             </ul>
-            <div className="mt-4 text-sm text-gray-700">Gemiddelde prijs: €{(priceHistory.averageVerkoopPrijs ?? priceHistory.AverageVerkoopPrijs ?? 0).toFixed(2)}</div>
+            <div className="mt-4 text-sm text-gray-700">Gemiddelde prijs (recent 10): €{(priceHistory.averageVerkoopPrijs ?? priceHistory.AverageVerkoopPrijs ?? 0).toFixed(2)}</div>
+            <div className="mt-1 text-sm text-gray-700">Gemiddelde prijs (alle bestellingen): €{((priceHistory.overallAverageVerkoopPrijs ?? priceHistory.OverallAverageVerkoopPrijs) ?? 0).toFixed(2)}</div>
           </div>
         ) : searched ? (
           filteredProducts.length > 0 ? (

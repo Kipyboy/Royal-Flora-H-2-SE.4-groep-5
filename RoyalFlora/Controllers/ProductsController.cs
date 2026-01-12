@@ -486,15 +486,15 @@ namespace RoyalFlora.Controllers
                 if (string.IsNullOrEmpty(naamFilter))
                 {
                     // No filter: select all products with status 4
-                    string sqlWithIndex = "SELECT IdProduct, ProductNaam, verkoopPrijs FROM Products WITH (INDEX(IX_Products_Status_ProductNaam)) WHERE Status = 4";
-                    string sqlNoIndex = "SELECT IdProduct, ProductNaam, verkoopPrijs FROM Products WHERE Status = 4";
+                    string sqlWithIndex = "SELECT IdProduct, ProductNaam, verkoopPrijs FROM Products WITH (INDEX(IX_Products_Status_ProductNaam)) WHERE Status = 4 AND verkoopPrijs IS NOT NULL";
+                    string sqlNoIndex = "SELECT IdProduct, ProductNaam, verkoopPrijs FROM Products WHERE Status = 4 AND verkoopPrijs IS NOT NULL";
                     products = await SqlQueryWithIndexFallback<Status4ProductDTO>(sqlWithIndex, sqlNoIndex);
                 }
                 else
                 {
                     // With filter: case-insensitive LIKE search using SQL parameters
-                    string sqlWithIndex = "SELECT IdProduct, ProductNaam, verkoopPrijs FROM Products WITH (INDEX(IX_Products_Status_ProductNaam)) WHERE Status = 4 AND ProductNaam COLLATE SQL_Latin1_General_CP1_CI_AS LIKE '%' + @naamFilter + '%'";
-                    string sqlNoIndex = "SELECT IdProduct, ProductNaam, verkoopPrijs FROM Products WHERE Status = 4 AND ProductNaam COLLATE SQL_Latin1_General_CP1_CI_AS LIKE '%' + @naamFilter + '%'";
+                    string sqlWithIndex = "SELECT IdProduct, ProductNaam, verkoopPrijs FROM Products WITH (INDEX(IX_Products_Status_ProductNaam)) WHERE Status = 4 AND verkoopPrijs IS NOT NULL AND ProductNaam COLLATE SQL_Latin1_General_CP1_CI_AS LIKE '%' + @naamFilter + '%'";
+                    string sqlNoIndex = "SELECT IdProduct, ProductNaam, verkoopPrijs FROM Products WHERE Status = 4 AND verkoopPrijs IS NOT NULL AND ProductNaam COLLATE SQL_Latin1_General_CP1_CI_AS LIKE '%' + @naamFilter + '%'";
                     var param = new Microsoft.Data.SqlClient.SqlParameter("@naamFilter", naamFilter);
                     products = await SqlQueryWithIndexFallback<Status4ProductDTO>(sqlWithIndex, sqlNoIndex, param);
                 }
@@ -522,27 +522,54 @@ namespace RoyalFlora.Controllers
             var naam = active.ProductNaam ?? string.Empty;
             var leverancierId = active.Leverancier;
 
-            var sold = await _context.Products
-                .Where(p => p.Status == 4
-                            && p.ProductNaam == naam
-                            && p.Leverancier == leverancierId
-                            && p.verkoopPrijs != null)
-                .OrderByDescending(p => p.IdProduct)
-                .Take(10)
-                .Select(p => new SoldItemDTO
-                {
-                    IdProduct = p.IdProduct,
-                    ProductNaam = p.ProductNaam,
-                    VerkoopPrijs = p.verkoopPrijs,
-                    Aantal = p.Aantal,
-                    SoldDate = p.Datum.HasValue ? p.Datum.Value.ToString("dd-MM-yyyy") : null,
-                    AanvoerderNaam = p.LeverancierNavigation != null ? p.LeverancierNavigation.BedrijfNaam : null
-                })
-                .ToListAsync();
+            // Use raw SQL for consistent formatting and to leverage index hints for performance
+            var sqlWithIndex = @"SELECT TOP (10) p.IdProduct,
+       p.ProductNaam,
+       p.verkoopPrijs AS VerkoopPrijs,
+       p.Aantal,
+       FORMAT(p.Datum, 'dd-MM-yyyy') AS SoldDate,
+       b.BedrijfNaam AS AanvoerderNaam
+FROM Products p WITH (INDEX(IX_Products_ProductNaam_Leverancier_IdProduct))
+LEFT JOIN Bedrijf b ON p.Leverancier = b.KVK
+WHERE p.Status = 4 AND p.ProductNaam = @naam AND p.Leverancier = @leverancier AND p.verkoopPrijs IS NOT NULL
+ORDER BY COALESCE(p.Datum, '1900-01-01') DESC, p.IdProduct DESC";
+
+            var sqlNoIndex = @"SELECT TOP (10) p.IdProduct,
+       p.ProductNaam,
+       p.verkoopPrijs AS VerkoopPrijs,
+       p.Aantal,
+       FORMAT(p.Datum, 'dd-MM-yyyy') AS SoldDate,
+       b.BedrijfNaam AS AanvoerderNaam
+FROM Products p
+LEFT JOIN Bedrijf b ON p.Leverancier = b.KVK
+WHERE p.Status = 4 AND p.ProductNaam = @naam AND p.Leverancier = @leverancier AND p.verkoopPrijs IS NOT NULL
+ORDER BY COALESCE(p.Datum, '1900-01-01') DESC, p.IdProduct DESC";
+
+            var pNaam = new Microsoft.Data.SqlClient.SqlParameter("@naam", naam);
+            var pLever = new Microsoft.Data.SqlClient.SqlParameter("@leverancier", leverancierId ?? (object)DBNull.Value);
+
+            var sold = await SqlQueryWithIndexFallback<SoldItemDTO>(sqlWithIndex, sqlNoIndex, pNaam, pLever);
+
+            // compute average via SQL to avoid materializing and rounding differences
+            var avgSqlWithIndex = @"SELECT AVG(CONVERT(decimal(18,2), p.verkoopPrijs))
+FROM Products p WITH (INDEX(IX_Products_ProductNaam_Leverancier_IdProduct))
+WHERE p.Status = 4 AND p.ProductNaam = @naam AND p.Leverancier = @leverancier AND p.verkoopPrijs IS NOT NULL";
+            var avgSqlNoIndex = @"SELECT AVG(CONVERT(decimal(18,2), p.verkoopPrijs))
+FROM Products p
+WHERE p.Status = 4 AND p.ProductNaam = @naam AND p.Leverancier = @leverancier AND p.verkoopPrijs IS NOT NULL";
 
             decimal? avg = null;
-            var prices = sold.Where(s => s.VerkoopPrijs.HasValue).Select(s => s.VerkoopPrijs!.Value).ToList();
-            if (prices.Any()) avg = Math.Round(prices.Average(), 2);
+            try
+            {
+                var avgList = await SqlQueryWithIndexFallback<decimal?>(avgSqlWithIndex, avgSqlNoIndex, pNaam, pLever);
+                avg = avgList.FirstOrDefault();
+            }
+            catch
+            {
+                // fall back to computing average in-memory if raw SQL avg fails
+                var prices = sold.Where(s => s.VerkoopPrijs.HasValue).Select(s => s.VerkoopPrijs!.Value).ToList();
+                if (prices.Any()) avg = Math.Round(prices.Average(), 2);
+            }
 
             var result = new VeilingSoldMatchesDTO
             {
@@ -562,28 +589,60 @@ namespace RoyalFlora.Controllers
             if (string.IsNullOrWhiteSpace(naam)) return BadRequest("Missing naam parameter");
 
             var lowerName = naam.ToLower();
-            var query = _context.Products
-                .Where(p => p.Status == 4 && p.ProductNaam != null && (p.ProductNaam ?? "").ToLower() == lowerName && p.verkoopPrijs != null)
-                .OrderByDescending(p => p.IdProduct)
-                .Take(10)
-                .Select(p => new PriceHistoryItemDTO
-                {
-                    IdProduct = p.IdProduct,
-                    ProductNaam = p.ProductNaam,
-                    VerkoopPrijs = p.verkoopPrijs,
-                    SoldDate = p.Datum.HasValue ? p.Datum.Value.ToString("dd-MM-yyyy") : null,
-                    AanvoerderNaam = p.LeverancierNavigation != null ? p.LeverancierNavigation.BedrijfNaam : null
-                });
+            // Use raw SQL for price history: top 10 most recent sold items (by Datum desc), formatted date and supplier name
+            var phSqlWithIndex = @"SELECT TOP (10) p.IdProduct,
+       p.ProductNaam,
+       p.verkoopPrijs AS VerkoopPrijs,
+       FORMAT(p.Datum, 'dd-MM-yyyy') AS SoldDate,
+       b.BedrijfNaam AS AanvoerderNaam
+FROM Products p WITH (INDEX(IX_Products_ProductNaam_Leverancier_IdProduct))
+LEFT JOIN Bedrijf b ON p.Leverancier = b.KVK
+WHERE p.Status = 4 AND p.ProductNaam IS NOT NULL AND LOWER(p.ProductNaam) = @lowerName AND p.verkoopPrijs IS NOT NULL
+ORDER BY COALESCE(p.Datum, '1900-01-01') DESC, p.IdProduct DESC";
 
-            var items = await query.ToListAsync();
-            decimal? avg = null;
-            var prices = items.Where(i => i.VerkoopPrijs.HasValue).Select(i => i.VerkoopPrijs!.Value).ToList();
-            if (prices.Any()) avg = Math.Round(prices.Average(), 2);
+            var phSqlNoIndex = @"SELECT TOP (10) p.IdProduct,
+       p.ProductNaam,
+       p.verkoopPrijs AS VerkoopPrijs,
+       FORMAT(p.Datum, 'dd-MM-yyyy') AS SoldDate,
+       b.BedrijfNaam AS AanvoerderNaam
+FROM Products p
+LEFT JOIN Bedrijf b ON p.Leverancier = b.KVK
+WHERE p.Status = 4 AND p.ProductNaam IS NOT NULL AND LOWER(p.ProductNaam) = @lowerName AND p.verkoopPrijs IS NOT NULL
+ORDER BY COALESCE(p.Datum, '1900-01-01') DESC, p.IdProduct DESC";
+
+            var pLower = new Microsoft.Data.SqlClient.SqlParameter("@lowerName", lowerName);
+            var items = await SqlQueryWithIndexFallback<PriceHistoryItemDTO>(phSqlWithIndex, phSqlNoIndex, pLower);
+
+            // Average
+            var avgPhWithIndex = @"SELECT AVG(CONVERT(decimal(18,2), p.verkoopPrijs))
+FROM Products p WITH (INDEX(IX_Products_ProductNaam_Leverancier_IdProduct))
+WHERE p.Status = 4 AND p.ProductNaam IS NOT NULL AND LOWER(p.ProductNaam) = @lowerName AND p.verkoopPrijs IS NOT NULL";
+            var avgPhNoIndex = @"SELECT AVG(CONVERT(decimal(18,2), p.verkoopPrijs))
+FROM Products p
+WHERE p.Status = 4 AND p.ProductNaam IS NOT NULL AND LOWER(p.ProductNaam) = @lowerName AND p.verkoopPrijs IS NOT NULL";
+
+            decimal? avgPh = null;
+            try
+            {
+                var avgList = await SqlQueryWithIndexFallback<decimal?>(avgPhWithIndex, avgPhNoIndex, pLower);
+                avgPh = avgList.FirstOrDefault();
+            }
+            catch
+            {
+                var prices = items.Where(i => i.VerkoopPrijs.HasValue).Select(i => i.VerkoopPrijs!.Value).ToList();
+                if (prices.Any()) avgPh = Math.Round(prices.Average(), 2);
+            }
+
+            // Average of the returned items (recent/top-10)
+            decimal? avgRecent = null;
+            var recentPrices = items.Where(i => i.VerkoopPrijs.HasValue).Select(i => i.VerkoopPrijs!.Value).ToList();
+            if (recentPrices.Any()) avgRecent = Math.Round(recentPrices.Average(), 2);
 
             var result = new PriceHistoryResultDTO
             {
                 Items = items,
-                AverageVerkoopPrijs = avg
+                AverageVerkoopPrijs = avgRecent,
+                OverallAverageVerkoopPrijs = avgPh
             };
 
             return Ok(result);
