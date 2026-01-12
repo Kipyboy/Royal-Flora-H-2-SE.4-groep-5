@@ -522,54 +522,75 @@ namespace RoyalFlora.Controllers
             var naam = active.ProductNaam ?? string.Empty;
             var leverancierId = active.Leverancier;
 
-            // Use raw SQL for consistent formatting and to leverage index hints for performance
-            var sqlWithIndex = @"SELECT TOP (10) p.IdProduct,
-       p.ProductNaam,
-       p.verkoopPrijs AS VerkoopPrijs,
-       p.Aantal,
-       FORMAT(p.Datum, 'dd-MM-yyyy') AS SoldDate,
-       b.BedrijfNaam AS AanvoerderNaam
+                        // Use raw SQL for consistent formatting and to leverage index hints for performance.
+                        // Match product name case-insensitively and require same leverancier (aanvoerder). Handle NULL leverancier.
+                        var sqlWithIndex = @"SELECT TOP (10) p.IdProduct,
+             p.ProductNaam,
+             p.verkoopPrijs AS VerkoopPrijs,
+             p.Aantal,
+             FORMAT(p.Datum, 'dd-MM-yyyy') AS SoldDate,
+             b.BedrijfNaam AS AanvoerderNaam
 FROM Products p WITH (INDEX(IX_Products_ProductNaam_Leverancier_IdProduct))
 LEFT JOIN Bedrijf b ON p.Leverancier = b.KVK
-WHERE p.Status = 4 AND p.ProductNaam = @naam AND p.Leverancier = @leverancier AND p.verkoopPrijs IS NOT NULL
-ORDER BY COALESCE(p.Datum, '1900-01-01') DESC, p.IdProduct DESC";
+WHERE p.Status = 4
+    AND p.ProductNaam COLLATE SQL_Latin1_General_CP1_CI_AS = @naam
+    AND ((@leverancier IS NULL AND p.Leverancier IS NULL) OR (p.Leverancier = @leverancier))
+    AND p.verkoopPrijs IS NOT NULL
+ORDER BY p.Datum DESC, p.IdProduct DESC";
 
-            var sqlNoIndex = @"SELECT TOP (10) p.IdProduct,
-       p.ProductNaam,
-       p.verkoopPrijs AS VerkoopPrijs,
-       p.Aantal,
-       FORMAT(p.Datum, 'dd-MM-yyyy') AS SoldDate,
-       b.BedrijfNaam AS AanvoerderNaam
+                        var sqlNoIndex = @"SELECT TOP (10) p.IdProduct,
+             p.ProductNaam,
+             p.verkoopPrijs AS VerkoopPrijs,
+             p.Aantal,
+             FORMAT(p.Datum, 'dd-MM-yyyy') AS SoldDate,
+             b.BedrijfNaam AS AanvoerderNaam
 FROM Products p
 LEFT JOIN Bedrijf b ON p.Leverancier = b.KVK
-WHERE p.Status = 4 AND p.ProductNaam = @naam AND p.Leverancier = @leverancier AND p.verkoopPrijs IS NOT NULL
-ORDER BY COALESCE(p.Datum, '1900-01-01') DESC, p.IdProduct DESC";
+WHERE p.Status = 4
+    AND p.ProductNaam COLLATE SQL_Latin1_General_CP1_CI_AS = @naam
+    AND ((@leverancier IS NULL AND p.Leverancier IS NULL) OR (p.Leverancier = @leverancier))
+    AND p.verkoopPrijs IS NOT NULL
+ORDER BY p.Datum DESC, p.IdProduct DESC";
 
-            var pNaam = new Microsoft.Data.SqlClient.SqlParameter("@naam", naam);
-            var pLever = new Microsoft.Data.SqlClient.SqlParameter("@leverancier", leverancierId ?? (object)DBNull.Value);
+                        // Use lower-cased name comparison to be robust against casing/whitespace differences
+                        var lowerName = (naam ?? string.Empty).Trim().ToLower();
+                        var pLower = new Microsoft.Data.SqlClient.SqlParameter("@lowerName", lowerName);
+                        var pLever = new Microsoft.Data.SqlClient.SqlParameter("@leverancier", leverancierId ?? (object)DBNull.Value);
 
-            var sold = await SqlQueryWithIndexFallback<SoldItemDTO>(sqlWithIndex, sqlNoIndex, pNaam, pLever);
+                        // Replace name parameter usage in SQL to use LOWER(p.ProductNaam) = @lowerName
+                        sqlWithIndex = sqlWithIndex.Replace("p.ProductNaam COLLATE SQL_Latin1_General_CP1_CI_AS = @naam", "LOWER(p.ProductNaam) = @lowerName");
+                        sqlNoIndex = sqlNoIndex.Replace("p.ProductNaam COLLATE SQL_Latin1_General_CP1_CI_AS = @naam", "LOWER(p.ProductNaam) = @lowerName");
 
-            // compute average via SQL to avoid materializing and rounding differences
-            var avgSqlWithIndex = @"SELECT AVG(CONVERT(decimal(18,2), p.verkoopPrijs))
+                        var sold = await SqlQueryWithIndexFallback<SoldItemDTO>(sqlWithIndex, sqlNoIndex, pLower, pLever);
+
+                        // compute average for these sold items via SQL for consistency
+                        var avgSqlWithIndex = @"SELECT AVG(CONVERT(decimal(18,2), p.verkoopPrijs))
 FROM Products p WITH (INDEX(IX_Products_ProductNaam_Leverancier_IdProduct))
-WHERE p.Status = 4 AND p.ProductNaam = @naam AND p.Leverancier = @leverancier AND p.verkoopPrijs IS NOT NULL";
-            var avgSqlNoIndex = @"SELECT AVG(CONVERT(decimal(18,2), p.verkoopPrijs))
+WHERE p.Status = 4
+    AND p.ProductNaam COLLATE SQL_Latin1_General_CP1_CI_AS = @naam
+    AND ((@leverancier IS NULL AND p.Leverancier IS NULL) OR (p.Leverancier = @leverancier))
+    AND p.verkoopPrijs IS NOT NULL";
+                        var avgSqlNoIndex = @"SELECT AVG(CONVERT(decimal(18,2), p.verkoopPrijs))
 FROM Products p
-WHERE p.Status = 4 AND p.ProductNaam = @naam AND p.Leverancier = @leverancier AND p.verkoopPrijs IS NOT NULL";
+WHERE p.Status = 4
+    AND p.ProductNaam COLLATE SQL_Latin1_General_CP1_CI_AS = @naam
+    AND ((@leverancier IS NULL AND p.Leverancier IS NULL) OR (p.Leverancier = @leverancier))
+    AND p.verkoopPrijs IS NOT NULL";
 
-            decimal? avg = null;
-            try
-            {
-                var avgList = await SqlQueryWithIndexFallback<decimal?>(avgSqlWithIndex, avgSqlNoIndex, pNaam, pLever);
-                avg = avgList.FirstOrDefault();
-            }
-            catch
-            {
-                // fall back to computing average in-memory if raw SQL avg fails
-                var prices = sold.Where(s => s.VerkoopPrijs.HasValue).Select(s => s.VerkoopPrijs!.Value).ToList();
-                if (prices.Any()) avg = Math.Round(prices.Average(), 2);
-            }
+                        decimal? avg = null;
+                        try
+                        {
+                                // adjust avg SQL params to use lowerName as well
+                                avgSqlWithIndex = avgSqlWithIndex.Replace("p.ProductNaam COLLATE SQL_Latin1_General_CP1_CI_AS = @naam", "LOWER(p.ProductNaam) = @lowerName");
+                                avgSqlNoIndex = avgSqlNoIndex.Replace("p.ProductNaam COLLATE SQL_Latin1_General_CP1_CI_AS = @naam", "LOWER(p.ProductNaam) = @lowerName");
+                                var avgList = await SqlQueryWithIndexFallback<decimal?>(avgSqlWithIndex, avgSqlNoIndex, pLower, pLever);
+                                avg = avgList.FirstOrDefault();
+                        }
+                        catch
+                        {
+                                var prices = sold.Where(s => s.VerkoopPrijs.HasValue).Select(s => s.VerkoopPrijs!.Value).ToList();
+                                if (prices.Any()) avg = Math.Round(prices.Average(), 2);
+                        }
 
             var result = new VeilingSoldMatchesDTO
             {
