@@ -421,16 +421,30 @@ namespace RoyalFlora.Controllers
 
             if (current == null) return NotFound("No active product found");
 
-            current.Status = 4;
+            
             _context.Entry(current).State = EntityState.Modified;
 
             var next = await _context.Products
-                .Where(p => p.Status == 2 || p.Status == 5 && (p.Locatie ?? "") == locatie && p.Datum.Value.Date == DateTime.Today)
+                .Where(p => (p.Status == 2 || p.Status == 5) && (p.Locatie ?? "") == locatie && p.Datum.Value.Date == DateTime.Today)
                 .OrderBy(p => p.IdProduct)
                 .FirstOrDefaultAsync();
 
             if (next == null)
             {
+                // No next product available. Ensure we clear the "active" status
+                // for the current product so it doesn't keep looping.
+                var dbStatusCurrent = await _context.Products
+                    .Where(p => p.IdProduct == current.IdProduct)
+                    .Select(p => p.Status)
+                    .FirstOrDefaultAsync();
+
+                if (dbStatusCurrent != 4)
+                {
+                    // If current was not sold, revert it to status 1 (not active)
+                    current.Status = 1;
+                    _context.Entry(current).State = EntityState.Modified;
+                }
+
                 await _context.SaveChangesAsync();
                 return NotFound("No next product available");
             }
@@ -441,6 +455,17 @@ namespace RoyalFlora.Controllers
 
             next.Status = 3;
             _context.Entry(next).State = EntityState.Modified;
+
+            var dbStatus = await _context.Products
+            .Where(p => p.IdProduct == current.IdProduct)
+            .Select(p => p.Status)
+            .FirstOrDefaultAsync();
+
+            if (dbStatus != 4)
+            {
+                current.Status = 1;
+                _context.Entry(current).State = EntityState.Modified;
+            }
 
             await _context.SaveChangesAsync();
             return Ok(new { nextId = next.IdProduct });

@@ -65,11 +65,6 @@ export default function VeilingPage({ searchParams }: { searchParams: Promise<{ 
     return () => window.removeEventListener("storage", onStorage);
   }, []);
 
-  const handleReset = () => {
-    const newEnd = Date.now() + DEFAULT_MS;
-    setEndTs(newEnd);
-    writeEndToStorage(newEnd);
-  };
 
   const handleStop = () => setEndTs(null);
 
@@ -90,7 +85,7 @@ export default function VeilingPage({ searchParams }: { searchParams: Promise<{ 
       <div className="clock-container">
         <Clock endTs={endTs} durationMs={DEFAULT_MS} onPriceChange={setCurrentPrice} locationName={config.locationName} onFinished={handleClockFinished}/>
       </div>
-      <VeilingSidebar onReset={handleReset} onStop={handleStop} locationName={config.locationName} verkoopPrijs={currentPrice} />
+      <VeilingSidebar onStop={handleStop} locationName={config.locationName} verkoopPrijs={currentPrice} />
     </div>
   );
 }
