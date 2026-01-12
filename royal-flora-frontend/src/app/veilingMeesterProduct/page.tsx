@@ -254,9 +254,6 @@ export default function VeilingMeesterProductPage() {
                 <div>Locatie: {p.locatie}</div>
                 <div>Gewenste datum: {p.datum}</div>
                 <div>Minimum prijs: €{p.prijs}</div>
-                {p.fotoPath && p.fotoPath.trim() !== "" && (
-                  <img src={`${API_BASE_URL}/images/${p.fotoPath}`} alt={p.naam} id="product-foto"/>
-                )}
               </div>
             ))}
           </div>

@@ -2,14 +2,21 @@
 import React, { useEffect, useState } from "react";
 import "../../styles/veiling-sidebar.css";
 import { getSessionData } from "../utils/sessionService";
+import { getUser } from "../utils/auth";
 import { getAuthHeaders } from "../utils/auth";
 import { API_BASE_URL } from "../config/api";
 
 interface SidebarProps {
-  onReset: () => void;
   onStop: () => void;
   locationName: string;
   verkoopPrijs?: number | null;
+}
+
+interface User {
+  username: string;
+  email: string;
+  role: string;
+  KVK?: string;
 }
 
 interface VeilingDTO {
@@ -21,13 +28,13 @@ interface VeilingDTO {
 }
 
 export default function Sidebar({
-  onReset,
   onStop,
   locationName,
   verkoopPrijs,
 }: SidebarProps) {
   const [products, setProducts] = useState<VeilingDTO[]>([]);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   useEffect(() => {
     const load = async () => {
       setFetchError(null);
@@ -76,6 +83,13 @@ export default function Sidebar({
 
     load();
   }, [locationName]);
+
+  useEffect(() => {
+    const user = getUser();
+    setUser(user)
+    })
+
+  
 
   const product = products[0];
 
@@ -176,8 +190,10 @@ export default function Sidebar({
         ) : null}
       </div>
       <div className="sidebar-bottom">
-        <button onClick={handleKoop}>Koop</button>
-        <button onClick={onReset}>Reset</button>
+        {user?.role === 'Inkoper' && (
+          <button onClick={handleKoop}>Koop</button>
+        )
+        }
       </div>
 
       <div className="sidebar-actions">

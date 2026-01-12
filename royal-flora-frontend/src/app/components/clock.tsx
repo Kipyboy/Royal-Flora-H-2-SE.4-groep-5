@@ -77,8 +77,9 @@ export default function Clock({endTs, durationMs, onPriceChange, locationName, o
   }, [locationName]);
 
   useEffect(() => {
-    if (!svgRef.current || endTs === null || minPrice === null || minPrice === -1 || startPrijs === null)
-      return;
+    // Start the visual countdown as soon as we have an `endTs` and an SVG ref.
+    // Don't block on price fetches — use safe defaults until the API response arrives.
+    if (!svgRef.current || endTs === null || minPrice === -1) return;
 
     const svg = svgRef.current;
     svg.innerHTML = "";
@@ -142,7 +143,9 @@ export default function Clock({endTs, durationMs, onPriceChange, locationName, o
       });
 
       percentText.textContent = `${Math.floor(ratio * 100)}%`;
-      const currentPrice = minPrice + (startPrijs - minPrice) * ratio;
+      const baseMin = minPrice ?? 0;
+      const baseStart = startPrijs ?? baseMin;
+      const currentPrice = baseMin + (baseStart - baseMin) * ratio;
       priceText.textContent = "€" + currentPrice.toFixed(2);
 
       if (onPriceChange) {

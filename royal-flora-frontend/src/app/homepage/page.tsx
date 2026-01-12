@@ -26,9 +26,9 @@ const HomePage: React.FC = () => {
 
   // Filters
   const [aankomendChecked, setAankomendChecked] = useState(true);
-  const [eigenChecked, setEigenChecked] = useState(true);
-  const [gekochtChecked, setGekochtChecked] = useState(true);
-  const [inTePlannenChecked, setInTePlannenChecked] = useState(true);
+  const [eigenChecked, setEigenChecked] = useState(false);
+  const [gekochtChecked, setGekochtChecked] = useState(false);
+  const [inTePlannenChecked, setInTePlannenChecked] = useState(false);
   const [aChecked, setAChecked] = useState(false);
   const [bChecked, setBChecked] = useState(false);
   const [cChecked, setCChecked] = useState(false);
