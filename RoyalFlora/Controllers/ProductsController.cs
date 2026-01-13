@@ -456,6 +456,8 @@ namespace RoyalFlora.Controllers
             next.Status = 3;
             _context.Entry(next).State = EntityState.Modified;
 
+            ClockTimerService.ResetClockForLocation(locatie);
+
             var dbStatus = await _context.Products
             .Where(p => p.IdProduct == current.IdProduct)
             .Select(p => p.Status)

@@ -25,6 +25,8 @@ namespace RoyalFlora
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
             
             builder.Services.AddControllers();
+            builder.Services.AddSignalR();
+            builder.Services.AddHostedService<ClockTimerService>();
             builder.Services.AddOpenApi();
 
             // Configure JWT Authentication
@@ -117,6 +119,7 @@ namespace RoyalFlora
             app.UseStaticFiles();
 
             app.MapControllers();
+            app.MapHub<KlokkenHub>("/KlokkenHub");
 
             app.Run();
         }
