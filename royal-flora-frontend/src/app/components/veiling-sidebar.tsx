@@ -92,12 +92,15 @@ export default function Sidebar({
   const [soldMatches, setSoldMatches] = useState<SoldItem[] | null>(null);
   const [showSoldPopup, setShowSoldPopup] = useState(false);
   const [soldMessage, setSoldMessage] = useState<string | null>(null);
+  const [average, setAverage] = useState<number | null>(null);
 
   interface SoldItem {
     IdProduct: number;
     ProductNaam: string;
     VerkoopPrijs: number;
     Aantal?: number | null;
+    SoldDate?: string | null;
+    AanvoerderNaam?: string | null;
   }
 
   const handleKoop = async () => {
@@ -134,6 +137,7 @@ export default function Sidebar({
 
   const fetchSoldMatches = async () => {
     setSoldMessage(null);
+    setAverage(null);
     try {
       const res = await fetch(`${API_BASE_URL}/api/Products/VeilingSoldMatches?locatie=${encodeURIComponent(locationName)}`);
       if (res.status === 404) {
@@ -154,15 +158,25 @@ export default function Sidebar({
 
       const data = await res.json();
       const raw = data?.soldProducts || data?.SoldProducts || [];
+      const avg = data?.averageVerkoopPrijs ?? data?.AverageVerkoopPrijs ?? null;
       // Normalize keys to expected shape
       const normalized: SoldItem[] = (Array.isArray(raw) ? raw : []).map((it: any) => ({
         IdProduct: it.idProduct ?? it.IdProduct ?? 0,
         ProductNaam: it.productNaam ?? it.ProductNaam ?? '',
         VerkoopPrijs: it.verkoopPrijs ?? it.VerkoopPrijs ?? 0,
         Aantal: it.aantal ?? it.Aantal ?? null,
+        SoldDate: it.soldDate ?? it.SoldDate ?? null,
+        AanvoerderNaam: it.aanvoerderNaam ?? it.AanvoerderNaam ?? null,
       }));
-
       setSoldMatches(normalized);
+      // Store average separately so the list is still shown when present
+      setAverage(avg != null ? Number(avg) : null);
+      // Only set a user message when there are no items
+      if (!normalized || normalized.length === 0) {
+        setSoldMessage('Geen verkochte items gevonden.');
+      } else {
+        setSoldMessage(null);
+      }
       setShowSoldPopup(true);
     } catch (err) {
       console.error('Error fetching sold matches', err);
@@ -202,13 +216,19 @@ export default function Sidebar({
             <h3>Vorige verkochte items voor: {product?.naam ?? locationName}</h3>
             <button className="close" onClick={() => setShowSoldPopup(false)}>Sluit</button>
             <div className="sold-list">
+              {average != null && (
+                <p>Gemiddelde prijs: €{Number(average).toFixed(2)}</p>
+              )}
               {soldMessage ? (
                 <p>{soldMessage}</p>
               ) : soldMatches && soldMatches.length > 0 ? (
                 <ul>
                   {soldMatches.map((s) => (
                     <li key={s.IdProduct}>
-                      <strong>{s.ProductNaam}</strong> — Aantal: {s.Aantal ?? '-'} — Prijs: €{s.VerkoopPrijs.toFixed(2)}
+                      <strong>{s.ProductNaam}</strong>
+                      {s.AanvoerderNaam ? ` — Aanvoerder: ${s.AanvoerderNaam}` : ''}
+                      {s.SoldDate ? ` — Datum: ${s.SoldDate}` : ''}
+                      {` — Prijs: €${s.VerkoopPrijs.toFixed(2)}`}
                     </li>
                   ))}
                 </ul>
