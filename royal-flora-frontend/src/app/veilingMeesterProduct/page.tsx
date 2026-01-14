@@ -87,6 +87,23 @@ export default function VeilingMeesterProductPage() {
     
     setFormData(prev => ({ ...prev, [name]: processedValue }));
     setErrors(prev => ({ ...prev, [name]: '' }));
+
+    // Real-time validatie voor startPrice
+    if (name === 'startPrice') {
+      let errorMsg = '';
+      const startPriceNum = parseFloat(processedValue);
+      if (!processedValue || isNaN(startPriceNum) || startPriceNum < 0) {
+        errorMsg = 'Startprijs moet positief zijn';
+      } else if (currentProduct && currentProduct.prijs !== null && currentProduct.prijs !== undefined) {
+        const minPrice = currentProduct.prijs;
+        if (startPriceNum < minPrice) {
+          errorMsg = `Startprijs moet minimaal €${minPrice} zijn`;
+        }
+      }
+      if (errorMsg) {
+        setErrors(prev => ({ ...prev, startPrice: errorMsg }));
+      }
+    }
   };
 
   const validateForm = (): boolean => {
@@ -95,7 +112,20 @@ export default function VeilingMeesterProductPage() {
 
     if (!formData.auctionDate) { newErrors.auctionDate='Veilingdatum is verplicht'; isValid=false; }
     else if(new Date(formData.auctionDate) < new Date(new Date().toDateString())){ newErrors.auctionDate='Veilingdatum moet in de toekomst liggen'; isValid=false; }
-    if(!formData.startPrice || parseFloat(formData.startPrice)<0){ newErrors.startPrice='Startprijs moet positief zijn'; isValid=false; }
+
+    // Validatie voor startPrice
+    const startPriceNum = parseFloat(formData.startPrice);
+    if (!formData.startPrice || isNaN(startPriceNum) || startPriceNum < 0) {
+      newErrors.startPrice = 'Startprijs moet positief zijn';
+      isValid = false;
+    } else if (currentProduct && currentProduct.prijs !== null && currentProduct.prijs !== undefined) {
+      const minPrice = currentProduct.prijs;
+      if (startPriceNum < minPrice) {
+        newErrors.startPrice = `Startprijs moet minimaal €${minPrice} zijn`;
+        isValid = false;
+      }
+    }
+
     setErrors(newErrors);
     return isValid;
   };
@@ -224,7 +254,7 @@ export default function VeilingMeesterProductPage() {
                 id="startPrice"
                 name="startPrice"
                 type="text"
-                placeholder="0.00"
+                placeholder={currentProduct?.prijs ? currentProduct.prijs.toString() : "0.00"}
                 value={formData.startPrice}
                 onChange={handleInputChange}
                 required

@@ -66,7 +66,7 @@ services:
       HOST: 0.0.0.0
       PORT: 3000
       NEXT_TELEMETRY_DISABLED: "1"
-      NEXT_PUBLIC_API_URL: "https://chicken.servegame.com"
+      # NEXT_PUBLIC_API_URL: "https://chicken.servegame.com"
     expose:
       - "3000"
     ports:
