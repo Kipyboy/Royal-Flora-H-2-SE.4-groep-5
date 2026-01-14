@@ -7,7 +7,6 @@ import { getAuthHeaders } from "../utils/auth";
 import { API_BASE_URL } from "../config/api";
 
 interface SidebarProps {
-  onStop: () => void;
   locationName: string;
   verkoopPrijs?: number | null;
 }
@@ -28,7 +27,6 @@ interface VeilingDTO {
 }
 
 export default function Sidebar({
-  onStop,
   locationName,
   verkoopPrijs,
 }: SidebarProps) {
@@ -87,9 +85,7 @@ export default function Sidebar({
   useEffect(() => {
     const user = getUser();
     setUser(user)
-    })
-
-  
+    }, [])
 
   const product = products[0];
 
