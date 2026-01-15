@@ -19,12 +19,23 @@ interface User {
   KVK?: string;
 }
 
+// Startpagina: toont lijsten met producten en biedt filtermogelijkheden.
+// Filters worden als 'controlled' props naar de sidebars doorgegeven.
+// `reloadProducts` haalt de productlijst op van de backend en gebruikt `authFetch`
+// zodat, indien aanwezig, de JWT-autorization header wordt meegestuurd.
 const HomePage: React.FC = () => {
+  // Component state:
+  // - products: ontvangen productlijst van de API
+  // - user: huidige ingelogde gebruiker (minimaal info uit localStorage)
+  // - loading: toont laadindicator bij asynchrone bewerkingen
   const [products, setProducts] = useState<any[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Filters
+  // Filters (controlled state die door de sidebars wordt aangepast):
+  // - tonen / niet tonen (aankomend, eigen, gekocht, in te plannen)
+  // - locaties (A/B/C/D)
+  // - tekstfilters voor datum, merk en naam
   const [aankomendChecked, setAankomendChecked] = useState(true);
   const [eigenChecked, setEigenChecked] = useState(false);
   const [gekochtChecked, setGekochtChecked] = useState(false);
@@ -41,7 +52,9 @@ const HomePage: React.FC = () => {
   const [toonBeschrijving, setToonBeschrijving] = useState(false);
   const [auctionsInactive, setAuctionsInactive] = useState(true);
 
-  // Fetch products and user info
+  // Haalt producten op van de backend en zet de lokale state. `authFetch` voegt
+  // automatisch de Authorization header toe wanneer er een token aanwezig is.
+  // Errors en JSON parse fouten worden gelogd naar de console.
   const reloadProducts = async () => {
     setLoading(true);
     const storedUser = getUser();
@@ -71,8 +84,10 @@ const HomePage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }; 
 
+  // Bij mount: laad producten en controleer of veilingen gepauzeerd zijn zodat de
+  // start/pauze-knop juiste initiële state heeft.
   useEffect(() => {
     reloadProducts();
 
@@ -92,6 +107,9 @@ const HomePage: React.FC = () => {
     checkPaused();
   }, []);
 
+  
+  // Centraliseer checkbox events van de sidebars. We gebruiken de `id` van de
+  // checkbox om te bepalen welke filter geüpdatet moet worden. Sidebars zijn stateless.
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, checked } = e.target;
     if (id === 'Aankomende producten') setAankomendChecked(checked);
@@ -102,8 +120,10 @@ const HomePage: React.FC = () => {
     if (id === 'B') setBChecked(checked);
     if (id === 'C') setCChecked(checked);
     if (id === 'D') setDChecked(checked);
-  };
+  }; 
 
+  
+  // Update tekst- en datum-filters (controlled inputs van de sidebars)
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
     if (id === 'datum-input') setDateFilter(value);
@@ -111,10 +131,16 @@ const HomePage: React.FC = () => {
     if (id === 'naam-input') setNaamFilter(value);
   };
 
+    // Toggle-knop: wissel tussen product overzicht en volledige productbeschrijvingen
     const handleButtonClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
       setToonBeschrijving(!toonBeschrijving);
-    };
+    }; 
 
+  // Bepaalt welk kaartcomponent voor een product gebruikt moet worden:
+  // - eerst: gekochte producten (GekochtProductCard)
+  // - dan: eigen producten (EigenProductCard)
+  // - voor veilingmeester: extra actiekaarten (VeilingmeesterProductCard)
+  // - default: generieke ProductCard
   const renderCard = (product: any) => {
     const typeStr = (product.type ?? product.status ?? '').toString().toLowerCase();
     const isGekocht = typeStr === 'gekocht' || typeStr === 'verkocht';
@@ -193,9 +219,12 @@ const HomePage: React.FC = () => {
     );
   };
 
+  // Past filters toe op de volledige productlijst en rendert vervolgens voor elk
+  // gefilterd product het juiste kaartcomponent via `renderCard`.
   const productenInladen = () =>
     products
       .filter((product) => {
+        // Filter op status/type
         if (
           (!aankomendChecked && product.status === 'Ingepland') ||
           (!eigenChecked && product.type === 'Eigen') ||
@@ -205,6 +234,7 @@ const HomePage: React.FC = () => {
           return false;
         }
 
+        // Filter op locatie (A/B/C/D) wanneer een of meer locaties geselecteerd zijn
         if (
           (aChecked || bChecked || cChecked || dChecked) &&
           ((!aChecked && product.locatie === 'Naaldwijk') ||
@@ -215,6 +245,7 @@ const HomePage: React.FC = () => {
           return false;
         }
 
+        // Datum- en tekstfilters
         if (dateFilter && product.datum !== dateFilter) return false;
         const merkVal = (product.merk ?? '').toString();
         const naamVal = (product.naam ?? '').toString();
@@ -227,6 +258,7 @@ const HomePage: React.FC = () => {
 
   const toggleSidebar = () => setSidebarVisible(!sidebarVisible);
 
+  // Start veilingdag: roept backend endpoint aan om veilingen te starten/hervatten
   const startDay = async () => {
       const response = await authFetch(`${API_BASE_URL}/api/Products/StartAuctions`, {method: 'POST'});
       if (!response || !response.ok) {
@@ -234,6 +266,7 @@ const HomePage: React.FC = () => {
       }
       setAuctionsInactive(false);
   }
+  // Pauzeer veilingen: backend endpoint pauzeert veilingen, daarna refreshen we producten
   const pauseAuctions = async () => {
     const response = await authFetch(`${API_BASE_URL}/api/Products/PauseAuctions`, { method: 'POST' });
     if (!response || !response.ok) {

@@ -1,18 +1,21 @@
 import React from 'react';
 import '../../styles/Sidebar.css';
 
+// Sidebar voor de rol 'Aanvoerder'. Bevat filters (locatie, datum, merk, naam) en een
+// toggle-knop om tussen productoverzicht en volledige beschrijvingen te wisselen.
+// Alle waarden zijn controlled props; wijzigingen worden doorgegeven via callbacks.
 interface SidebarProps {
-  sidebarVisible: boolean;
-  aankomendChecked: boolean;
-  eigenChecked: boolean;
-  aChecked: boolean;
-  bChecked: boolean;
-  cChecked: boolean;
-  dChecked: boolean;
-  dateFilter: string;
-  merkFilter: string;
-  naamFilter: string;
-  toonBeschrijving: boolean;
+  sidebarVisible: boolean; // bepaalt of het paneel zichtbaar is
+  aankomendChecked: boolean; // filter: aankomende producten
+  eigenChecked: boolean; // filter: eigen producten
+  aChecked: boolean; // filter: locatie A
+  bChecked: boolean; // filter: locatie B
+  cChecked: boolean; // filter: locatie C
+  dChecked: boolean; // filter: locatie D
+  dateFilter: string; // geselecteerde datum
+  merkFilter: string; // merk-filter tekst
+  naamFilter: string; // naam-filter tekst
+  toonBeschrijving: boolean; // togglet tussen overzicht/beschrijvingen
   onCheckboxChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onButtonClick?: React.MouseEventHandler<HTMLButtonElement>;
@@ -121,6 +124,7 @@ const AanvoerderSidebar: React.FC<SidebarProps> = ({
         />
       </fieldset>
 
+      {/* Toggle tussen korte productoverzicht en volledige beschrijvingen */}
       <button className='description-button' onClick={onButtonClick}>
         <p>{toonBeschrijving ? 'Toon product overzicht' : 'Toon product beschrijvingen'}</p>
       </button>

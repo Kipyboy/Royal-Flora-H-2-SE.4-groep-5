@@ -120,6 +120,7 @@ const VeilingmeesterSidebar: React.FC<SidebarProps> = ({
                 onChange={onInputChange}
                 />
             </fieldset>
+            {/* Toggle-knop: laat parent component weten dat we willen wisselen tussen overzicht en beschrijvingen */}
             <button className='description-button' onClick={onButtonClick}>
                 <p>{toonBeschrijving ? 'Toon product overzicht' : 'Toon product beschrijvingen'}</p>
             </button>

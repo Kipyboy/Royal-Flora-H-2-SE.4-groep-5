@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -20,13 +20,16 @@ namespace RoyalFlora.Controllers
     {
         private readonly MyDbContext _context;
 
+        // Constructor: krijg een instantie van de databasecontext via dependency injection
         public ProductsController(MyDbContext context)
         {
             _context = context;
         }
 
+        // Mapper: zet een Product om naar een VeilingDTO die door de veiling-endpoint wordt gebruikt.
         private VeilingDTO VeilingProductInLaden(Product product)
         {
+            // Zorg voor veilige default-waardes bij null-velden
             return new VeilingDTO
             {
                 id = product.IdProduct,
@@ -37,6 +40,7 @@ namespace RoyalFlora.Controllers
             };
         }
 
+        // Endpoint: retourneer alle producten in het formaat dat de veiling nodig heeft
         [HttpGet("Veiling")]
         public async Task<ActionResult<IEnumerable<VeilingDTO>>> GetVeilingProducts()
         {
@@ -44,6 +48,7 @@ namespace RoyalFlora.Controllers
             return products.Select(VeilingProductInLaden).ToList();
         }
 
+        // Mapper: zet prijsgerelateerde velden om naar de ClockDTO (gebruik voor live klok/veiling)
         private ClockDTO PrijsVoorKlok(Product product)
         {
             return new ClockDTO
@@ -55,6 +60,7 @@ namespace RoyalFlora.Controllers
             };
         }
 
+        // Endpoint: haal de prijsinformatie voor de huidige actieve klok (status 3) op basis van locatie
         [HttpGet("Klok")]
         public async Task<ActionResult<ClockDTO>> GetKlokPrijs([FromQuery] string locatie)
         {
@@ -66,26 +72,35 @@ namespace RoyalFlora.Controllers
             return PrijsVoorKlok(product);
         }
 
+        // Endpoint: Authenticated gebruiker koopt een product.
+        // - Update status naar verkocht (4)
+        // - Sla koper en verkoopprijs op
+        // - Activeer het volgende product (status 3) in dezelfde locatie indien aanwezig
         [Authorize]
         [HttpPatch("{id:int}/koop")]
         public async Task<IActionResult> KoopProduct(int id, [FromBody] KoopDto dto)
         {
+            // Zoek het product op
             var product = await _context.Products.FindAsync(id);
             if (product == null) return NotFound();
 
+            // Haal de gebruiker-id uit de JWT-claims (NameIdentifier of subject)
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
                          User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
             if (userId == null) return Unauthorized();
 
             product.Status = 4;
+            // Converteer userId naar int (IdGebruiker)
             if (!int.TryParse(userId, out int koperId)) return Unauthorized();
 
+            // Controleer dat de koper in de database bestaat
             var koperGebruiker = await _context.Gebruikers.FindAsync(koperId);
             if (koperGebruiker == null) return Unauthorized();
 
             product.Koper = koperId;
             product.verkoopPrijs = dto.verkoopPrijs;
 
+            // Zoek het volgende product in de planning (status 2) voor dezelfde locatie en zet deze actief
             var next = await _context.Products
             .Where(p => p.Status == 2 && (p.Locatie ?? "") == product.Locatie)
             .OrderBy(p => p.IdProduct)
@@ -107,6 +122,8 @@ namespace RoyalFlora.Controllers
             return NoContent();
         }
 
+        // Endpoint: Haal producten op (optioneel gefilterd op `location`).
+        // Deze endpoint gebruikt de huidige gebruiker om producten als 'eigen' of 'gekocht' te markeren.
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProductDTO>>> GetProducts([FromQuery] string? location)
         {
@@ -117,9 +134,11 @@ namespace RoyalFlora.Controllers
                 .Include(p => p.KoperNavigation)
                 .ToListAsync();
 
+            // Haal huidige gebruiker uit de claims; vereist voor bepalen van 'eigen' producten
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
             if (!int.TryParse(userIdClaim, out var userId)) return Unauthorized();
 
+            // Haal gebruiker inclusief bedrijf zodat we kunnen vergelijken of product van hetzelfde bedrijf is
             var gebruiker = await _context.Gebruikers
                 .Include(g => g.BedrijfNavigation)
                 .SingleOrDefaultAsync(g => g.IdGebruiker == userId);
@@ -148,7 +167,7 @@ namespace RoyalFlora.Controllers
                 var locatie = product.Locatie ?? string.Empty;
                 var status = product.StatusNavigation?.Beschrijving ?? string.Empty;
 
-                // If the product belongs to the same company as the current user, mark it as "eigen"
+                // Als product van hetzelfde bedrijf is als de gebruiker: markeer als 'eigen'
                 if (leverancierNaam.Equals(bedrijf, StringComparison.OrdinalIgnoreCase))
                 {
                     var eigendto = new ProductDTO
@@ -171,7 +190,7 @@ namespace RoyalFlora.Controllers
                     continue;
                 }
 
-                // If the product is already bought, mark it as "gekocht"
+                // Als product status 'gekocht' heeft: markeer als 'gekocht'
                 if (status.Equals("gekocht", StringComparison.OrdinalIgnoreCase))
                 {
                     var gekochtdto = new ProductDTO
@@ -214,6 +233,7 @@ namespace RoyalFlora.Controllers
             return productDTOs;
         }
 
+        // Endpoint: Haal producten met status 1 op (bijvoorbeeld nieuw/ingediend)
         [HttpGet("Status1")]
         public async Task<ActionResult<IEnumerable<ProductDTO>>> GetStatus1Products()
         {
@@ -255,6 +275,8 @@ namespace RoyalFlora.Controllers
         }
 
 
+        // Endpoint: registreer een nieuw product via multipart/form-data.
+        // Verwerkt velden als MinimumPrijs, Datum en optioneel 1 afbeelding (images).
         [HttpPost]
         public async Task<ActionResult<ProductDTO>> PostProduct([FromForm] string? ProductNaam, 
             [FromForm] string? ProductBeschrijving, 
@@ -269,7 +291,7 @@ namespace RoyalFlora.Controllers
             {
                 Console.WriteLine($"DEBUG: Received ProductNaam={ProductNaam}, MinimumPrijs={MinimumPrijs}, Locatie={Locatie}, Datum={Datum}, Aantal={Aantal}, Leverancier={Leverancier}");
 
-                // Parse MinimumPrijs with invariant culture to handle decimal correctly
+                // Parse MinimumPrijs: gebruik InvariantCulture zodat decimal separators (punt/komma) uniform worden verwerkt
                 decimal minimumPrijsValue = 0;
                 if (!string.IsNullOrWhiteSpace(MinimumPrijs))
                 {
@@ -284,21 +306,21 @@ namespace RoyalFlora.Controllers
                     }
                 }
 
-                // Parse Aantal
+                // Parse Aantal: indien opgegeven, zet string om naar integer
                 int? aantalValue = null;
                 if (!string.IsNullOrWhiteSpace(Aantal) && int.TryParse(Aantal, out int aantalParsed))
                 {
                     aantalValue = aantalParsed;
                 }
 
-                // Parse Leverancier (KVK)
+                // Parse Leverancier (KVK): verwacht een numerieke KVK; log of er een overeenkomend bedrijf bestaat
                 int? leverancierValue = null;
                 if (!string.IsNullOrWhiteSpace(Leverancier) && int.TryParse(Leverancier, out int leverancierParsed))
                 {
                     leverancierValue = leverancierParsed;
                     Console.WriteLine($"DEBUG: Parsed Leverancier={leverancierValue}");
                     
-                    // Check if this KVK exists in Bedrijf table
+                    // Controleer of bedrijf met deze KVK bestaat (alleen voor debug/logging)
                     var bedrijfExists = _context.Bedrijven.Any(b => b.KVK == leverancierValue);
                     Console.WriteLine($"DEBUG: KVK {leverancierValue} exists in Bedrijf table: {bedrijfExists}");
                 }
@@ -306,6 +328,7 @@ namespace RoyalFlora.Controllers
                 {
                     Console.WriteLine($"ERROR: Failed to parse Leverancier: {Leverancier}");
                 }
+                // Parse Datum: zet string om naar DateTime met invariant culture indien opgegeven
                 DateTime? datumValue = null;
                 if (!string.IsNullOrWhiteSpace(Datum))
                 {
@@ -320,6 +343,7 @@ namespace RoyalFlora.Controllers
                     }
                 }
 
+                // Maak nieuw Product-object en zet initiële velden; Status 1 = nieuw/ingediend
                 var product = new Product
                 {
                     ProductNaam = ProductNaam,
@@ -349,10 +373,11 @@ namespace RoyalFlora.Controllers
                     Directory.CreateDirectory(uploadsFolder);
                 }
 
-                // The DB was changed to allow only one Foto per Product. Add or update a single Foto record.
+                // Afbeelding verwerken: DB staat nu slechts één Foto per product toe, dus update of voeg toe
                 if (images != null && images.Count > 0)
                 {
                     var image = images.First();
+                    // Let op: FileName komt van de client. In productie graag een veilige naam genereren (bijv. GUID) en controleren op path traversal
                     string filePath = Path.Combine(uploadsFolder, image.FileName);
 
                     var existingFoto = await _context.Fotos.FirstOrDefaultAsync(f => f.IdProduct == product.IdProduct);
@@ -412,6 +437,12 @@ namespace RoyalFlora.Controllers
             return NoContent();
         }
 
+        // Endpoint: ga naar het volgende product in de veiling voor een locatie
+        // Werkwijze:
+        //  - Vind huidig actief product (status 3) voor de locatie
+        //  - Zoek volgend gepland product (status 2 of 5) met datum = vandaag; activeer het als beschikbaar
+        //  - Als er geen volgend product is, herstel huidige naar status 1 (tenzij verkocht)
+        //  - Reset de klok voor de locatie via ClockTimerService
         [HttpPost("Advance")]
         public async Task<IActionResult> Advance([FromQuery] string locatie)
         {
@@ -425,7 +456,7 @@ namespace RoyalFlora.Controllers
             _context.Entry(current).State = EntityState.Modified;
 
             var next = await _context.Products
-                .Where(p => (p.Status == 2 || p.Status == 5) && (p.Locatie ?? "") == locatie && p.Datum.Value.Date == DateTime.Today)
+                .Where(p => (p.Status == 2 || p.Status == 5) && (p.Locatie ?? "") == locatie && p.Datum.HasValue && p.Datum.Value.Date == DateTime.Today)
                 .OrderBy(p => p.IdProduct)
                 .FirstOrDefaultAsync();
 
@@ -474,18 +505,21 @@ namespace RoyalFlora.Controllers
         }
 
 
+        // Endpoint: plan een product in voor veiling (zet startprijs en geplande datum, status -> 2)
         [HttpPost("productInplannen")]
         public async Task<IActionResult> productInplannen(
             [FromForm] int? id, 
             [FromForm] string? Datum,
             [FromForm] string? StartPrijs)
         {
+            // Zoek product dat nog niet gepland is (status 1)
             var current = await _context.Products
                 .Where(p => p.IdProduct == id && p.Status == 1)
                 .FirstOrDefaultAsync();
 
             if (current == null) return NotFound("No valid product found");
 
+            // Parse en valideer startprijs en datum; beide moeten in het juiste formaat zijn
             if (!decimal.TryParse(StartPrijs, NumberStyles.Any, CultureInfo.InvariantCulture, out var startPrijsValue))
                 return BadRequest("Ongeldige startprijs");
 
@@ -512,14 +546,14 @@ namespace RoyalFlora.Controllers
 
                 if (string.IsNullOrEmpty(naamFilter))
                 {
-                    // No filter: select all products with status 4
+                    // Geen filter: haal alle verkochte producten (status 4) met verkoopprijs op
                     string sqlWithIndex = "SELECT IdProduct, ProductNaam, verkoopPrijs FROM Products WITH (INDEX(IX_Products_Status_ProductNaam)) WHERE Status = 4 AND verkoopPrijs IS NOT NULL";
                     string sqlNoIndex = "SELECT IdProduct, ProductNaam, verkoopPrijs FROM Products WHERE Status = 4 AND verkoopPrijs IS NOT NULL";
                     products = await SqlQueryWithIndexFallback<Status4ProductDTO>(sqlWithIndex, sqlNoIndex);
                 }
                 else
                 {
-                    // With filter: case-insensitive LIKE search using SQL parameters
+                    // Met filter: case-insensitieve LIKE-search, parameterized om SQL-injectie te voorkomen
                     string sqlWithIndex = "SELECT IdProduct, ProductNaam, verkoopPrijs FROM Products WITH (INDEX(IX_Products_Status_ProductNaam)) WHERE Status = 4 AND verkoopPrijs IS NOT NULL AND ProductNaam COLLATE SQL_Latin1_General_CP1_CI_AS LIKE '%' + @naamFilter + '%'";
                     string sqlNoIndex = "SELECT IdProduct, ProductNaam, verkoopPrijs FROM Products WHERE Status = 4 AND verkoopPrijs IS NOT NULL AND ProductNaam COLLATE SQL_Latin1_General_CP1_CI_AS LIKE '%' + @naamFilter + '%'";
                     var param = new Microsoft.Data.SqlClient.SqlParameter("@naamFilter", naamFilter);
@@ -546,11 +580,11 @@ namespace RoyalFlora.Controllers
 
             if (active == null) return NotFound("No active veiling for locatie");
 
-            var naam = active.ProductNaam ?? string.Empty;
+            string naam = active.ProductNaam ?? string.Empty;
             var leverancierId = active.Leverancier;
 
-                        // Use raw SQL for consistent formatting and to leverage index hints for performance.
-                        // Match product name case-insensitively and require same leverancier (aanvoerder). Handle NULL leverancier.
+                        // Raw SQL: haal recente verkochte items die exact passen op naam en (optioneel) leverancier
+                        // Met index-hint voor performance; we vervangen later de naam-vergelijking door LOWER(...)=@lowerName voor case-insensitive matching
                         var sqlWithIndex = @"SELECT TOP (10) p.IdProduct,
              p.ProductNaam,
              p.verkoopPrijs AS VerkoopPrijs,
@@ -579,7 +613,7 @@ WHERE p.Status = 4
     AND p.verkoopPrijs IS NOT NULL
 ORDER BY p.Datum DESC, p.IdProduct DESC";
 
-                        // Use lower-cased name comparison to be robust against casing/whitespace differences
+                        // Gebruik lower-case vergelijking om hoofdletter- en whitespace-verschillen te negeren
                         var lowerName = (naam ?? string.Empty).Trim().ToLower();
                         var pLower = new Microsoft.Data.SqlClient.SqlParameter("@lowerName", lowerName);
                         var pLever = new Microsoft.Data.SqlClient.SqlParameter("@leverancier", leverancierId ?? (object)DBNull.Value);
@@ -590,7 +624,7 @@ ORDER BY p.Datum DESC, p.IdProduct DESC";
 
                         var sold = await SqlQueryWithIndexFallback<SoldItemDTO>(sqlWithIndex, sqlNoIndex, pLower, pLever);
 
-                        // compute average for these sold items via SQL for consistency
+                        // Bereken gemiddelde verkoopprijs via SQL. Als de index-hint faalt, wordt er teruggevallen naar dezelfde query zonder hint
                         var avgSqlWithIndex = @"SELECT AVG(CONVERT(decimal(18,2), p.verkoopPrijs))
 FROM Products p WITH (INDEX(IX_Products_ProductNaam_Leverancier_IdProduct))
 WHERE p.Status = 4
@@ -622,7 +656,7 @@ WHERE p.Status = 4
             var result = new VeilingSoldMatchesDTO
             {
                 ActiveProductId = active.IdProduct,
-                ActiveProductNaam = naam,
+                ActiveProductNaam = naam ?? string.Empty,
                 SoldProducts = sold,
                 AverageVerkoopPrijs = avg
             };
@@ -630,14 +664,14 @@ WHERE p.Status = 4
             return Ok(result);
         }
 
-        // Price history endpoint: filter by product name (partial match), return 10 most recent sold items and average price
+        // Prijsgeschiedenis endpoint: filter op productnaam (exact), retourneer de 10 meest recente verkochte items en gemiddelden
         [HttpGet("PriceHistory")]
         public async Task<ActionResult<PriceHistoryResultDTO>> GetPriceHistory([FromQuery] string naam)
         {
             if (string.IsNullOrWhiteSpace(naam)) return BadRequest("Missing naam parameter");
 
             var lowerName = naam.ToLower();
-            // Use raw SQL for price history: top 10 most recent sold items (by Datum desc), formatted date and supplier name
+            // Raw SQL voor prijsgeschiedenis: top 10 meest recente verkochte items (op Datum desc), met geformatteerde datum en leverancier
             var phSqlWithIndex = @"SELECT TOP (10) p.IdProduct,
        p.ProductNaam,
        p.verkoopPrijs AS VerkoopPrijs,
@@ -698,6 +732,7 @@ WHERE p.Status = 4 AND p.ProductNaam IS NOT NULL AND LOWER(p.ProductNaam) = @low
 
         private bool ProductExists(int id) => _context.Products.Any(e => e.IdProduct == id);
         
+        // Helper: probeer eerst de SQL met index-hint (kan sneller zijn), maar val terug op dezelfde query zonder hint als dit faalt
         private async Task<List<T>> SqlQueryWithIndexFallback<T>(string sqlWithIndex, string sqlWithoutIndex, params object[] parameters)
         {
             try
@@ -706,11 +741,12 @@ WHERE p.Status = 4 AND p.ProductNaam IS NOT NULL AND LOWER(p.ProductNaam) = @low
             }
             catch (Microsoft.Data.SqlClient.SqlException)
             {
-                // Index hint failed (missing index, permissions, different SQL version, etc.); retry without index hint
+                // Index hint faalde (index ontbreekt/permissions/SQL versie etc.); probeer zonder hint
                 return await _context.Database.SqlQueryRaw<T>(sqlWithoutIndex, parameters).ToListAsync();
             }
         }
 
+        // Admin endpoint: activeer de eerstvolgende geplande producten per locatie voor vandaag (zet status -> 3)
         [Authorize(Roles = "Veilingmeester")]
         [HttpPost("StartAuctions")]
         public async Task<ActionResult> StartAuctions ()
@@ -748,6 +784,7 @@ WHERE p.Status = 4 AND p.ProductNaam IS NOT NULL AND LOWER(p.ProductNaam) = @low
             return Ok(activated);
         }
         
+        // Admin endpoint: pauzeer (status -> 5) de eerstvolgende geplande producten per locatie voor vandaag
         [Authorize(Roles = "Veilingmeester")]
         [HttpPost("PauseAuctions")]
         public async Task<ActionResult> PauseAuctions ()
@@ -782,6 +819,7 @@ WHERE p.Status = 4 AND p.ProductNaam IS NOT NULL AND LOWER(p.ProductNaam) = @low
             return Ok(paused);
         }
 
+        // Endpoint: controleer of er producten met status 5 (gepauzeerd) bestaan
         [HttpGet("HasPausedAuctions")]
         public async Task<ActionResult<bool>> HasPausedAuctions()
         {

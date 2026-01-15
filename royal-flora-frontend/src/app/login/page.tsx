@@ -8,17 +8,22 @@ import { setToken, setUser } from '../utils/auth';
 import type { LoginResponseDTO } from '../utils/dtos';
 import { API_BASE_URL } from '../config/api';
 
+// Login pagina: voert client-side validatie uit en verstuurt inloggegevens naar de backend.
+// Bij succes wordt de JWT token opgeslagen met `setToken` en wordt minimale user-info
+// in localStorage gezet via `setUser`. Daarna redirecten we naar de homepage.
 export default function Login() {
   const router = useRouter();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({ email: '', password: '' });
 
+  // Algemene onChange handler voor form inputs: update `formData` en wis fouten voor het veld
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
+  // Valideer formulier velden: controleer of email aanwezig en geldig is en of wachtwoord is ingevuld
   const validateForm = () => {
     const newErrors = { email: '', password: '' };
     let isValid = true;
@@ -41,6 +46,8 @@ export default function Login() {
     return isValid;
   };
 
+  // Verstuurt de login request naar de backend. Bij succes: sla token en user op en redirect.
+  // Bij fouten: toon een melding aan de gebruiker.
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!validateForm()) return;
@@ -60,6 +67,7 @@ export default function Login() {
 
       const data: LoginResponseDTO = await response.json();
       if (data.success) {
+        // Sla token en minimale gebruikersinfo op voor later gebruik
         if (data.token) setToken(data.token);
         if (data.user) {
           setUser({
@@ -79,12 +87,14 @@ export default function Login() {
       console.error(error);
       alert('Kan geen verbinding maken met de server.');
     }
-  };
+  }; 
 
   return (
     <div className="login-page">
       <main id="main">
+        {/* Skip-link voor toegankelijkheid: spring direct naar de hoofdinhoud */}
         <a href="#main" className="skip-link">Spring naar hoofdinhoud</a>
+        {/* Formulier met aria-labelledby voor betere toegankelijkheid */}
         <form onSubmit={handleSubmit} aria-labelledby="login-title">
           <h1 id="login-title">Inloggen</h1>
 

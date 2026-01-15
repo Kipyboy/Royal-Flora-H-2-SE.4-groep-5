@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import '../../styles/Topbar.css';
 import Sidebar from './Sidebar';
+// Top navigation bar with optional role-specific sidebars. Handles user dropdown and logout.
+
 import { useRouter } from 'next/navigation';
 import { logout as clearAuth, getUser } from '../utils/auth';
 import AanvoerderSidebar from './AanvoerderSidebar';
@@ -80,11 +82,13 @@ const Topbar: React.FC<TopbarProps> = ({
 
     
 
+    // Toggles the account dropdown; stopPropagation avoids closing the menu immediately
     const toggleDropdown = (e: React.MouseEvent) => {
         e.stopPropagation();
         setDropdownVisible(!dropdownVisible);
     };
 
+    // Logout flow: try server-side logout then clear client auth and redirect to home
     const handleLogout = async () => {
         try {
             await fetch(`${API_BASE_URL}/api/auth/logout`, {
@@ -97,7 +101,7 @@ const Topbar: React.FC<TopbarProps> = ({
         clearAuth();
         setDropdownVisible(false);
         router.push('/');
-    };
+    }; 
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -185,7 +189,9 @@ const Topbar: React.FC<TopbarProps> = ({
                     </div>
                 </nav>
             </div>
-                {useSideBar && sidebarVisible !== undefined && onCheckboxChange && onInputChange && (
+                {/* Generic sidebar (when useSideBar is true) or role-specific sidebars injected below.
+                The parent passes controlled filter state and callbacks to update the filters. */}
+            {useSideBar && sidebarVisible !== undefined && onCheckboxChange && onInputChange && (
                     <Sidebar
                         sidebarVisible={!!sidebarVisible}
                         aankomendChecked={!!aankomendChecked}
@@ -204,6 +210,7 @@ const Topbar: React.FC<TopbarProps> = ({
                     />
                 )}
 
+            {/* Render role-specific sidebars when appropriate (Aanvoerder, Inkoper, Veilingmeester) */}
             {user?.role === 'Aanvoerder' && (
                 <AanvoerderSidebar
                     sidebarVisible={!!sidebarVisible}
@@ -221,7 +228,7 @@ const Topbar: React.FC<TopbarProps> = ({
                     onInputChange={onInputChange ?? (() => {})}
                     onButtonClick={onButtonClick}
                 />
-            )}
+            )} 
             {user?.role === 'Inkoper' && (
                 <KlantSidebar
                     sidebarVisible={!!sidebarVisible}

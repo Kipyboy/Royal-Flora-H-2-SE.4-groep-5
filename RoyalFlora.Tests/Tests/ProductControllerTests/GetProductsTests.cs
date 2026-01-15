@@ -8,20 +8,27 @@ using Microsoft.AspNetCore.Mvc;
 using RoyalFlora.Controllers;
 using RoyalFlora.Tests.Helpers;
 
+// Tests voor de GetProducts endpoint in ProductsController.
+// Deze tests controleren:
+// - validatie van de gebruiker via claims (parsing van NameIdentifier)
+// - gedrag als gebruiker niet gevonden is
+// - en dat verschillende producttypes correct gemapped worden naar ProductDTO (gekocht, eigen, normaal)
 public class GetProductsTests
 {
     [Fact]
     public async Task GetProducts_ReturnsUnauthorized_WhenUserIdCanNotBeParsed()
     {
+        // in-memory DB per test voor isolatie
         var dbName = Guid.NewGuid().ToString();
         using var context = TestHelpers.CreateInMemoryContext(dbName);
 
+        // seed basisgegevens (rollen en gebruikers)
         TestHelpers.SeedRollen(context);
         TestHelpers.SeedUser(context, "test@gmail.com", "test123!");
 
         var controller = new ProductsController(context);
 
-        // Create a ClaimsPrincipal with a non-numeric NameIdentifier claim
+        // Maak een ClaimsPrincipal met een niet-numerieke NameIdentifier zodat parsing faalt
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.NameIdentifier, "not-an-int")
@@ -34,12 +41,15 @@ public class GetProductsTests
             HttpContext = new DefaultHttpContext { User = user }
         };
 
+        // Act: vraag producten op
         var result = await controller.GetProducts(null);
 
+        // Assert: verwacht Unauthorized omdat userId niet te parsen is
         result.Result.Should().BeOfType<UnauthorizedResult>();
     }
     [Fact]
     public async Task GetProducts_ReturnsUnauthorized_WhenUserIdClaimMissing () {
+        // in-memory DB
         var dbName = Guid.NewGuid().ToString();
         using var context = TestHelpers.CreateInMemoryContext(dbName);
 
@@ -48,7 +58,7 @@ public class GetProductsTests
 
         var controller = new ProductsController(context);
 
-        // Create a ClaimsPrincipal with a non-numeric NameIdentifier claim
+        // Maak een ClaimsPrincipal zonder NameIdentifier claim
         var claims = new List<Claim>
         {
             
@@ -61,12 +71,15 @@ public class GetProductsTests
             HttpContext = new DefaultHttpContext { User = user }
         };
 
+        // Act
         var result = await controller.GetProducts(null);
 
+        // Assert: verwacht Unauthorized omdat de NameIdentifier claim ontbreekt
         result.Result.Should().BeOfType<UnauthorizedResult>();
     }
     [Fact]
     public async Task GetProducts_ReturnsUnauthorized_WhenNoUserFound () {
+        // in-memory DB
         var dbName = Guid.NewGuid().ToString();
         using var context = TestHelpers.CreateInMemoryContext(dbName);
 
@@ -75,7 +88,7 @@ public class GetProductsTests
 
         var controller = new ProductsController(context);
 
-        // Create a ClaimsPrincipal with a non-numeric NameIdentifier claim
+        // Maak een ClaimsPrincipal met een userId die niet bestaat (2)
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.NameIdentifier, "2")
@@ -88,13 +101,16 @@ public class GetProductsTests
             HttpContext = new DefaultHttpContext { User = user }
         };
 
+        // Act
         var result = await controller.GetProducts(null);
 
+        // Assert: verwacht Unauthorized omdat de gebruiker niet in de DB is gevonden
         result.Result.Should().BeOfType<UnauthorizedResult>();
     }
     [Fact]
     public async Task GetProducts_ReturnsGekochtProduct_WhenStatusIsGekocht ()
     {
+        // in-memory DB en seed
         var dbName = Guid.NewGuid().ToString();
         using var context = TestHelpers.CreateInMemoryContext(dbName);
 
@@ -104,7 +120,7 @@ public class GetProductsTests
 
         var controller = new ProductsController(context);
 
-        // Create a ClaimsPrincipal with a non-numeric NameIdentifier claim
+        // ClaimsPrincipal voor gebruiker met Id 1
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.NameIdentifier, "1")
@@ -112,6 +128,7 @@ public class GetProductsTests
         var identity = new ClaimsIdentity(claims, "TestAuth");
         var user = new ClaimsPrincipal(identity);
 
+        // Product met status 'gekocht' en een foto
         var product = new Product
         {
             ProductNaam = "GekochtProduct",
@@ -121,7 +138,7 @@ public class GetProductsTests
             Locatie = "A",
             Datum = DateTime.UtcNow,
             Aantal = 2,
-            Fotos = new List<Foto> { new Foto { FotoPath = "img.jpg" } },
+            Foto = new Foto {FotoPath = "img.jpg" } ,
             StatusNavigation = new Status { Beschrijving = "gekocht" }
         };
 
@@ -134,9 +151,10 @@ public class GetProductsTests
         context.Products.Add(product);
         await context.SaveChangesAsync();
 
+        // Act
         var result = await controller.GetProducts("A");
 
-        // The controller returns an ActionResult<IEnumerable<ProductDTO>>; the successful value is in `result.Value`
+        // Assert: controleer DTO mapping en waarden
         var returned = result.Value;
         returned.Should().NotBeNull();
 
@@ -151,6 +169,7 @@ public class GetProductsTests
     }
     [Fact]
     public async Task GetProducts_ReturnsEigenProduct_WhenLeverancierAndUserAreTheSame () {
+        // in-memory DB en seed
         var dbName = Guid.NewGuid().ToString();
         using var context = TestHelpers.CreateInMemoryContext(dbName);
 
@@ -160,7 +179,7 @@ public class GetProductsTests
 
         var controller = new ProductsController(context);
 
-        // Create a ClaimsPrincipal with a non-numeric NameIdentifier claim
+        // ClaimsPrincipal voor gebruiker met Id 1
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.NameIdentifier, "1")
@@ -178,7 +197,7 @@ public class GetProductsTests
             Locatie = "A",
             Datum = DateTime.UtcNow,
             Aantal = 2,
-            Fotos = new List<Foto> { new Foto { FotoPath = "img.jpg" } },
+            Foto = new Foto {FotoPath = "img.jpg" } ,
             StatusNavigation = new Status { Beschrijving = "gekocht" }
         };
 
@@ -191,9 +210,10 @@ public class GetProductsTests
         context.Products.Add(product);
         await context.SaveChangesAsync();
 
+        // Act
         var result = await controller.GetProducts("A");
 
-        // The controller returns an ActionResult<IEnumerable<ProductDTO>>; the successful value is in `result.Value`
+        // Assert: controleer DTO mapping en dat type 'eigen' is
         var returned = result.Value;
         returned.Should().NotBeNull();
 
@@ -208,6 +228,7 @@ public class GetProductsTests
     }
     [Fact]
     public async Task GetProducts_ReturnsNormalProduct_WhenNotEigenOrGekocht () {
+        // in-memory DB en seed
         var dbName = Guid.NewGuid().ToString();
         using var context = TestHelpers.CreateInMemoryContext(dbName);
 
@@ -217,7 +238,7 @@ public class GetProductsTests
 
         var controller = new ProductsController(context);
 
-        // Create a ClaimsPrincipal with a non-numeric NameIdentifier claim
+        // ClaimsPrincipal voor gebruiker met Id 1
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.NameIdentifier, "1")
@@ -233,7 +254,7 @@ public class GetProductsTests
             Locatie = "A",
             Datum = DateTime.UtcNow,
             Aantal = 2,
-            Fotos = new List<Foto> { new Foto { FotoPath = "img.jpg" } },
+            Foto = new Foto {FotoPath = "img.jpg" } ,
             StatusNavigation = new Status { Beschrijving = "aankomend" }
         };
 
@@ -246,9 +267,10 @@ public class GetProductsTests
         context.Products.Add(product);
         await context.SaveChangesAsync();
 
+        // Act
         var result = await controller.GetProducts("A");
 
-        // The controller returns an ActionResult<IEnumerable<ProductDTO>>; the successful value is in `result.Value`
+        // Assert: controleer DTO mapping en default type (leeg)
         var returned = result.Value;
         returned.Should().NotBeNull();
 

@@ -4,6 +4,9 @@ import { API_BASE_URL } from '../config/api';
 
 
 
+// Kaartcomponent voor een eigen product (door de gebruiker geregistreerd).
+// Toont informatie inclusief koper/prijs als beschikbaar en ondersteunt het tonen
+// van een langere `beschrijving` wanneer `toonBeschrijving` true is.
 interface EigenProductCardProps {
     naam: string;
     merk: string;
@@ -32,6 +35,7 @@ const EigenProductCard: React.FC<EigenProductCardProps> = ({
     toonBeschrijving
 }) => {
     
+    // Fallback-afbeelding wanneer product geen afbeelding heeft
     const defaultImg = "https://syria.adra.cloud/wp-content/uploads/2021/10/empty.jpg";
     
     return (

@@ -35,8 +35,18 @@ interface User {
   KVK?: string;
 }
 
+// Pagina voor Aanvoerders om producten te registreren voor de veiling.
+// Valideert invoer (naam, datum, prijs, aantal, afbeelding), zet data in een FormData-object
+// en verstuurt dit naar het backend endpoint. Alleen gebruikers met de rol 'Aanvoerder'
+// mogen deze pagina gebruiken (anders redirect naar homepage).
 export default function ProductRegistratieAanvoerderPage() {
   const router = useRouter();
+  // State:
+  // - user: huidige ingelogde gebruiker (gecontroleerd op rol Aanvoerder)
+  // - formData: formulierwaarden (inclusief optionele afbeelding als File)
+  // - errors: validatiefouten per veld
+  // - isSubmitting: blokkeert de submit-knop tijdens versturen
+  // - loading: toont tijdelijke laadstatus tijdens initialisatie
   const [user, setUser] = useState<User | null>(null);
   const [formData, setFormData] = useState<ProductFormData>({
     name: '',
@@ -53,6 +63,8 @@ export default function ProductRegistratieAanvoerderPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Bij mount: controleer of de gebruiker is ingelogd en de rol 'Aanvoerder' heeft.
+  // Anders redirecten we naar login of homepage om toegang te voorkomen.
   useEffect(() => {
     const currentUser = getUser();
     if (!currentUser) {
@@ -67,27 +79,32 @@ export default function ProductRegistratieAanvoerderPage() {
     setLoading(false);
   }, [router]);
 
+  // Algemene input handler voor tekst/select/prijsvelden.
+  // Voor prijsvelden normaliseren we komma naar dot en verwijderen we ongeldige tekens
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     
-    // For price fields, normalize comma to dot
+    // Normalisatie voor prijsvelden: alleen cijfers, komma of punt toegestaan
     let processedValue = value;
     if (name === 'minimumPrice' && value) {
-      // Allow only digits, comma, and dot
+      // Alleen cijfers, komma en punt toestaan
       processedValue = value.replace(/[^0-9.,]/g, '');
-      // Convert comma to dot for consistency
+      // Vervang komma door punt voor consistente decimaalscheiding
       processedValue = processedValue.replace(',', '.');
-      // Prevent multiple dots
+      // Voorkom meerdere punten
       const parts = processedValue.split('.');
       if (parts.length > 2) {
         processedValue = parts[0] + '.' + parts.slice(1).join('');
       }
     }
     
+    // Update formulier state en clear eventuele fouten voor dit veld
     setFormData(prev => ({ ...prev, [name]: processedValue }));
     setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
+  // Afbeelding upload handler: controleert bestandsformaat en grootte (max 5MB).
+  // Bij invalid bestand tonen we een foutmelding en resetten we de input.
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -106,16 +123,21 @@ export default function ProductRegistratieAanvoerderPage() {
       return;
     }
 
+    // Sla het File-object op in state en clear eventuele foutmelding
     setFormData(prev => ({ ...prev, images: file }));
     setErrors(prev => ({ ...prev, image: '' }));
 
+    // Reset de input value zodat hetzelfde bestand opnieuw geselecteerd kan worden indien nodig
     if (e.target) e.target.value = '';
   };
 
+  // Verwijder geselecteerde afbeelding uit het formulier (gebruikersactie op preview)
   const removeImage = () => {
     setFormData(prev => ({ ...prev, images: null }));
   };
 
+  // Voer client-side validatie uit voordat het formulier wordt verstuurd.
+  // Controleert aanwezigheid en basisregels (datums in de toekomst, positief aantal/prijs, etc.)
   const validateForm = (): boolean => {
     const newErrors: FormErrors = { name:'', clockLocation:'', auctionDate:'', amount:'', minimumPrice:'', description:'', image:'' };
     let isValid = true;
@@ -132,6 +154,8 @@ export default function ProductRegistratieAanvoerderPage() {
     return isValid;
   };
 
+  // Verstuurt het formulier: normaliseer prijs, bouw een FormData object (voor multipart upload)
+  // en roep het protected API endpoint aan via authFetch. Handelt serverfouten en netwerkfouten af.
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if(!validateForm()) return;
@@ -145,7 +169,7 @@ export default function ProductRegistratieAanvoerderPage() {
     setIsSubmitting(true);
 
     try{
-      // Normalize the price: replace comma with dot for decimal separation
+      // Normaliseer de prijs (komma -> punt) en parseer naar float
       const normalizedPrice = formData.minimumPrice.replace(',', '.');
       const priceValue = parseFloat(normalizedPrice);
       
@@ -155,6 +179,7 @@ export default function ProductRegistratieAanvoerderPage() {
         return;
       }
 
+      // Bouw multipart/form-data payload
       const submitData = new FormData();
       submitData.append('ProductNaam', formData.name);
       submitData.append('ProductBeschrijving', formData.description);
@@ -175,6 +200,7 @@ export default function ProductRegistratieAanvoerderPage() {
       }
 
       alert('Product succesvol geregistreerd!');
+      // Reset formulier state na succes
       setFormData({ name:'', clockLocation:'', auctionDate:'', amount:'', minimumPrice:'', description:'', images:null });
 
       const fileInput = document.getElementById('image') as HTMLInputElement;
@@ -187,6 +213,7 @@ export default function ProductRegistratieAanvoerderPage() {
     }
   };
 
+  // Toon korte meldingen wanneer we nog initialiseren of de gebruiker niet (meer) gevonden is
   if(loading) return <p>Loading...</p>;
   if(!user) return <p>Geen gebruiker gevonden. Log opnieuw in.</p>;
 
@@ -288,6 +315,7 @@ export default function ProductRegistratieAanvoerderPage() {
 
           <div className="groupContainer">
             <label htmlFor="image">Upload afbeelding:</label>
+            {/* Bestandinput accepteert alleen afbeeldingstypes; validatie gebeurt in handleFileChange */}
             <input
               id="image"
               name="image"
@@ -295,6 +323,7 @@ export default function ProductRegistratieAanvoerderPage() {
               accept="image/jpeg,image/jpg,image/png,image/gif"
               onChange={handleFileChange}
             />
+            {/* Preview van geselecteerde afbeelding met mogelijkheid om die te verwijderen */}
             {formData.images && (
               <div className="image-preview-container">
                 <div className="image-preview-item">

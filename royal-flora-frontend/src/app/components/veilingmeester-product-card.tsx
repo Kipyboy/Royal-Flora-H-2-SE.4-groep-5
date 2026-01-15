@@ -18,8 +18,8 @@ interface VeilingmeesterProductCardProps {
     toonBeschrijving: boolean;
 }
 
+// Verwijdert een product via de API. Geeft feedback bij succes/fout.
 const handleDelete = async (id: number) => {
-    // Implement delete functionality here
     try{
         const response = await authFetch(
             `${API_BASE_URL}/api/Products/${id}`,
@@ -29,6 +29,7 @@ const handleDelete = async (id: number) => {
         );
         
         if (response.ok) {
+            // TODO: verbeter: refresh lijst of verwijder item uit parent state in plaats van alleen alert
             alert("Product deleted successfully");
         }
     }
@@ -36,7 +37,7 @@ const handleDelete = async (id: number) => {
         alert("Error deleting product");
     }
     return;
-}
+} 
 
 
 const VeilingmeesterProductCard: React.FC<VeilingmeesterProductCardProps> = ({

@@ -1,7 +1,9 @@
 import React from 'react';
 import '../../styles/Sidebar.css';
 
-interface SidebarProps {
+// Generieke filter-sidebar gebruikt in meerdere rollen. Props zijn controlled filters
+// en callbacks (onCheckboxChange/onInputChange) sturen events naar de parent.
+interface SidebarProps { 
     sidebarVisible: boolean;
     aankomendChecked: boolean;
     eigenChecked: boolean;
@@ -131,8 +133,9 @@ const Sidebar: React.FC<SidebarProps> = ({
 
           {/* Actions (not filters) - visible for all users */}
           <div className="sidebar-actions">
+            {/* Link to pre-filtered view for sold products (status 4) */}
             <a className="description-button" href="/status4products">Verkochte producten (Status 4)</a>
-          </div>
+          </div> 
 
         </div>
 );

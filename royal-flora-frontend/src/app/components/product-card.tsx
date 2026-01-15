@@ -4,6 +4,8 @@ import { API_BASE_URL } from '../config/api';
 
 
 
+// Generieke productkaartcomponent gebruikt in lijsten: toont kerninformatie van een product,
+// formatteert prijzen met `formatPrice` en ondersteunt het schakelen tussen overzicht en beschrijving.
 interface ProductCardProps {
     naam: string;
     merk: string;
@@ -17,6 +19,7 @@ interface ProductCardProps {
     toonBeschrijving: boolean;
 }
 
+// Helper om een prijs te formatteren als lokale euro-notatie
 const formatPrice = (price: string | number): string => {
     const numPrice = typeof price === 'string' ? parseFloat(price) : price;
     if (isNaN(numPrice)) {
@@ -41,6 +44,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
     toonBeschrijving
 }) => {
     
+    // Fallback-afbeelding wanneer er geen fotoPad beschikbaar is
     const defaultImg = "https://syria.adra.cloud/wp-content/uploads/2021/10/empty.jpg";
     return (
     <div className="product-card">

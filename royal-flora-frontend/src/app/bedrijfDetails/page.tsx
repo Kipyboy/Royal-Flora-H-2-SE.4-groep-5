@@ -8,24 +8,33 @@ import { getAuthHeaders } from '../utils/auth';
 import { API_BASE_URL } from '../config/api';
 
 // Deze pagina toont bedrijfsgegevens. Gebruik consistente, backend-matching keys.
+// `getAuthHeaders` haalt de Authorization header op (JWT of soortgelijk token) die nodig is
+// voor beveiligde API-aanroepen. `API_BASE_URL` is de basis-URL voor de backend API.
 
+
+// `BedrijfInfo` beschrijft de bedrijfsgegevens die we tonen en (deels) kunnen bewerken.
 interface BedrijfInfo {
     bedrijfNaam: string;
     postcode: string;
     adress: string;
     oprichter: string;
-}
+} 
 
 const BedrijfDetails: React.FC = () => {
+    // `router` gebruiken voor navigatie (redirects bij ontbrekende token of fouten)
     const router = useRouter();
+
+    // `bedrijfDetails` bevat de huidige waarden van het formulier
     const [bedrijfDetails, setBedrijfDetails] = useState<BedrijfInfo>({
         bedrijfNaam: '',
         postcode: '',
         adress: '',
         oprichter: '',
     });
+    // `isOprichter` bepaalt of de ingelogde gebruiker oprichterrechten heeft (en dus sommige knoppen ziet)
     const [isOprichter, setIsOprichter] = useState<boolean>(false);
 
+    // `disabledFields` regelt welke velden readonly zijn (true = disabled)
     const [disabledFields, setDisabledFields] = useState<Record<keyof BedrijfInfo, boolean>>({
         bedrijfNaam: true,
         postcode: true,
@@ -33,14 +42,17 @@ const BedrijfDetails: React.FC = () => {
         oprichter: true
     });
 
+    // `errors` houdt foutmeldingen per veld bij
     const [errors, setErrors] = useState<Record<keyof BedrijfInfo, string>>({
         bedrijfNaam: '',
         postcode: '',
         adress: '',
         oprichter: ''
     });
-    const [loading, setLoading] = useState<boolean>(true);
+    // `loading` boolean om de initiële laadstatus te tonen
+    const [loading, setLoading] = useState<boolean>(true); 
 
+    // useEffect: bij mount de bedrijfsinformatie ophalen van de backend
     React.useEffect(() => {
         const fetchSessionData = async () => {
             try {
@@ -53,6 +65,7 @@ const BedrijfDetails: React.FC = () => {
                     return;
                 }
 
+                // Ophalen van bedrijfgegevens (protected endpoint)
                 const response = await fetch(`${API_BASE_URL}/api/auth/GetBedrijfInfo`, {
                     method: 'GET',
                     headers: {
@@ -62,6 +75,7 @@ const BedrijfDetails: React.FC = () => {
                 });
 
                 if (response.ok) {
+                    // Zet ontvangen data in state en bewaar of de gebruiker oprichter is
                     const data = await response.json();
                     setBedrijfDetails({
                         bedrijfNaam: data.bedrijfNaam || '',
@@ -76,23 +90,28 @@ const BedrijfDetails: React.FC = () => {
                 }
             } catch (error) {
                 console.error('Error fetching session:', error);
+                // Toon foutmelding bij het juiste veld
                 setErrors(prev => ({ ...prev, bedrijfNaam: 'Kon sessie gegevens niet ophalen' }));
             } finally {
+                // Stop laadindicator
                 setLoading(false);
             }
         };
 
         fetchSessionData();
-    }, []);
+    }, []); 
 
 
+    // Retourneert een onChange handler voor een gegeven veld zodat inputs state updaten
     const handleInputChange = (field: keyof BedrijfInfo) => (e: React.ChangeEvent<HTMLInputElement>) => {
         setBedrijfDetails(prev => ({
             ...prev,
             [field]: e.target.value
         }));
-    };
+    }; 
 
+    // Toggle: maak velden bewerkbaar of sla ze op als ze al bewerkbaar zijn.
+    // Speciale behandeling: 'oprichter' mag niet via deze UI aangepast worden.
     const toggleField = (field: keyof BedrijfInfo) => {
         if (field == 'oprichter') {
             setErrors(prev => ({
@@ -109,8 +128,9 @@ const BedrijfDetails: React.FC = () => {
         } else {
             handleSave(field);
         }
-    };
+    }; 
 
+    // Slaat een enkel bedrijfsveld op via de backend. Controleert token en behandelt fouten.
     const handleSave = async (field: keyof BedrijfInfo) => {
         try {
             console.log(`Saving field ${field} with value ${bedrijfDetails[field]}`);
@@ -121,7 +141,7 @@ const BedrijfDetails: React.FC = () => {
                 return;
             }
 
-            // data opslag hier
+            // Verstuur update naar backend (Field/ Newvalue) - backend bepaalt verdere validatie
             const response = await fetch(`${API_BASE_URL}/api/auth/updateBedrijfInfo`, {
                 method: 'POST',
                 headers: {
@@ -135,6 +155,7 @@ const BedrijfDetails: React.FC = () => {
             });
 
             if (response.ok) {
+                // Bij succes: maak veld weer readonly en clear eventuele foutmelding
                 setDisabledFields(prev => ({
                     ...prev,
                     [field]: true
@@ -156,8 +177,9 @@ const BedrijfDetails: React.FC = () => {
                 [field]: 'Er ging iets mis bij het opslaan'
             }));
         }
-    };
+    }; 
 
+    // Toon laadindicator totdat bedrijfsgegevens zijn opgehaald
     if (loading) {
         return (
             <div className='accountDetails-page'>
@@ -183,6 +205,8 @@ const BedrijfDetails: React.FC = () => {
                 <form onSubmit={e => e.preventDefault()} aria-labelledby="bedrijfdetails-title">
                     <h1 id="bedrijfdetails-title">Bedrijf details</h1>
 
+                    {/* Dynamisch genereren van form-velden: sleutel -> label. Dit zorgt voor consistente logica
+                        bij elk veld (disabled state, type, onChange en foutmeldingen). */}
                     {Object.entries({
                         bedrijfNaam: 'Bedrijfsnaam',
                         postcode: 'Postcode',

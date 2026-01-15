@@ -6,6 +6,9 @@ import { getUser } from "../utils/auth";
 import { getAuthHeaders } from "../utils/auth";
 import { API_BASE_URL } from "../config/api";
 
+// Sidebar voor de veilingweergave: toont het actieve product voor een locatie,
+// biedt een 'Koop' knop voor inkopers en laat een popup zien met eerdere verkochte items.
+
 interface SidebarProps {
   locationName: string;
   verkoopPrijs?: number | null;

@@ -3,6 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 
+// Pagina voor zoeken naar verkochte producten (Status 4) en het opvragen van prijsgeschiedenis.
+// De gebruiker kan een productnaam invoeren; bij submit vraagt de pagina ofwel een
+// prijsgeschiedenis (voor een specifieke naam) of een lijst van recente verkochte producten.
 interface Status4Product {
   idProduct: number;
   productNaam: string;
@@ -10,6 +13,14 @@ interface Status4Product {
 }
 
 export default function Status4ProductsPage() {
+  // Stateomschrijving:
+  // - products: lijst met gevonden status4-producten
+  // - priceHistory: resultaat van een prijsgeschiedenis-opvraag (indien gezocht op naam)
+  // - loading: laadindicator voor netwerkvragen
+  // - error: foutmelding om bovenaan de pagina te tonen
+  // - naamFilter: waarde van het zoekveld
+  // - filteredProducts: gefilterde lijst (zelfde als products tenzij serverfiltering gebruikt)
+  // - searched: of de gebruiker op zoek heeft gedrukt (zo niet, tonen we een hint)
   const [products, setProducts] = useState<Status4Product[]>([]);
   const [priceHistory, setPriceHistory] = useState<any | null>(null);
   // start not loading so the search bar is visible immediately
@@ -21,6 +32,10 @@ export default function Status4ProductsPage() {
 
   // No automatic fetch on mount. Wait for user to submit a product name.
 
+  // Haalt data op van de backend. Gedraagt zich in twee modi:
+  // - met `filter` (naam): vraag prijsgeschiedenis op voor die naam
+  // - zonder `filter`: haal alle Status4 producten op
+  // Errors worden opgeslagen in `error` en gelogd in de console.
   const fetchProducts = async (filter?: string) => {
     try {
       setLoading(true);
@@ -28,7 +43,7 @@ export default function Status4ProductsPage() {
 
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5156';
       if (filter) {
-        // Call new PriceHistory endpoint when user searches by name
+        // Roep PriceHistory endpoint aan bij naam-zoekopdracht
         const url = new URL(`${apiUrl}/api/products/PriceHistory`);
         url.searchParams.append('naam', filter);
         const response = await fetch(url.toString());
@@ -38,6 +53,7 @@ export default function Status4ProductsPage() {
         setProducts([]);
         setFilteredProducts([]);
       } else {
+        // Haal algemene lijst van Status4 producten op
         const url = new URL(`${apiUrl}/api/products/Status4Products`);
         const response = await fetch(url.toString());
         if (!response.ok) throw new Error(`Failed to fetch products: ${response.status}`);
@@ -55,12 +71,16 @@ export default function Status4ProductsPage() {
     }
   };
 
+  // Update het zoekveld en reset `searched` totdat de gebruiker expliciet op Search drukt
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNaamFilter(e.target.value);
     // mark that the current input hasn't been submitted yet
     setSearched(false);
   };
 
+  // Voer de zoekopdracht uit: wanneer `naamFilter` niet leeg is, vraag de API aan
+  // en toon de resultaten (prijsgeschiedenis of products). Als het veld leeg is,
+  // resetten we de resultaat-variabelen.
   const handleSearchWithAPI = async () => {
     // Optional: fetch from backend with filter (for server-side filtering)
     if (naamFilter.trim()) {
@@ -76,12 +96,14 @@ export default function Status4ProductsPage() {
     }
   };
 
+  // Ondersteun Enter key om te zoeken
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       handleSearchWithAPI();
     }
   };
 
+  // Toon een eenvoudige laadpagina wanneer we data ophalen
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-100 p-6">
@@ -104,7 +126,7 @@ export default function Status4ProductsPage() {
           </div>
         )}
 
-        {/* Search Filter */}
+        {/* Zoekveld: gebruiker kan een productnaam intypen en op Search of Enter drukken */}
         <div className="mb-6 bg-white p-4 rounded shadow">
           <label htmlFor="naamFilter" className="block text-sm font-medium text-gray-700 mb-2">
             Filter by Product Name (Case-Insensitive):
@@ -128,7 +150,9 @@ export default function Status4ProductsPage() {
           </div>
         </div>
 
-        {/* Results Count / Prompt */}
+        {/* Resultaatmelding: wanneer een zoekterm is ingevoerd tonen we hoeveel resultaten
+            er zijn. De pagina heeft twee weergavemodi: prijsgeschiedenis (priceHistory) of
+            een tabel met producten (filteredProducts) afhankelijk van de API response. */}
         {!naamFilter.trim() ? (
           <div className="bg-white p-6 rounded shadow text-center mb-4">
             <p className="text-gray-600">submit product name</p>
@@ -139,7 +163,12 @@ export default function Status4ProductsPage() {
           </p>
         ) : null}
 
-        {/* Products Table */}
+        {/* Resultaatweergave:
+            - Wanneer `priceHistory` aanwezig is tonen we een lijst (top 10 recent)
+              met individuele prijzen en gemiddelden.
+            - Anders, indien gezocht en `filteredProducts` gevuld is, tonen we een tabel
+              met product-id en verkoopprijs.
+            - Anders tonen we een 'geen resultaten' melding. */}
         {priceHistory ? (
           <div className="bg-white rounded shadow p-4">
             <h2 className="text-lg font-semibold mb-2">Prijsgeschiedenis (top 10 meest recente)</h2>

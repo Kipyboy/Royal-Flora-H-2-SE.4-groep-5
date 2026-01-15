@@ -12,17 +12,17 @@ namespace RoyalFlora.Tests.Tests.ProductControllerTests
     public class VeilingProductInLadenTest
     {
         /// <summary>
-        /// Test 1: Test with a complete Product that has all values filled in
-        /// This is the "happy path" - everything is provided
+        /// Test 1: Test met een volledig Product waarin alle velden ingevuld zijn.
+        /// Dit is het 'happy path' — alles is aanwezig.
         /// </summary>
         [Fact]
         public void VeilingProductInLaden_WithCompleteProduct_ReturnsVeilingDTO()
         {
-            // ARRANGE - Set up the test data
-            // Create an in-memory database using the helper
+            // ARRANGE - Testdata opzetten
+            // Maak een in-memory database met behulp van de helper
             var context = TestHelpers.CreateInMemoryContext();
             
-            // Create a sample Product with all values
+            // Maak een voorbeeldproduct met alle benodigde velden
             var product = new Product
             {
                 IdProduct = 1,
@@ -32,17 +32,17 @@ namespace RoyalFlora.Tests.Tests.ProductControllerTests
                 Status = 3
             };
 
-            // Create an instance of ProductsController with the in-memory context
+            // Maak een ProductsController instantie met de test-context
             var controller = new ProductsController(context);
 
-            // ACT - Execute the method we're testing using reflection
+            // ACT - Voer de te testen methode uit met reflection
             var method = typeof(ProductsController).GetMethod(
                 "VeilingProductInLaden",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance
             );
             var result = method?.Invoke(controller, new object[] { product }) as VeilingDTO;
 
-            // ASSERT - Verify the results are correct
+            // ASSERT - Verifieer dat de output overeenkomt met het input product
             Assert.NotNull(result);
             Assert.Equal(1, result.id);
             Assert.Equal("Tulips", result.naam);
@@ -52,84 +52,84 @@ namespace RoyalFlora.Tests.Tests.ProductControllerTests
         }
 
         /// <summary>
-        /// Test 2: Test with null values to ensure they are converted to defaults
-        /// This tests the null-coalescing operator (??)
+        /// Test 2: Test met null-waarden om te verifiëren dat deze naar standaardwaarden worden geconverteerd.
+        /// Hiermee wordt de null-coalescing operator (??) getest.
         /// </summary>
         [Fact]
         public void VeilingProductInLaden_WithNullValues_ReturnsDefaultValues()
         {
-            // ARRANGE - Create an in-memory database
+            // ARRANGE - Maak een in-memory testcontext
             var context = TestHelpers.CreateInMemoryContext();
             
-            // Create a Product with null values
+            // Maak een product met null-waarden zodat we de conversie naar default kunnen testen
             var product = new Product
             {
                 IdProduct = 2,
-                ProductNaam = null,              // null should become empty string
-                ProductBeschrijving = null,      // null should become empty string
-                Locatie = null,                  // null should become empty string
-                Status = null                    // null should become 0
+                ProductNaam = null,              // null moet worden omgezet naar lege string
+                ProductBeschrijving = null,      // null moet worden omgezet naar lege string
+                Locatie = null,                  // null moet worden omgezet naar lege string
+                Status = null                    // null moet worden omgezet naar 0
             };
 
             var controller = new ProductsController(context);
 
-            // ACT - Call the method using reflection
+            // ACT - Roep de niet-publieke methode aan met reflection
             var method = typeof(ProductsController).GetMethod(
                 "VeilingProductInLaden",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance
             );
             var result = method?.Invoke(controller, new object[] { product }) as VeilingDTO;
 
-            // ASSERT - Verify nulls are replaced with defaults
+            // ASSERT - Controleer dat null-waarden vervangen zijn door verwachte defaults
             Assert.NotNull(result);
             Assert.Equal(2, result.id);
-            Assert.Equal(string.Empty, result.naam);           // Should be empty string, not null
-            Assert.Equal(string.Empty, result.beschrijving);   // Should be empty string, not null
-            Assert.Equal(string.Empty, result.locatie);        // Should be empty string, not null
-            Assert.Equal(0, result.status);                    // Should be 0, not null
+            Assert.Equal(string.Empty, result.naam);           // Verwacht lege string, geen null
+            Assert.Equal(string.Empty, result.beschrijving);   // Verwacht lege string, geen null
+            Assert.Equal(string.Empty, result.locatie);        // Verwacht lege string, geen null
+            Assert.Equal(0, result.status);                    // Verwacht 0, niet null
         }
 
         /// <summary>
-        /// Test 3: Test with mixed null and non-null values
+        /// Test 3: Test met een mix van null en niet-null waarden
         /// </summary>
         [Fact]
         public void VeilingProductInLaden_WithMixedValues_ReturnsMixedResult()
         {
-            // ARRANGE
+            // ARRANGE - Testcontext en product met gemengde waarden
             var context = TestHelpers.CreateInMemoryContext();
             
             var product = new Product
             {
                 IdProduct = 3,
                 ProductNaam = "Roses",
-                ProductBeschrijving = null,     // This is null
+                ProductBeschrijving = null,     // Dit is null en moet worden omgezet
                 Locatie = "Aalsmeer",
                 Status = 2
             };
 
             var controller = new ProductsController(context);
 
-            // ACT
+            // ACT - Roep de private methode aan via reflection
             var method = typeof(ProductsController).GetMethod(
                 "VeilingProductInLaden",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance
             );
             var result = method?.Invoke(controller, new object[] { product }) as VeilingDTO;
 
-            // ASSERT
+            // ASSERT - Controleer dat niet-null waarden behouden blijven en nulls worden vervangen
             Assert.NotNull(result);
-            Assert.Equal("Roses", result.naam);                // Has value
-            Assert.Equal(string.Empty, result.beschrijving);   // Null converted to empty
-            Assert.Equal("Aalsmeer", result.locatie);          // Has value
+            Assert.Equal("Roses", result.naam);                // Heeft waarde
+            Assert.Equal(string.Empty, result.beschrijving);   // Null omgezet naar lege string
+            Assert.Equal("Aalsmeer", result.locatie);          // Heeft waarde
         }
 
         /// <summary>
-        /// Test 4: Test with Status = 0 (which is already the default, but let's verify)
+        /// Test 4: Test met Status = 0 (standaardwaarde) om te verifiëren dat deze behouden blijft
         /// </summary>
         [Fact]
         public void VeilingProductInLaden_WithZeroStatus_ReturnsZero()
         {
-            // ARRANGE
+            // ARRANGE - Testcontext en product met status 0
             var context = TestHelpers.CreateInMemoryContext();
             
             var product = new Product
@@ -143,14 +143,14 @@ namespace RoyalFlora.Tests.Tests.ProductControllerTests
 
             var controller = new ProductsController(context);
 
-            // ACT
+            // ACT - Roep de private methode aan
             var method = typeof(ProductsController).GetMethod(
                 "VeilingProductInLaden",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance
             );
             var result = method?.Invoke(controller, new object[] { product }) as VeilingDTO;
 
-            // ASSERT
+            // ASSERT - Controleer dat status 0 ongewijzigd blijft
             Assert.NotNull(result);
             Assert.Equal(0, result.status);
         }

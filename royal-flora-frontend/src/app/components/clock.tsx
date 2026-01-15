@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import "../../styles/clock.css";
 import { API_BASE_URL } from "../config/api";
 
+// Formatteer milliseconden naar mm:ss.mmm
 function formatMs(ms: number) {
   if (ms <= 0) return "00:00.000";
   const totalSec = Math.floor(ms / 1000);
@@ -12,6 +13,9 @@ function formatMs(ms: number) {
   return `${String(min).padStart(2, "0")}:${String(sec).padStart(2,"0")}.${String(millis).padStart(3, "0")}`;
 }
 
+// Klok component: toont een grafische klok (SVG) en bepaalt actuele prijs op basis van
+// resterende tijd tussen een startprijs en minimale prijs. Roept optioneel `onPriceChange`
+// aan met de actuele prijs en `onFinished` zodra de klok op 0 raakt.
 interface ClockProps {
   elapsed: number;
   startTime: number | null;
@@ -26,12 +30,14 @@ interface KlokDTO {
   startPrijs: number;
 }
 
-export default function Clock({ elapsed, startTime, durationMs, onPriceChange, locationName, onFinished }: ClockProps) {
+export default function Clock({ elapsed, startTime, durationMs, onPriceChange, locationName, onFinished }: ClockProps) { 
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [minPrice, setMinPrice] = useState<number | null>(null);
   const [startPrijs, setStartPrijs] = useState<number | null>(null);
   const finishedRef = useRef(false);
 
+  // Fetch klok-informatie (minimumPrijs en startPrijs) voor de gegeven locatie.
+  // Wanneer geen actieve veiling is, zetten we minPrice op -1 zodat de UI een melding toont.
   useEffect(() => {
     if (!locationName) return;
 
@@ -50,6 +56,8 @@ export default function Clock({ elapsed, startTime, durationMs, onPriceChange, l
       .catch(() => setMinPrice(-1));
   }, [locationName]);
 
+  // Bouw het SVG-klokje en update de visuals gebaseerd op de resterende tijd.
+  // We creëren ticks, tekstvelden en een `update` functie die de kleur/tekst bijwerkt.
   useEffect(() => {
     if (!svgRef.current || minPrice === -1) return;
 
@@ -103,12 +111,14 @@ export default function Clock({ elapsed, startTime, durationMs, onPriceChange, l
       const ratio = Math.min(1, Math.max(0, remainingMs / durationMs));
       const activeIndex = Math.floor(ratio * 99);
 
+      // Wanneer de klok afgelopen is, roep onFinished aan (éénmalig)
       if (remainingMs <= 0 && !finishedRef.current) {
         finishedRef.current = true;
         onFinished?.();
       }
 
       tickCircles.forEach((circle, index) => {
+        // Active tick in het rood tonen
         circle.setAttribute("fill", index === activeIndex ? "#FF0000" : "#ccc");
       });
 
@@ -118,6 +128,7 @@ export default function Clock({ elapsed, startTime, durationMs, onPriceChange, l
       const baseStart = startPrijs ?? baseMin;
       const currentPrice = baseMin + (baseStart - baseMin) * ratio;
 
+      // Toon actuele prijs en informeer parent via callback
       priceText.textContent = "€" + currentPrice.toFixed(2);
       onPriceChange?.(Number(currentPrice.toFixed(2)));
 

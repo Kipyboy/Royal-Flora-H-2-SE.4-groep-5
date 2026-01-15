@@ -4,6 +4,9 @@ import { API_BASE_URL } from '../config/api';
 
 
 
+// Kaartcomponent voor een gekochte productvermelding.
+// Toont basisinformatie (naam, merk, prijs, datum, locatie, status) en kan optioneel
+// een uitgebreide beschrijving laten zien wanneer `toonBeschrijving` true is.
 interface GekochtProductCardProps {
     naam: string;
     merk: string;
@@ -30,6 +33,7 @@ const GekochtProductCard: React.FC<GekochtProductCardProps> = ({
     toonBeschrijving
 }) => {
     
+    // Fallback-afbeelding wanneer er geen `fotoPath` beschikbaar is
     const defaultImg = "https://syria.adra.cloud/wp-content/uploads/2021/10/empty.jpg";
     return (
     <div className="product-card">

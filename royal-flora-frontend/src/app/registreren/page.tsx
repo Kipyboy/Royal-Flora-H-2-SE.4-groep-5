@@ -8,8 +8,14 @@ import type { RegisterResponseDTO } from '../utils/dtos';
 import { API_BASE_URL } from '../config/api';
 
 
+// Registratiepagina (persoonlijke stap). Verzamelt persoonlijke gegevens, valideert
+// velden client-side en controleert of het opgegeven KvK-nummer al in het systeem bestaat.
+// Als KvK onbekend is, bewaren we de stap tijdelijk in sessionStorage en redirecten naar
+// het bedrijfsregistratieformulier om bedrijf-gegevens in te vullen.
 export default function Registreren() {
     const router = useRouter();
+    // `formData` bevat de waarden van het registratieformulier.
+    // `errors` bevat validatiefouten per veld die in de UI worden getoond.
     const [formData, setFormData] = useState({
         voornaam: '',
         achternaam: '',
@@ -34,6 +40,8 @@ export default function Registreren() {
         adress: ''
     });
 
+    // Algemene onChange handler voor inputs en selects: werk `formData` bij en clear eventuele
+    // foutmelding voor het bewerkte veld zodat directe feedback mogelijk is.
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({
@@ -47,6 +55,8 @@ export default function Registreren() {
         }));
     };
 
+    // Valideer een enkel veld bij blur: retourneert een foutbericht of een lege string
+    // Dit zorgt voor directe feedback per veld bij het verplaatsen van focus.
     const validateField = (name: string, value: string) => {
         let error = '';
 
@@ -109,6 +119,7 @@ export default function Registreren() {
         return error;
     };
 
+    // Bij blur valideren we het veld en tonen direct een foutmelding indien aanwezig
     const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         const error = validateField(name, value);
@@ -118,6 +129,8 @@ export default function Registreren() {
         }));
     };
 
+    // Volledige client-side validatie voor het formulier voordat we iets opsturen.
+    // Controleert aanwezigheid, lengte en speciale regels zoals wachtwoordvereisten en KvK-formaat.
     const validateForm = () => {
         const newErrors = {
             voornaam: '',
@@ -197,6 +210,10 @@ export default function Registreren() {
         return isValid;
     };
 
+    // Behandel form submit: eerst lokale validatie, dan een KvK-controle.
+    // Als KvK niet bestaat, slaan we huidige persoonlijke gegevens op in sessionStorage
+    // en redirecten we naar het bedrijfsregistratieformulier. Als KvK wel bestaat,
+    // roepen we het register endpoint aan en handelen we response/fouten af.
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
@@ -222,7 +239,7 @@ export default function Registreren() {
                 router.push('/bedrijfRegistratie');
                 return;
             }
-            // else KvK exists -> continue and call register endpoint below
+            // KvK-nummer bestaat -> doorgaan en het register-endpoint hieronder aanroepen
         } catch (err) {
             console.error('Error checking KvK:', err);
             alert('Kon KvK-nummer niet controleren. Probeer het later opnieuw.');
@@ -250,7 +267,7 @@ export default function Registreren() {
             });
 
             if (response.ok) {
-                // On success, backend returns token and user similar to login
+                // Bij succes retourneert de backend een token en gebruiker, vergelijkbaar met bij inloggen
                 let data: RegisterResponseDTO | null = null;
                 try {
                     data = await response.json();
@@ -277,7 +294,7 @@ export default function Registreren() {
                         const error = JSON.parse(errorText);
                         errorMessage = error.message || errorMessage;
                     } catch {
-                        // If not JSON, just use the text or a generic message
+                        // Als het geen JSON is, gebruik dan de tekst of een generiek bericht
                         errorMessage = errorText ? errorText.substring(0, 100) : errorMessage;
                     }
                     alert(`Registratie mislukt: ${errorMessage}`);
@@ -294,8 +311,10 @@ export default function Registreren() {
     return (
         <div className="registreren-page">
             <main id="main">
+                {/* Skip-link voor toegankelijkheid */}
                 <a href="#main" className="skip-link">Spring naar hoofdinhoud</a>
             
+            {/* Formulier met aria-labelledby voor betere toegankelijkheid */}
             <form onSubmit={handleSubmit} aria-labelledby="register-title">
                 <h1 id="register-title">Registreren</h1>
                 

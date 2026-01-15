@@ -11,6 +11,9 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace RoyalFlora.Controllers
 {
+    // Controller voor authenticatie en gebruikersbeheer:
+    // - Registratie en login (JWT-token generatie)
+    // - Gebruikersprofiel en bedrijf-informatie ophalen/bijwerken
     [ApiController]
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
@@ -18,6 +21,7 @@ namespace RoyalFlora.Controllers
         private readonly MyDbContext _context;
         private readonly IConfiguration _configuration;
 
+        // Dependency injection: DbContext voor database toegang en IConfiguration voor app-instellingen (bv. JWT-sleutel)
         public AuthController(MyDbContext context, IConfiguration configuration)
         {
             _context = context;
@@ -25,9 +29,13 @@ namespace RoyalFlora.Controllers
         }
 
 
+        // POST api/auth/register
+        // Registreert een nieuwe gebruiker. Valideert invoer, maakt optioneel een nieuw bedrijf aan
+        // en retourneert een JWT-token en gebruikersinfo bij succesvolle registratie.
         [HttpPost("register")]
         public async Task<ActionResult<RegisterResponse>> Register([FromBody] RegisterRequest request)
         {
+            // Basisvalidatie: controleer of verplichte velden zijn ingevuld
             if (string.IsNullOrWhiteSpace(request.VoorNaam) ||
                 string.IsNullOrWhiteSpace(request.AchterNaam) ||
                 string.IsNullOrWhiteSpace(request.E_mail) ||
@@ -40,6 +48,7 @@ namespace RoyalFlora.Controllers
                 });
             }
 
+            // Controleer of het e-mailadres al in gebruik is (case-insensitief)
             if (await _context.Gebruikers.AnyAsync(u => u.Email.ToLower() == request.E_mail.ToLower()))
             {
                 return BadRequest(new RegisterResponse
@@ -50,9 +59,10 @@ namespace RoyalFlora.Controllers
             }
 
             
+            // Optioneel KvK-nummer (alleen wanneer gebruiker een bedrijf opgeeft)
             int? kvkNummer = null;
             
-            
+            // Bepaal de rol id op basis van het geselecteerde accounttype
             int rolId;
             if (request.AccountType == "Inkoper")
             {
@@ -74,11 +84,13 @@ namespace RoyalFlora.Controllers
                     Message = "Ongeldig account type"
                 });
             }
+            // Hash het wachtwoord met BCrypt voordat het in de database wordt opgeslagen
             string hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.Wachtwoord);
 
+            // Als de gebruiker een bedrijfsnaam opgeeft, valideer en verwerk KvK-nummer
             if (!string.IsNullOrWhiteSpace(request.BedrijfNaam))
             {
-                // Validate KVK only when a company is provided
+                // Valideer KvK-nummer: moet bestaan uit 8 cijfers
                 if (string.IsNullOrWhiteSpace(request.KvkNummer) || request.KvkNummer.Length != 8 || !int.TryParse(request.KvkNummer, out int parsedKvk))
                 {
                     return BadRequest(new RegisterResponse
@@ -90,6 +102,7 @@ namespace RoyalFlora.Controllers
 
                 kvkNummer = parsedKvk;
 
+                // Controleer of het bedrijf al bestaat, maak anders een nieuwe aan
                 var existing = await _context.Bedrijven.FindAsync(kvkNummer.Value);
                 if (existing == null)
                 {
@@ -106,8 +119,7 @@ namespace RoyalFlora.Controllers
                 }
             }
 
-            // If no new company name was provided but the user supplied a KVK number,
-            // try to resolve it to an existing `Bedrijf` and use that KVK for the gebruiker.
+            // Als gebruiker enkel KvK invult zonder bedrijfsnaam, koppel aan bestaand bedrijf indien gevonden
             if (string.IsNullOrWhiteSpace(request.BedrijfNaam) && !string.IsNullOrWhiteSpace(request.KvkNummer))
             {
                 if (request.KvkNummer.Length == 8 && int.TryParse(request.KvkNummer, out int parsedKvkExisting))
@@ -120,6 +132,7 @@ namespace RoyalFlora.Controllers
                 }
             }
 
+            // Maak en sla de nieuwe gebruiker op in de database
             var newGebruiker = new Gebruiker
             {
                 VoorNaam = request.VoorNaam,
@@ -137,6 +150,7 @@ namespace RoyalFlora.Controllers
             await _context.SaveChangesAsync();
 
             
+            // Als een nieuw bedrijf is aangemaakt, stel de gebruiker in als oprichter
             if (!string.IsNullOrWhiteSpace(request.BedrijfNaam))
             {
                 var bedrijf = await _context.Bedrijven.FindAsync(kvkNummer);
@@ -148,6 +162,7 @@ namespace RoyalFlora.Controllers
                 }
             }
 
+            // Prepareer UserInfo voor token en response
             var userInfo = new UserInfo
             {
                 Id = newGebruiker.IdGebruiker,
@@ -168,9 +183,12 @@ namespace RoyalFlora.Controllers
             });
         }
 
+        // POST api/auth/login
+        // Authenticeert gebruiker op basis van e-mail en wachtwoord en retourneert JWT-token
         [HttpPost("login")]
         public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request)
         {
+            // Basisvalidatie: e-mail en wachtwoord verplicht
             if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
             {
                 return BadRequest(new LoginResponse
@@ -184,6 +202,7 @@ namespace RoyalFlora.Controllers
                 .Include(g => g.RolNavigation)
                 .FirstOrDefaultAsync(g => g.Email.ToLower() == request.Email.ToLower());
 
+            // Controleer of gebruiker bestaat en verifieer wachtwoord met BCrypt
             if (gebruiker == null || !BCrypt.Net.BCrypt.Verify(request.Password, gebruiker.Wachtwoord))
             {
                 return Unauthorized(new LoginResponse
@@ -213,6 +232,8 @@ namespace RoyalFlora.Controllers
             });
         }
 
+        // GET api/auth/kvk-exists/{kvk}
+        // Controleer of een KvK-nummer voorkomt in de bedrijven tabel
         [HttpGet("kvk-exists/{kvk}")]
         public async Task<ActionResult<bool>> KvkExists(string kvk)
         {
@@ -226,12 +247,15 @@ namespace RoyalFlora.Controllers
             return Ok(existsInBedrijf);
         }
 
+        // Genereer een JWT-token met de belangrijkste gebruikersclaims (id, email, naam, rol, KVK)
+        // Token gebruikt instellingen uit appsettings (Key, Issuer, Audience, ExpirationInMinutes)
         private string GenerateJwtToken(UserInfo user)
         {
             var jwtSettings = _configuration.GetSection("Jwt");
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
+            // Voeg claims toe die in het token aanwezig moeten zijn (gebruikers-id, e-mail, naam, rol, KVK)
             var claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
@@ -242,6 +266,7 @@ namespace RoyalFlora.Controllers
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
+            // Maak en teken JWT met instellingen uit de configuratie
             var token = new JwtSecurityToken(
                 issuer: jwtSettings["Issuer"],
                 audience: jwtSettings["Audience"],
@@ -257,7 +282,7 @@ namespace RoyalFlora.Controllers
         [HttpDelete("deleteAccount")]
         public async Task<ActionResult> DeleteAccount()
         {
-            // Get user ID from JWT claims
+            // Haal gebruiker-id uit JWT-claims en controleer authenticatie
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
             if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
             {
@@ -271,6 +296,7 @@ namespace RoyalFlora.Controllers
                 return NotFound(new { message = "Gebruiker niet gevonden" });
             }
 
+            // Verwijder gebruiker uit database
             _context.Gebruikers.Remove(gebruiker);
 
             try
@@ -284,11 +310,13 @@ namespace RoyalFlora.Controllers
             }
         }
 
+        // GET api/auth/allUserInfo
+        // Retourneer gebruikersinformatie voor de momenteel ingelogde gebruiker
         [Authorize]
         [HttpGet("allUserInfo")]
         public async Task<ActionResult<Gebruiker>> GetUserInfo()
         {
-            // Get user ID from JWT claims
+            // Haal user-id uit JWT-claims
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
 
             if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
@@ -305,6 +333,7 @@ namespace RoyalFlora.Controllers
                 return NotFound(new { message = "Gebruiker niet gevonden" });
             }
 
+            // Return alleen relevante velden (niet het wachtwoord)
             return Ok(new Gebruiker
             {
                 VoorNaam = gebruiker.VoorNaam,
@@ -316,11 +345,13 @@ namespace RoyalFlora.Controllers
             });
         }
 
+        // POST api/auth/updateUserInfo
+        // Update een specifiek veld van de ingelogde gebruiker. Wachtwoord wordt gehasht.
         [HttpPost("updateUserInfo")]
         [Microsoft.AspNetCore.Authorization.Authorize]
         public async Task<ActionResult> UpdateUserInfo([FromBody] UpdateUserInfoRequest request)
         {
-            // Get user ID from JWT claims
+            // Haal user-id uit JWT-claims
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
 
             if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
@@ -336,7 +367,7 @@ namespace RoyalFlora.Controllers
                 return NotFound(new { message = "Gebruiker niet gevonden" });
             }
 
-            // Update alleen het specifieke veld
+            // Update alleen het specifieke veld en hash het wachtwoord wanneer nodig
             switch (request.Field.ToLower())
 
             {
@@ -417,7 +448,7 @@ namespace RoyalFlora.Controllers
                 return NotFound(new { message = "Gebonden bedrijf niet gevonden" });
             }
 
-            // Safely get oprichter name (may be null if not set)
+            // Oprichter kan null zijn; haal veilig de voornaam op
             var oprichterNaam = bedrijf.OprichterNavigation?.VoorNaam ?? string.Empty;
 
             var response = new GetBedrijfInfoResponse
@@ -431,6 +462,8 @@ namespace RoyalFlora.Controllers
 
             return Ok(response);
         }
+        // POST api/auth/UpdateBedrijfInfo
+        // Werk een bepaald veld van het gekoppelde bedrijf bij (bedrijfnaam, postcode, adres)
         [HttpPost("UpdateBedrijfInfo")]
         public async Task<ActionResult> UpdateBedrijfInfo ([FromBody] UpdateBedrijfInfoRequest request)
         {

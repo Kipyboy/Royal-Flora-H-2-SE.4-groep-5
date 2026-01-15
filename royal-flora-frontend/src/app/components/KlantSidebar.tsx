@@ -1,6 +1,8 @@
 import React from 'react';
 import '../../styles/Sidebar.css';
 
+// Sidebar voor inkoper/klant views. Biedt filters voor aankomende/gekochte items en locatie/tekstfilters.
+// Alle inputs zijn controlled en sturen events terug naar de parent.
 interface SidebarProps {
     sidebarVisible: boolean;
     aankomendChecked: boolean;
@@ -16,7 +18,7 @@ interface SidebarProps {
     onCheckboxChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onButtonClick?: React.MouseEventHandler<HTMLButtonElement>;
-}
+} 
 
 
 
@@ -121,6 +123,7 @@ const KlantSidebar: React.FC<SidebarProps> = ({
                 onChange={onInputChange}
                 />
             </fieldset>
+            {/* Toggle: wanneer ingedrukt laat parent component productbeschrijvingen zien i.p.v. overzicht */}
             <button className='description-button' onClick={onButtonClick}>
                 <p>{toonBeschrijving ? 'Toon product overzicht' : 'Toon product beschrijvingen'}</p>
             </button>
