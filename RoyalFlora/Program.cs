@@ -63,12 +63,9 @@ namespace RoyalFlora
                     policy.WithOrigins(
                               "http://localhost:3000",
                               "http://80.56.53.41:3000",
-                              "https://chicken.servegame.com/",  // Vervang met je No-IP domein
-                              "https://localhost:3000",
+                              "https://chicken.servegame.com/",
                               "http://127.0.0.1:3000",
-                              "https://127.0.0.1:3000",
-                              "http://80.56.53.41:3000",
-                              "https://chicken.servegame.com/"  // Vervang met je No-IP domein
+                              "https://127.0.0.1:3000"
                           )
                           .AllowAnyHeader()
                           .AllowAnyMethod()
@@ -121,7 +118,7 @@ END";
             }
 
             // Disabled for development to allow SameSite=Lax cookies over HTTP
-            // app.UseHttpsRedirection();
+            app.UseHttpsRedirection();
 
             // Ensure routing is enabled before applying endpoint CORS
             app.UseRouting();
