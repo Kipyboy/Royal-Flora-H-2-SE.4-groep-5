@@ -145,7 +145,7 @@ namespace RoyalFlora.Controllers
 
             if (gebruiker == null) return Unauthorized();
 
-            // BedrijfNavigation may be null in some DB states; guard against it
+            
             var bedrijf = gebruiker.BedrijfNavigation?.BedrijfNaam ?? string.Empty;
 
             if (!string.IsNullOrWhiteSpace(location))
@@ -377,7 +377,6 @@ namespace RoyalFlora.Controllers
                 if (images != null && images.Count > 0)
                 {
                     var image = images.First();
-                    // Let op: FileName komt van de client. In productie graag een veilige naam genereren (bijv. GUID) en controleren op path traversal
                     string filePath = Path.Combine(uploadsFolder, image.FileName);
 
                     var existingFoto = await _context.Fotos.FirstOrDefaultAsync(f => f.IdProduct == product.IdProduct);
@@ -440,7 +439,7 @@ namespace RoyalFlora.Controllers
         // Endpoint: ga naar het volgende product in de veiling voor een locatie
         // Werkwijze:
         //  - Vind huidig actief product (status 3) voor de locatie
-        //  - Zoek volgend gepland product (status 2 of 5) met datum = vandaag; activeer het als beschikbaar
+        //  - Zoek volgend gepland product (status 2) met datum = vandaag; activeer het als beschikbaar, stop tijdelijk als gepauzeerd (status 5)
         //  - Als er geen volgend product is, herstel huidige naar status 1 (tenzij verkocht)
         //  - Reset de klok voor de locatie via ClockTimerService
         [HttpPost("Advance")]
@@ -462,8 +461,7 @@ namespace RoyalFlora.Controllers
 
             if (next == null)
             {
-                // No next product available. Ensure we clear the "active" status
-                // for the current product so it doesn't keep looping.
+                //als er geen nieuw product beschikbaar is, actief status van huidig product clearen zodat de klok niet blijft loopen op een product
                 var dbStatusCurrent = await _context.Products
                     .Where(p => p.IdProduct == current.IdProduct)
                     .Select(p => p.Status)
@@ -471,7 +469,7 @@ namespace RoyalFlora.Controllers
 
                 if (dbStatusCurrent != 4)
                 {
-                    // If current was not sold, revert it to status 1 (not active)
+                    // als huidige product niet is verkocht, zet naar status 1 om opnieuw ingepland te worden
                     current.Status = 1;
                     _context.Entry(current).State = EntityState.Modified;
                 }
@@ -535,8 +533,7 @@ namespace RoyalFlora.Controllers
             return Ok(new { message = "Product ingepland" });
         }
 
-        // Get all products with status 4, returning naam and verkoopprijs
-        // Supports optional case-insensitive filter by product name using raw SQL
+        //alle producten met status 4 (verkocht) ophalen, waarbij gefilterd kan worden op naam
         [HttpGet("Status4Products")]
         public async Task<ActionResult<IEnumerable<Status4ProductDTO>>> GetStatus4Products([FromQuery] string? naamFilter = null)
         {
@@ -568,7 +565,6 @@ namespace RoyalFlora.Controllers
             }
         }
         
-        //op het moment geen uses
         [HttpGet("VeilingSoldMatches")]
         public async Task<ActionResult<VeilingSoldMatchesDTO>> GetVeilingSoldMatches([FromQuery] string locatie)
         {
@@ -713,7 +709,7 @@ namespace RoyalFlora.Controllers
                 if (prices.Any()) avgPh = Math.Round(prices.Average(), 2);
             }
 
-            // Average of the returned items (recent/top-10)
+            // Average van de gereturnde items
             decimal? avgRecent = null;
             var recentPrices = items.Where(i => i.VerkoopPrijs.HasValue).Select(i => i.VerkoopPrijs!.Value).ToList();
             if (recentPrices.Any()) avgRecent = Math.Round(recentPrices.Average(), 2);
@@ -744,7 +740,7 @@ namespace RoyalFlora.Controllers
             }
         }
 
-        // Admin endpoint: activeer de eerstvolgende geplande producten per locatie voor vandaag (zet status -> 3)
+        // Veilingmeester endpoint: activeer de eerstvolgende geplande producten per locatie voor vandaag (zet status -> 3)
         [Authorize(Roles = "Veilingmeester")]
         [HttpPost("StartAuctions")]
         public async Task<ActionResult> StartAuctions ()
@@ -782,7 +778,7 @@ namespace RoyalFlora.Controllers
             return Ok(activated);
         }
         
-        // Admin endpoint: pauzeer (status -> 5) de eerstvolgende geplande producten per locatie voor vandaag
+        // Veilingmeester endpoint: pauzeer (status -> 5) de eerstvolgende geplande producten per locatie voor vandaag
         [Authorize(Roles = "Veilingmeester")]
         [HttpPost("PauseAuctions")]
         public async Task<ActionResult> PauseAuctions ()
