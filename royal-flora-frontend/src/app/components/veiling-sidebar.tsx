@@ -128,7 +128,6 @@ export default function Sidebar({
       );
 
       if (response.ok) {
-        console.log("Product gekocht!");
         window.location.reload();
       } else {
         console.error("product niet gekocht:", response.status);

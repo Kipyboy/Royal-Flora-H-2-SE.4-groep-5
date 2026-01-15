@@ -59,8 +59,6 @@ export function getUser(): { id: number; username: string; email: string; role: 
   }
 
   // Logging voor debugdoeleinden (kan later verwijderd worden)
-  console.log("Loaded user from localStorage:", user);
-  console.log("JWT token:", token);
   return user;
 }
 

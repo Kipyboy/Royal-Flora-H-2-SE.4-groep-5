@@ -175,7 +175,6 @@ export default function VeilingMeesterProductPage() {
       }
       const data: ProductDTO[] = await response.json();
       setProducts(data);
-      console.log('Ontvangen producten:', data);
 
       } catch(err){
         console.error(err);
@@ -205,7 +204,6 @@ export default function VeilingMeesterProductPage() {
       alert('Invalide product geselecteerd.');
       return;
     }
-    console.log('Submitting form data:');
     e.preventDefault();
     if(!validateForm()) return;
 

@@ -133,7 +133,6 @@ const BedrijfDetails: React.FC = () => {
     // Slaat een enkel bedrijfsveld op via de backend. Controleert token en behandelt fouten.
     const handleSave = async (field: keyof BedrijfInfo) => {
         try {
-            console.log(`Saving field ${field} with value ${bedrijfDetails[field]}`);
             const authHeaders = getAuthHeaders();
 
             if (!authHeaders.Authorization) {
