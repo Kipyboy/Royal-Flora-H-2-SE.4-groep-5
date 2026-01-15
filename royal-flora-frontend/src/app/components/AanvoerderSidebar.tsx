@@ -8,10 +8,10 @@ interface SidebarProps {
   sidebarVisible: boolean; // bepaalt of het paneel zichtbaar is
   aankomendChecked: boolean; // filter: aankomende producten
   eigenChecked: boolean; // filter: eigen producten
-  aChecked: boolean; // filter: locatie A
-  bChecked: boolean; // filter: locatie B
-  cChecked: boolean; // filter: locatie C
-  dChecked: boolean; // filter: locatie D
+  aChecked: boolean; // filter: locatie Naaldwijk
+  bChecked: boolean; // filter: locatie Aalsmeer
+  cChecked: boolean; // filter: locatie Rijnsburg
+  dChecked: boolean; // filter: locatie Eelde
   dateFilter: string; // geselecteerde datum
   merkFilter: string; // merk-filter tekst
   naamFilter: string; // naam-filter tekst
