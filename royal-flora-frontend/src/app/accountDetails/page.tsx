@@ -211,7 +211,7 @@ const AccountDetails: React.FC = () => {
                             ...authHeaders,
                         }
                     })
-                // Ongeacht response: clear auth en redirect (optie: hier ook response.ok controleren)
+                // Ongeacht response: clear auth en redirect
                 clearAuth();
                 router.push('/');
             } catch (error) {
