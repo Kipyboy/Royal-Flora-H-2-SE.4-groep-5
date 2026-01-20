@@ -66,11 +66,11 @@ namespace RoyalFlora.Controllers
             int rolId;
             if (request.AccountType == "Inkoper")
             {
-                rolId = 1;
+                rolId = 2;
             }
             else if (request.AccountType == "Aanvoerder")
             {
-                rolId = 2;
+                rolId = 1;
             }
             else if (request.AccountType == "Veilingmeester")
             {
